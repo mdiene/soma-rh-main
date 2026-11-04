@@ -18,6 +18,7 @@ const GROUPS: { title: string; items: Item[] }[] = [
     { to: '/equipes', label: 'Équipes et managers', icon: Users, roles: ['rh'] },
     { to: '/mon-equipe', label: 'Mon équipe', icon: Users, roles: ['manager'] },
     { to: '/equipes/organigramme', label: 'Organigramme', icon: Network, roles: ['rh', 'paie', 'manager', 'salarie'] },
+    { to: '/equipes/simulation', label: 'Simulation d’organisation', icon: Network, roles: ['rh'] },
   ] },
   {
     title: 'Personnel',
