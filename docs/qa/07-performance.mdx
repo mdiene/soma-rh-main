@@ -1,0 +1,54 @@
+---
+title: "07 — Performance"
+description: "Temps de réponse des lectures, analyses et de la paie sur quatre tailles d'entreprise ; premier goulot identifié."
+---
+
+## Objectif et méthode
+
+Mesurer, de bout en bout (jeton réel, RLS, passerelle, PostgREST, base), le temps des opérations les plus coûteuses quand l'entreprise passe de 25 à 1 050 salariés, et trouver le premier goulot d'étranglement.
+
+- Quatre scénarios chargés par `scripts/qa-reset-scenario.ps1` : `pme-25` (52 salariés au total avec les 27 d'origine), `pme-80` (107), `eti-200` (237), `grande-1000` (1 077).
+- Chaque opération est répétée 3 fois (2 pour le calcul de paie) ; on retient la **médiane**.
+- Le calcul de paie porte sur une période de test (mars 2025) créée puis supprimée. Les salariés fictifs n'ont pas de bulletins, présences ni congés : voir les limites.
+- Machine de développement, base locale dans Docker : les chiffres servent à comparer les tailles entre elles, pas à dimensionner un serveur.
+- Rejouer : `sh tests/perf/run-all.sh` (sauvegarde, quatre chargements, retour à `pme-25`). Résultats bruts : `tests/perf/resultats/`.
+
+## Résultats (médiane en millisecondes)
+
+| Opération | 52 salariés | 107 | 237 | 1 077 |
+|---|---|---|---|---|
+| Liste des salariés (toutes colonnes) | 41 | 33 | 24 | 57 |
+| Présences du mois (planning) | 89 | 62 | 64 | 54 |
+| Soldes de congés | 67 | 46 | 49 | 38 |
+| Tableau de bord RH | 32 | 41 | 30 | 22 |
+| Analyses RH (36 mois) | 35 | 31 | 21 | 44 |
+| **Calcul de la paie du mois** | 594 | 1 388 | 2 747 | **13 333** |
+| **Livre de paie** | 87 | 182 | 568 | **1 785** |
+| Bulletins du traitement | 27 | 63 | 73 | 429 |
+| Rapport de clôture | 41 | 33 | 44 | 119 |
+| Contrôles avant validation | 53 | 26 | 38 | 74 |
+| Bulletins calculés | 37 | 89 | 207 | 963 |
+
+Le journal comptable n'est pas chronométré : il refuse les paies non validées (comportement voulu).
+
+## Lecture
+
+- **Lectures et analyses : aucun problème.** Moins de 100 ms à 1 077 salariés, sans dépendance à la taille. Mais ces tables ne grandissent pas dans nos scénarios (voir limites).
+- **Le calcul de la paie est le premier goulot** : environ 12 à 14 ms par bulletin, linéaire (13,3 s pour 963 bulletins). Acceptable pour un traitement mensuel lancé une fois, mais l'écran reste bloqué sans progression pendant ce temps, et l'appel risque d'expirer si la machine est plus lente ou les règles plus riches.
+- **Le livre de paie est le deuxième** : 1,8 s à 963 lignes pour une simple lecture, à peu près linéaire (2 ms par ligne). `EXPLAIN (ANALYZE, BUFFERS)` sur la vue `v_payroll_register` : 1,44 s d'exécution et 74 000 pages lues pour 963 lignes. Le coût vient de la lecture répétée de la colonne JSON `calculation` (une quarantaine d'extractions par ligne, qui relisent chaque fois la valeur stockée à l'écart) plus, par ligne, une recherche du cumul de l'année qui ne trouve rien et s'exécute 963 fois. La lecture directe de `salary_slips` pour le même traitement prend 1 ms.
+
+## Pistes (non appliquées, à décider)
+
+1. Livre de paie : extraire les montants du JSON une seule fois (sous-requête ou colonnes générées), et calculer les cumuls de l'année en une passe plutôt qu'une recherche par ligne. Gain attendu : plusieurs fois moins de temps ; à mesurer avant et après, avec `verify-payroll.ps1` en garde-fou.
+2. Calcul de paie : profiler `compute_salary_slip` (il est appelé une fois par salarié) pour trouver les lectures répétées de paramètres ; envisager un traitement par lots avec indicateur d'avancement côté écran.
+3. Seuil à surveiller : au-delà d'environ 5 000 salariés, le calcul dépasserait la minute.
+
+## Limites
+
+- Les usines de données ne créent pas de bulletins, présences ni demandes de congé : planning, soldes, tableaux de bord et analyses sont mesurés sur peu de lignes. Pour conclure sur ces écrans, il faut étendre `generate.sql` (12 mois de présences, bulletins historiques, congés).
+- Pas de mesure en concurrence (plusieurs utilisateurs à la fois) : k6 n'est pas installé.
+- Une seule machine, un seul jeu de répétitions : les écarts de moins de 30 % ne sont pas significatifs.
+
+## Défaut trouvé pendant la mesure
+
+D-018 : `qa-reset-scenario.ps1` lancé depuis un autre interpréteur envoyait les accents en `?` à la base et échouait ; encodage UTF-8 forcé dans le script.

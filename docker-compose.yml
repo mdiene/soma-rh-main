@@ -44,6 +44,8 @@ services:
       POSTGREST_URL: http://postgrest:3000
       JWT_SECRET: ${JWT_SECRET:?Define JWT_SECRET in .env}
       DOCUMENT_ROOT: /data/documents
+      RATE_LIMIT_MAX: ${RATE_LIMIT_MAX:-30}
+      SIGNUP_ENABLED: ${SIGNUP_ENABLED:-false}
     ports:
       - "8000:8000"
     volumes:

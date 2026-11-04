@@ -23,6 +23,7 @@
           "qa/04-oracle-differentiel",
           "qa/05-fonctionnel-isolation",
           "qa/06-api-integration",
+          "qa/07-performance",
           "qa/defects",
           "qa/registre-donnees-de-test",
           "changelog",

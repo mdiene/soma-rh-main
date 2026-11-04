@@ -6,6 +6,7 @@ param(
 # Recharge un scénario de test fictif (salariés QA*). Les salariés d'origine ne sont jamais modifiés.
 # Rejouable : deux exécutions produisent la même empreinte (affichée à la fin).
 $ErrorActionPreference = 'Stop'
+$OutputEncoding = [System.Text.UTF8Encoding]::new($false)  # D-018 : sans cela les accents deviennent « ? » vers Docker
 $root = Split-Path $PSScriptRoot -Parent
 $cfg = @{ 'pme-25' = @(25,0); 'pme-80' = @(80,1); 'eti-200' = @(210,1); 'grande-1000' = @(1050,1) }
 $n, $extras = $cfg[$Scenario]

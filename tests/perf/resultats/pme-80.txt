@@ -1,0 +1,39 @@
+{"scenario":"pme-80","tailles":"107|282|378|9"}
+{"scenario":"pme-80","operation":"Liste des salariés (admin, toutes colonnes)","statut":200,"mediane_ms":33,"max_ms":34,"ko":128}
+{"scenario":"pme-80","operation":"Liste des salariés (admin, page de 50)","statut":200,"mediane_ms":21,"max_ms":31,"ko":7}
+{"scenario":"pme-80","operation":"Salarié : son propre dossier (RLS)","statut":200,"mediane_ms":48,"max_ms":49,"ko":1}
+{"scenario":"pme-80","operation":"Présences du mois (planning)","statut":200,"mediane_ms":62,"max_ms":71,"ko":25}
+{"scenario":"pme-80","operation":"Demandes de congé","statut":200,"mediane_ms":27,"max_ms":30,"ko":4}
+{"scenario":"pme-80","operation":"Soldes de congés (vue)","statut":200,"mediane_ms":46,"max_ms":46,"ko":7}
+{"scenario":"pme-80","operation":"Tableau de bord RH","statut":200,"mediane_ms":41,"max_ms":51,"ko":3}
+{"scenario":"pme-80","operation":"Analyses RH (12 mois)","statut":200,"mediane_ms":34,"max_ms":36,"ko":3}
+{"scenario":"pme-80","operation":"Analyses RH (36 mois)","statut":200,"mediane_ms":31,"max_ms":32,"ko":7}
+{"scenario":"pme-80","operation":"Tableau de bord annuel","statut":200,"mediane_ms":36,"max_ms":43,"ko":5}
+{"scenario":"pme-80","operation":"Calcul de la paie du mois (run_payroll_entry)","statut":200,"mediane_ms":1388,"max_ms":1388,"ko":0}
+{"scenario":"pme-80","bulletins_calcules":"89","calcul_ms":1387.6187}
+{"scenario":"pme-80","operation":"Livre de paie (v_payroll_register)","statut":200,"mediane_ms":182,"max_ms":198,"ko":144}
+{"scenario":"pme-80","operation":"Bulletins du traitement","statut":200,"mediane_ms":63,"max_ms":70,"ko":510}
+{"scenario":"pme-80","operation":"Rapport de clôture","statut":200,"mediane_ms":33,"max_ms":35,"ko":15}
+{"scenario":"pme-80","operation":"Récapitulatif des paiements","statut":200,"mediane_ms":30,"max_ms":31,"ko":0}
+{"scenario":"pme-80","operation":"Journal comptable (export)","statut":400,"mediane_ms":13,"max_ms":14,"ko":0}
+{"scenario":"pme-80","operation":"Contrôles avant validation","statut":200,"mediane_ms":26,"max_ms":31,"ko":14}
+
+| Opération | Statut | Médiane (ms) | Max (ms) | Ko |
+|---|---|---|---|---|
+| Liste des salariés (admin, toutes colonnes) | 200 | 33 | 34 | 128 |
+| Liste des salariés (admin, page de 50) | 200 | 21 | 31 | 7 |
+| Salarié : son propre dossier (RLS) | 200 | 48 | 49 | 1 |
+| Présences du mois (planning) | 200 | 62 | 71 | 25 |
+| Demandes de congé | 200 | 27 | 30 | 4 |
+| Soldes de congés (vue) | 200 | 46 | 46 | 7 |
+| Tableau de bord RH | 200 | 41 | 51 | 3 |
+| Analyses RH (12 mois) | 200 | 34 | 36 | 3 |
+| Analyses RH (36 mois) | 200 | 31 | 32 | 7 |
+| Tableau de bord annuel | 200 | 36 | 43 | 5 |
+| Calcul de la paie du mois (run_payroll_entry) | 200 | 1388 | 1388 | 0 |
+| Livre de paie (v_payroll_register) | 200 | 182 | 198 | 144 |
+| Bulletins du traitement | 200 | 63 | 70 | 510 |
+| Rapport de clôture | 200 | 33 | 35 | 15 |
+| Récapitulatif des paiements | 200 | 30 | 31 | 0 |
+| Journal comptable (export) | 400 | 13 | 14 | 0 |
+| Contrôles avant validation | 200 | 26 | 31 | 14 |

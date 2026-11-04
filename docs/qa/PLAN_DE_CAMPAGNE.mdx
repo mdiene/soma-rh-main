@@ -16,7 +16,7 @@ Ce plan détaille le prompt. Chaque phase produit un rapport `NN-*.mdx`, des tes
 | 4 | Cas de test et cas limites | Cas avec ID, exigence, données, automatisé ou manuel | **En cours** : oracle différentiel (rapport `04`, 939 salariés) ; catalogue de cas avec ID à compléter |
 | 5 | Tests fonctionnels et isolation par rôle | Matrice rôles × tables/fonctions, 0 accès hors périmètre | **Premier lot fait** : lecture par rôle (rapport `05`, 10 tests) ; reste les écritures par rôle sur chaque table |
 | 6 | API et intégration | Chaque fonction RPC et route Node testée (nominal, rôle, jeton, concurrence) | **Fait pour les routes, le workflow, les jetons et la concurrence** (rapport `06`, 35 tests) ; reste le débit/anti-force brute et le renouvellement par `refresh_token` |
-| 7 | Performance | Tableau salariés vers temps, premier goulot | À faire |
+| 7 | Performance | Tableau salariés vers temps, premier goulot | **Fait** : rapport `07`, 4 scénarios ; goulot = calcul de paie (13 s à 963 bulletins) puis livre de paie (1,8 s) ; données historiques à ajouter aux scénarios |
 | 8 | Sécurité et confidentialité | Audit SQL maison, OWASP, `npm audit`, Docker | À faire |
 | 9 | Utilisabilité et accessibilité | axe sans violation grave, formats fr | À faire |
 | 10 | CI et non-régression | `ci.yml` bloque sur SQL, oracle, Playwright | À faire |
@@ -24,7 +24,7 @@ Ce plan détaille le prompt. Chaque phase produit un rapport `NN-*.mdx`, des tes
 | 12 | Surveillance | Tâches planifiées et indicateurs | À faire |
 | 13 | Benchmark Sage et Frappe HR | `docs/comparatif/` et backlog | À faire |
 
-Défauts trouvés à ce jour : D-001 à D-017 ([journal](./defects)). Clos : D-001, D-005, D-007, D-009 à D-017. Ouverts : D-002, D-006 (décisions du propriétaire), D-003, D-004, D-008 (à confirmer).
+Défauts trouvés à ce jour : D-001 à D-020 ([journal](./defects)). Clos : D-001, D-005, D-007, D-009 à D-018. Ouverts : D-002, D-006 (décisions du propriétaire), D-003, D-004, D-008 (à confirmer), D-019, D-020.
 
 ## Étapes détaillées par phase
 
