@@ -13,36 +13,21 @@ import { createDocumentThumbnail } from './thumbnail.mjs'
 const rateLimitStore = new Map() // ip -> { count, resetTime }
 const bruteForceStore = new Map() // ip -> { failures, lockedUntil }
 
-// Ensure refresh_tokens table exists
-;(async () => {
-  try {
-    await pool.query(`
-      CREATE TABLE IF NOT EXISTS public.refresh_tokens (
-        id UUID PRIMARY KEY DEFAULT randomUUID(),
-        user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
-        token_hash TEXT NOT NULL,
-        expires_at TIMESTAMPTZ NOT NULL,
-        is_revoked BOOLEAN DEFAULT FALSE,
-        created_at TIMESTAMPTZ DEFAULT now(),
-        last_used_at TIMESTAMPTZ
-      )
-    `)
-    await pool.query(`CREATE INDEX IF NOT EXISTS idx_refresh_tokens_hash ON public.refresh_tokens(token_hash)`)
-    await pool.query(`DELETE FROM public.refresh_tokens WHERE expires_at < now() - INTERVAL '48 hours'`)
-    console.log('✓ refresh_tokens table ensured')
-  } catch (err) {
-    console.warn('⚠ refresh_tokens table could not be ensured (may already exist or error):', err.message)
-  }
-})()
+// La table public.refresh_tokens est créée par la migration 20261105120000_refresh_tokens.sql (D-017).
 
 // Refresh token store (in-memory; in production use persisted store with rotation)
 // Format: { [token]: { userId, createdAt, lastUsed, valid: true } }
 const refreshTokenStore = new Map()
 
+// Adresse du client : request.ip n'existe pas sur http.IncomingMessage, d'où un compteur commun à tous (D-017)
+function clientIp(request) {
+  return request.socket?.remoteAddress || 'unknown'
+}
+
 // Simple rate limiter middleware factory
 function rateLimitMiddleware(max, windowMs) {
   return async (request, response, next) => {
-    const ip = request.ip || 'unknown'
+    const ip = clientIp(request)
     const now = Date.now()
     const entry = rateLimitStore.get(ip)
 
@@ -67,7 +52,7 @@ function rateLimitMiddleware(max, windowMs) {
 // Brute force protection checker
 function bruteForceCheckMiddleware(maxFailures, lockDurationMs) {
   return async (request, response, next) => {
-    const ip = request.ip || 'unknown'
+    const ip = clientIp(request)
     const now = Date.now()
     const entry = bruteForceStore.get(ip)
 
@@ -131,11 +116,11 @@ const jwtSecret = process.env.JWT_SECRET
 // Security configuration (override via env in production)
 const SECURITY = {
   // Inscription : false = fermée (admin uniquement), true = ouverte
-  signupEnabled: process.env.SIGNUP_ENABLED !== 'false',
+  signupEnabled: process.env.SIGNUP_ENABLED === 'true', // fermée par défaut (D-016)
   // Rate limiting : max requêtes par intervalle par IP
   rateLimit: {
     windowMs: 15 * 60 * 1000, // 15 minutes
-    max: Number(process.env.RATE_LIMIT_MAX ?? 10), // 10 req/15min par défaut
+    max: Number(process.env.RATE_LIMIT_MAX ?? 30), // 30 connexions/15min par IP par défaut
   },
   // Refresh token : expiration en ms (24h par défaut)
   refreshTokenTtl: Number(process.env.REFRESH_TOKEN_TTL ?? 24 * 60 * 60 * 1000),
@@ -209,7 +194,7 @@ function sendPdf(response, bytes, fileName) {
 async function documentRoute(request, response, url) {
   const token = request.headers.authorization?.replace(/^Bearer\s+/i, '')
   if (!token) return json(response, 401, { message: 'Authentification requise' }), true
-  const { payload } = await jwtVerify(token, secret, { audience: 'authenticated' })
+  const { payload } = await jwtVerify(token, secret, { audience: 'authenticated', algorithms: ['HS256'] })
   const userId = String(payload.sub ?? '')
   if (!userId) return json(response, 401, { message: 'Session invalide' }), true
 
@@ -410,9 +395,12 @@ function setCors(request, response) {
 
 async function auth(request, response, pathname) {
   // Middleware : vérification rate limit et brute force
-  if (request.method !== 'OPTIONS') {
+  // Limitation seulement sur les points qui reçoivent des identifiants : /auth/v1/user est appelé à chaque page
+  const sensible = request.method === 'POST' && (pathname === '/auth/v1/token' || pathname === '/auth/v1/signup')
+  if (sensible) {
     await rateLimitMiddleware(SECURITY.rateLimit.max, SECURITY.rateLimit.windowMs)(request, response, async () => {})
     await bruteForceCheckMiddleware(SECURITY.bruteForceMax, 30 * 60 * 1000)(request, response, async () => {})
+    if (response.writableEnded) return true // 429 déjà envoyé : on n'exécute pas la requête
   }
 
   if (request.method === 'POST' && pathname === '/auth/v1/signup') {
@@ -425,7 +413,7 @@ async function auth(request, response, pathname) {
       return json(response, 400, { error: 'email et mot de passe de 8 caractères minimum requis' })
     }
     // Vérifier les échecs précédents pour ce IP (débloquer si nécessaire)
-    const ip = request.ip || 'unknown'
+    const ip = clientIp(request)
     const bfEntry = bruteForceStore.get(ip)
     if (bfEntry && bfEntry.lockedUntil && Date.now() > bfEntry.lockedUntil) {
       delete bruteForceStore.get(ip)
@@ -460,7 +448,7 @@ async function auth(request, response, pathname) {
     const user = result.rows[0]
     if (!user || !(await bcrypt.compare(input.password ?? '', user.encrypted_password))) {
       // Enregistrer l'échec pour anti-force brute
-      const ip = request.ip || 'unknown'
+      const ip = clientIp(request)
       let bfEntry = bruteForceStore.get(ip)
       if (!bfEntry) {
         bfEntry = { failures: 0, lockedUntil: 0 }
@@ -474,7 +462,7 @@ async function auth(request, response, pathname) {
       return json(response, 400, { error: 'invalid_credentials', error_description: 'Adresse ou mot de passe invalide' })
     }
     // Réinitialiser les échecs à la connexion réussie
-    const ip = request.ip || 'unknown'
+    const ip = clientIp(request)
     bruteForceStore.delete(ip)
     // Rotate refresh token : ancien invalide, nouveau créé
     const newRefreshToken = await rotateRefreshToken(user.id, input.email)
@@ -489,7 +477,7 @@ async function auth(request, response, pathname) {
   if (request.method === 'GET' && pathname === '/auth/v1/user') {
     const token = request.headers.authorization?.replace(/^Bearer\s+/i, '')
     if (!token) return json(response, 401, { message: 'Missing authorization' })
-    const { payload: claims } = await jwtVerify(token, secret, { audience: 'authenticated' })
+    const { payload: claims } = await jwtVerify(token, secret, { audience: 'authenticated', algorithms: ['HS256'] })
     const result = await pool.query('select id, email, created_at, updated_at from auth.users where id = $1', [claims.sub])
     return result.rows[0] ? json(response, 200, result.rows[0]) : json(response, 401, { message: 'User not found' })
   }
@@ -544,6 +532,8 @@ const server = http.createServer(async (request, response) => {
     response.writeHead(upstream.status, responseHeaders)
     response.end(Buffer.from(await upstream.arrayBuffer()))
   } catch (error) {
+    // Jeton expiré, falsifié ou mal formé (jose) : 401 et non 500 (D-015)
+    if (/^ERR_(JWT|JWS|JOSE)/.test(String(error?.code))) return json(response, 401, { message: 'Session invalide ou expirée' })
     console.error(error)
     json(response, 500, { message: 'Erreur interne de la passerelle' })
   }

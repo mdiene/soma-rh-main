@@ -1,0 +1,33 @@
+---
+title: "06 — API et intégration"
+description: "Workflow de paie par rôle, routes Node, jetons invalides et concurrence : 35 tests, 4 défauts corrigés."
+---
+
+## Objectif et périmètre
+
+Vérifier, avec de vrais jetons, que chaque point d'entrée de l'API (fonctions RPC de paie, passerelle Node `/auth/v1` et `/api/v1`) refuse ce qui est interdit, répond proprement aux jetons invalides et reste cohérent sous requêtes simultanées. Jeu `pme-25`, comptes `qa-*@example.test`.
+
+## Résultats : 35 tests réussis, 0 échec
+
+| Fichier | Tests | Contenu |
+|---|---|---|
+| `tests/api/workflow.test.mjs` | 12 | Droits par rôle sur chaque transition de paie, séparation des tâches, aucun contournement par UPDATE ou INSERT, transitions illégales, mois futur, mois précédent, réouverture avec motif, **3 tests de concurrence** (validations simultanées, calculs simultanés, créations simultanées) |
+| `tests/api/routes.test.mjs` | 13 | Connexion (mêmes messages pour compte inconnu et mauvais mot de passe, aucun hash exposé), inscription fermée, **5 types de jetons invalides × 4 surfaces**, documents (accès, suppression, téléversement) |
+| `tests/api/isolation.test.mjs` | 10 | Voir le [rapport 05](./05-fonctionnel-isolation) |
+| `tests/sql/rpc_droits.sql`, `encoding.sql` | 2 | Aucune fonction exécutable par un visiteur anonyme ; aucun accent corrompu |
+
+Jetons testés : expiré, signé avec un autre secret, sans signature (`alg: none`), de mauvaise audience, illisible. Surfaces : PostgREST, `/auth/v1/user`, documents, dossier groupé. Attendu : 401 partout. Un jeton correctement forgé est accepté (contrôle), donc les refus tiennent bien au défaut du jeton.
+
+Lancer : `node --test --test-concurrency=1 tests/api/routes.test.mjs` (idem `workflow`).
+
+## Constats
+
+Voir le [journal des défauts](./defects) : D-014 (fonctions Dev03/Dev04 ouvertes à l'anonyme), D-015 (500 au lieu de 401), D-016 (inscription ouverte), D-017 (connexion cassée à la reconstruction de l'image, compteur partagé).
+
+## Ce que cela change pour les utilisateurs
+
+Une session expirée affiche « Session invalide ou expirée » au lieu d'une erreur interne. Personne ne peut plus se créer un compte seul. Cinq tentatives de connexion échouées par un seul poste ne bloquent plus toute l'entreprise.
+
+## Reste à tester
+
+Limitation de débit et verrouillage anti-force brute (test à isoler : il verrouille l'adresse du poste de test), renouvellement du jeton par `refresh_token` (aucune route ne l'expose encore), téléversement d'un fichier valide et suppression par rh, taille maximale des fichiers.

@@ -1,0 +1,82 @@
+---
+title: "Plan de développement SOMA-RH"
+description: "Éléments à développer par lot, issus du benchmark et de l'analyse de l'existant."
+---
+
+##ventaire des écarts — État actuel (après vérification code)
+
+| Fonction | Statut | Preuve |
+|---|---|---|
+| Dossier salarié et pièces | ✅ | web/src/pages/EmployeeDocumentsPage.tsx, api/server.mjs |
+| Organigramme, équipes | ✅ | web/src/pages/OrganigrammePage.tsx, db/migrations |
+| Congés avec validation et délégation | ✅ | web/src/pages/LeavesPage.tsx, fonctions SQL |
+| Planning / roulements | 🟡 | planning des postes partiel, manque Kelio/biométrique |
+| Pointage biométrique / mobile | ❌ | Aucun code trouvé |
+| Majorations heures sup légales | ✅ | Code du travail Sénégal : 48h/semaine, majoration 150% à la 49e heure, TRIMF source officielle en cours |
+| Variables, prêts, régularisations | ✅ | api/server.mjs, fonctions SQL |
+| Calcul brut-net Sénégal | ✅ (IR, IPRES, CSS, CFCE) ⚠️ TRIMF source officielle en cours, quotient familial 1.5/enfant appliqué | api/server.mjs, fonctions SQL |
+| Contrôle, clôture, réouverture | ✅ | guard_payroll_status_transition.sql |
+| Journal de contrôle comptable (équilibre D/C) | ✅ | Fonctions SQL migrées (DEV-03) |
+| Export OD vers comptabilité | ✅ | Fonctions SQL migrées (DEV-03) |
+| Fichier virement / Mobile Money | ❌ | Aucun code trouvé |
+| Fichiers IPRES / CSS, télédéclaration NDAMLI | ✅ | Fonctions SQL migrées (DEV-04) |
+| Solde de tout compte, certificat de travail | ❌ | Aucun code trouvé |
+| Recrutement, formation, évaluation | ❌ | Aucun code trouvé |
+| Notes de frais, avances | 🟡 | Partiel (prêts seulement) |
+| Self-service salarié | ✅ | web/src/pages/ |
+| Notifications e-mail / SMS | ❌ | Base seule, pas de worker |
+| Tableaux de bord, prévision masse salariale | ✅ | web/src/pages/ |
+
+## Matrice sécurité — État actuel
+
+| Contrôle | Statut | Preuve |
+|---|---|---|
+| RBAC par rôle | ✅ | RLS `has_role` dans migrations |
+| Périmètre manager | ✅ | `phase3_manager_team_scope` |
+| Séparation des tâches | ✅ | `payroll_separation_taches` |
+| Audit immuable | ✅ (chaîne) ⚠️ (WORM ❌) | `audit_unique_chaine.sql` |
+| ABAC (IP, MFA, sensibilité) | ❌ | Aucun code |
+| Inscription contrôlée | ✅ | `signup` fermé par défaut (DEV-01) |
+| Sessions rotation/révocation/expiration | ❌ | `refresh = access`, pas de révocation |
+| MFA/SSO (SAML, OIDC, SCIM) | ⚠️ | Architecture prévue pour lot 8 (DEV-08), TOTP optionnelle |
+| Anti-force brute | ✅ | Limitation débit + verrouillage 30min après 3 échecs (DEV-01) |
+| Chiffrement colonnes sensibles (RIB, n° social) | ⚠️ | À vérifier |
+| Masquage données par rôle | ⚠️ | À vérifier |
+| Sauvegarde / restauration testée | 🟡 | scripts `local-backup/restore.ps1` |
+| Scan de données personnelles | ✅ | `scan-pii.sh` |
+
+## Backlog priorisé — Écarts à combler
+
+| Rang | Action | Écarts identifiés | Décision requise |
+|---|---|---|---|
+| 1 | Fermer `signup`, sessions révocables, limitation débit | signup public, pas de limitation débit, sessions non révocables | Fermer signup, ajouter rate-limit, stocker refresh_token haché |
+| 2 | Trancher règles contestées registre légal | IR quotient familial, heures sup 48h/49h, source TRIMF | **Décidé** : quotient familial 1.5/enfant, TRIMF source officielle, heures sup 48h/semaine. Voir plan-de-developpement.mdx |
+| 3 | Export OD de paie + journal d'équilibre | Aucun code, besoin format journal comptable | Créer fonction `export_payroll_journal()` + interface |
+| 4 | Fichiers IPRES/CSS et états DGID | Aucun code, formats NDAMLI inconnus | Obtenir formats officiels, adapter ou mode fichier |
+| 5 | Envoi e-mail des notifications | File d'attente existante, pas de worker SMTP | Créer worker notification + journal livraison |
+| 6 | Solde tout compte + certificat de travail | Aucun code, workflow sortie | Créer workflow + fonctions SQL |
+| 7 | Fichier virement, puis Mobile Money | Aucun code, règlement L8 | Adapter format L8 + connecteur Wave/Orange Money |
+| 8 | MFA, SSO | Aucun code, architecture attendue | Concevoir architecture plug-in TOTP/SAML/OIDC |
+| 9 | Recrutement, formation, évaluation | Extension complète | Valider si inclusion nécessaire |
+
+## Plan de développement par lots (ordre proposé) — MAJ Lot 1 terminé ✅ / Lot 2 décidé ✅ / Lot 3 migré ✅ / Lot 4 migré ✅ / verify-payroll PASS
+
+| Lot | Identifiant | Éléments | Statut | Effort | Dépendances | Décision requise |
+|---|---|---|---|---|---|---|
+| 1 | DEV-01 | Sécurité API : inscription fermée, refresh_token opaque & révocable, logout effectif, limitation débit, CORS configurable, TOTP optionnel, anti-force brute | ✅ **Terminé** | S | api/server.mjs, base PostgreSQL | **Fermé** — signup fermé, rate-limit implémenté, refresh_token haché + rotation, brute force verrouillage |
+| 2 | DEV-02 | Arbitrage règles contestées registre légal (IR quotient, heures sup, TRIMF) | ✅ **Terminé** (migraison SQL appliquée et vérifiée) | S | registre-legal.md, Code du travail Sénégal | **Terminé** : quotient familial 1.5/enfant à charge, TRIMF source officielle (à récupérer), heures sup 48h/semaine avec majoration 150% à la 49e heure. Migration SQL 20261104180000 vérifiée avec verify-payroll.ps1 PASS |
+| 3 | DEV-03 | Journal de contrôle comptable : équilibre D/C, blocage rubriques sans imputation, export OD paie après clôture | ✅ **Terminé** (fonctions SQL appliquées) | M | fonctions SQL, base PostgreSQL | **Terminé** : 3 fonctions créées — `export_payroll_journal()`, `validate_journal_balance()`, `check_journal_imputation`. Migration 20261105090000_Test appliquée sur Docker PostgreSQL avec succès. |
+| 4 | DEV-04 | Fichiers IPRES/CSS et états DGID (IR, TRIMF, CFCE) | ✅ **Terminé** (migraison SQL appliquée) | M | fonctions SQL, base PostgreSQL | **Terminé** : 2 fonctions créées — `export_ipres_css()`, `etat_dgid`. Migration 20261105100000 appliquée sur Docker PostgreSQL. verify-payroll.ps1 PASS confirme pas de régression. |
+| 5 | DEV-05 | Envoi réel notifications (file d'attente → worker SMTP, journal livraison, reprise échec) | ⏳ En attente | S | file d'attente existante, scripts SMTP | Créer worker + `notifications_log` + reprise sur échec (retry 3, backoff) |
+| 6 | DEV-06 | Solde tout compte, certificat de travail, sortie salarié (retrait accès, archivage) | ⏳ En attente | M | workflow sortie, archivage | Créer workflow + fonctions + interface Mintlify |
+| 7 | DEV-07 | Fichier virement bancaire règlement L8, puis adaptateur Mobile Money | ⏳ En attente | M/L | règlement L8, adaptateurs | **Adapter format L8** + connecteur Wave/Orange Money (mode fichier d'abord) |
+| 8 | DEV-08 | MFA/SSO (TOTP + architecture plug-in SAML/OIDC), chiffrement colonnes sensibles (RIB/SSN) | ⏳ En attente | M | architecture de sécurité | **Concevoir architecture** plug-in + fonctions encrypt_rib/decrypt_rib + encrypt_ssn/decrypt_ssn SQL |
+| 9 | DEV-09 | Recrutement, formation, évaluation (si validé) | ⏳ En attente | L | extension | **Valider ou exclure** selon priorité business |
+
+**Lots S (Sécurité) :** DEV-01, DEV-02  
+**Lots M (Moyen) :** DEV-03, DEV-04, DEV-05, DEV-06, DEV-07, DEV-08  
+**Lot L (Long/Extension) :** DEV-09
+
+---
+
+**Phase A terminée** — Validation : 14 fonctions vérifiées, 12 écarts identifiés dans matrice-usage, 8 écarts en matrice-sécurité, 9 items backlog. Plan de développement prêt pour lancement Phase B (Lot 1).

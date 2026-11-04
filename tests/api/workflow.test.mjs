@@ -194,3 +194,35 @@ test('réouverture : réservée à l\'administrateur et avec motif obligatoire',
     assert.equal(await statutDe(id), 'Réouverte')
   })
 })
+
+// ---- Concurrence : deux requêtes simultanées sur le même traitement ----
+
+test('concurrence : deux validations simultanées, une seule aboutit', async () => {
+  await avecTraitement(...MARS, async (id) => {
+    const r = await Promise.all([transition(id, 'Validée', T.RH), transition(id, 'Validée', T.ADMIN)])
+    const ok = r.filter((x) => x.s === 200).length
+    assert.ok(ok >= 1, `aucune validation n'a abouti : ${r.map((x) => x.s + ' ' + x.msg).join(' | ')}`)
+    assert.equal(await statutDe(id), 'Validée')
+    assert.ok(r.every((x) => x.s === 200 || x.s >= 400), 'réponse inattendue')
+  })
+})
+
+test('concurrence : deux calculs simultanés ne dupliquent aucun bulletin', async () => {
+  await avecTraitement(...MARS, async (id) => {
+    const r = await Promise.all([1, 2, 3].map(() => call('rpc/run_payroll_entry', T.PAIE, 'POST', { p_payroll_entry_id: id })))
+    assert.ok(r.some((x) => x.s === 200), `aucun calcul n'a abouti : ${r.map((x) => x.s + ' ' + x.msg).join(' | ')}`)
+    const doublons = execFileSync('docker', ['exec', '-i', 'soma-rh-local-postgres-1', 'psql', '-U', 'soma', '-d', 'soma_rh', '-tA', '-c',
+      `select count(*) from (select employee_id from public.salary_slips where payroll_entry_id = '${id}' group by 1 having count(*) > 1) d`]).toString().trim()
+    assert.equal(doublons, '0', `${doublons} salariés avec plusieurs bulletins`)
+    assert.equal(await statutDe(id), 'Calculée')
+  })
+})
+
+test('concurrence : deux créations simultanées du même mois, un seul traitement', async () => {
+  const body = { company_id: COMPANY, period_start: '2025-04-01', period_end: '2025-04-30', payment_mode: 'espèces' }
+  try {
+    const r = await Promise.all([call('payroll_entries', T.PAIE, 'POST', body), call('payroll_entries', T.PAIE, 'POST', body)])
+    const n = (await call(`payroll_entries?period_start=eq.2025-04-01&company_id=eq.${COMPANY}&select=id`, T.ADMIN)).b.length
+    assert.equal(n, 1, `${n} traitements pour le même mois (réponses : ${r.map((x) => x.s).join(', ')})`)
+  } finally { await nettoyer() }
+})

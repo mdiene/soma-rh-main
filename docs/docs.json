@@ -22,6 +22,7 @@
           "qa/03-environnement-donnees",
           "qa/04-oracle-differentiel",
           "qa/05-fonctionnel-isolation",
+          "qa/06-api-integration",
           "qa/defects",
           "qa/registre-donnees-de-test",
           "changelog",
