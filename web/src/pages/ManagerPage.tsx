@@ -7,6 +7,7 @@ import { REQUEST_TYPES, type EmployeeRequest } from '../lib/requests'
 import { DelegationPanel, LeaveApprovals } from '../components/LeaveApprovals'
 import { TeamCalendar } from '../components/TeamCalendar'
 import { TeamBalances } from '../components/TeamBalances'
+import { TeamAttendance } from '../components/TeamAttendance'
 
 const db = dataApi as unknown as ApiClient
 type Assignment = {
@@ -61,6 +62,7 @@ export default function ManagerPage() {
         <>
         <TeamCalendar members={team} />
         <TeamBalances members={team} />
+        <TeamAttendance members={team} />
         <section className="panel mb-6">
           <div className="border-b border-line px-4 py-3"><h2 className="text-base">Salariés affectés</h2></div>
           <ul className="divide-y divide-line/70">
