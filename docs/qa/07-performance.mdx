@@ -23,7 +23,7 @@ Mesurer, de bout en bout (jeton réel, RLS, passerelle, PostgREST, base), le tem
 | Tableau de bord RH | 32 | 41 | 30 | 22 |
 | Analyses RH (36 mois) | 35 | 31 | 21 | 44 |
 | **Calcul de la paie du mois** | 594 | 1 388 | 2 747 | **13 333** |
-| **Livre de paie** | 87 | 182 | 568 | **1 785** |
+| **Livre de paie** | 87 | 182 | 568 | **1 785** (177 après correction) |
 | Bulletins du traitement | 27 | 63 | 73 | 429 |
 | Rapport de clôture | 41 | 33 | 44 | 119 |
 | Contrôles avant validation | 53 | 26 | 38 | 74 |
@@ -35,13 +35,31 @@ Le journal comptable n'est pas chronométré : il refuse les paies non validées
 
 - **Lectures et analyses : aucun problème.** Moins de 100 ms à 1 077 salariés, sans dépendance à la taille. Mais ces tables ne grandissent pas dans nos scénarios (voir limites).
 - **Le calcul de la paie est le premier goulot** : environ 12 à 14 ms par bulletin, linéaire (13,3 s pour 963 bulletins). Acceptable pour un traitement mensuel lancé une fois, mais l'écran reste bloqué sans progression pendant ce temps, et l'appel risque d'expirer si la machine est plus lente ou les règles plus riches.
-- **Le livre de paie est le deuxième** : 1,8 s à 963 lignes pour une simple lecture, à peu près linéaire (2 ms par ligne). `EXPLAIN (ANALYZE, BUFFERS)` sur la vue `v_payroll_register` : 1,44 s d'exécution et 74 000 pages lues pour 963 lignes. Le coût vient de la lecture répétée de la colonne JSON `calculation` (une quarantaine d'extractions par ligne, qui relisent chaque fois la valeur stockée à l'écart) plus, par ligne, une recherche du cumul de l'année qui ne trouve rien et s'exécute 963 fois. La lecture directe de `salary_slips` pour le même traitement prend 1 ms.
+- **Le livre de paie était le deuxième** : 1,8 s à 963 lignes pour une simple lecture, à peu près linéaire (2 ms par ligne). `EXPLAIN (ANALYZE, BUFFERS)` sur la vue `v_payroll_register` : 1,44 s d'exécution et 74 000 pages lues pour 963 lignes. Le coût vient de la lecture répétée de la colonne JSON `calculation` (une quarantaine d'extractions par ligne, qui relisent chaque fois la valeur stockée à l'écart) plus, par ligne, une recherche du cumul de l'année qui ne trouve rien et s'exécute 963 fois. La lecture directe de `salary_slips` pour le même traitement prend 1 ms.
 
-## Pistes (non appliquées, à décider)
+## Correction de D-019
 
-1. Livre de paie : extraire les montants du JSON une seule fois (sous-requête ou colonnes générées), et calculer les cumuls de l'année en une passe plutôt qu'une recherche par ligne. Gain attendu : plusieurs fois moins de temps ; à mesurer avant et après, avec `verify-payroll.ps1` en garde-fou.
-2. Calcul de paie : profiler `compute_salary_slip` (il est appelé une fois par salarié) pour trouver les lectures répétées de paramètres ; envisager un traitement par lots avec indicateur d'avancement côté écran.
-3. Seuil à surveiller : au-delà d'environ 5 000 salariés, le calcul dépasserait la minute.
+**Livre de paie : corrigé.** La vue `v_payroll_register` lit désormais le JSON une seule fois par bulletin (migration `20261105130000_perf_livre_de_paie`). Même contenu (empreinte identique sur 1 245 lignes avant et après, et `tests/sql/livre_de_paie.sql` qui compare valeurs et cumul annuel au calcul direct). À 963 bulletins : 1 785 ms → 177 ms de bout en bout (exécution en base : 1 317 ms → 70 ms).
+
+**Calcul de la paie : non corrigé, et pourquoi.** Profil fonction par fonction (`track_functions`, 963 bulletins, 9 s) :
+
+| Fonction | Appels | Temps |
+|---|---|---|
+| `has_role` | 23 816 | 4,1 s (environ 45 %) |
+| `compute_salary_slip` (règles de calcul) | 963 | 2,6 s |
+| `business_audit` et chaîne d'audit | 1 927 | 1,0 s |
+| reste de `calculate_salary_slip` | 963 | 1,8 s |
+
+`has_role` est appelée environ 25 fois par bulletin : chaque requête du calcul (lectures des paramètres, du salarié, des présences, écriture du bulletin) passe par une politique d'accès qui la contient. Un appel coûte environ 37 µs, ce qui tient à l'exécution de sa requête sur `user_roles`, pas à sa forme. Deux essais :
+
+- Réordonner les tests dans `has_role` : aucun gain (749 ms contre 758 ms pour 20 000 appels). Abandonné.
+- Mémoriser le résultat dans la transaction : **deux fois plus lent** (16,9 s contre 8 à 9 s). Abandonné.
+
+Les leviers restants touchent à la sécurité ou au moteur, donc à vous de décider :
+
+1. Faire passer le calcul en `SECURITY DEFINER` (la vérification de rôle est déjà faite en tête de `run_payroll_batch`) : supprimerait la plupart des appels, mais `calculate_salary_slip` et `compute_salary_slip` sont aussi appelables directement par tout utilisateur connecté, et leur sécurité repose aujourd'hui sur les politiques d'accès. Il faudrait garder une version « interne » non exposée.
+2. Un indicateur d'avancement et un traitement par lots côté écran, sans changer le calcul.
+3. Ne rien faire : 13 s pour 1 000 salariés, une fois par mois, reste acceptable. À reconsidérer vers 5 000 salariés (plus d'une minute).
 
 ## Limites
 
