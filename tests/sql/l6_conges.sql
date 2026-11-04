@@ -3,6 +3,19 @@
 -- Les comptes sont pris dans la base (aucun identifiant écrit ici) ; tout est annulé.
 begin;
 
+-- Données propres au test (annulées en fin de transaction) : le manager fictif QA0013 encadre QA0011.
+-- Prérequis : scénario QA chargé (scripts/qa-reset-scenario.ps1) et comptes créés (scripts/qa-create-users.ps1).
+insert into public.employee_manager_assignments (manager_employee_id, employee_id, valid_from, delegated_by)
+select m.id, e.id, current_date - 5, (select id from auth.users where email = 'qa-admin@example.test')
+from public.employees m, public.employees e
+where m.employee_number = 'QA0013' and e.employee_number = 'QA0011'
+  and not exists (select 1 from public.employee_manager_assignments x where x.employee_id = e.id and x.valid_to is null);
+
+-- Le manager de test cumule aussi le rôle rh : l'étape 7 vérifie qu'une même personne ne décide pas deux niveaux.
+insert into public.user_roles (user_id, role)
+select e.user_id, 'rh' from public.employees e where e.employee_number = 'QA0013' and e.user_id is not null
+on conflict do nothing;
+
 create temp table t_ctx as
 select
   m.user_id as mgr, a.employee_id as emp, e.user_id as emp_user, a.valid_from as d0,
@@ -12,7 +25,9 @@ select
 from public.employee_manager_assignments a
 join public.employees m on m.id = a.manager_employee_id and m.user_id is not null
 join public.employees e on e.id = a.employee_id
-order by a.valid_from limit 1;
+-- affectation encore valable pendant les dates de congé utilisées (d0 + 3 n jours) : indépendant des clôtures faites dans l'organigramme
+where a.valid_to is null or a.valid_to >= a.valid_from + 30
+order by (e.employee_number = 'QA0011') desc, a.valid_from limit 1;
 grant select on t_ctx to authenticated;
 
 create or replace function pg_temp.as_user(p_user uuid) returns void language plpgsql as $$

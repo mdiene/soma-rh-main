@@ -106,6 +106,12 @@ update public.employees e set agreement_code = 'COMMERCE',
 from public.salary_structure_assignments a
 where a.employee_id = e.id and e.employee_number like 'QA%' and a.base_salary >= 600000;
 
+-- Liaison des comptes de test (créés par scripts/qa-create-users.ps1) : conservée après chaque rechargement.
+update public.employees e set user_id = u.id
+from auth.users u
+where (e.employee_number, u.email) in (('QA0011', 'qa-salarie@example.test'), ('QA0012', 'qa-salarie2@example.test'),
+                                        ('QA0013', 'qa-manager@example.test'));
+
 commit;
 
 select :'scenario' as scenario, count(*) as salaries_qa,

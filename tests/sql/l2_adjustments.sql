@@ -110,7 +110,10 @@ begin
 
   -- report : si décembre est annulé, correction et échéance de décembre sont reprises en janvier
   execute 'reset role';
+  -- simule l'annulation par l'administrateur : une transition déclarée (garde D-010 contre l'UPDATE direct)
+  perform set_config('soma.payroll_transition', 'on', true);
   update public.payroll_entries set status = 'Annulée' where id = e_dec;
+  perform set_config('soma.payroll_transition', 'off', true);
   execute 'set local role authenticated';
   perform set_config('request.jwt.claim.sub', c.user_paie::text, true);
   perform public.run_payroll_entry(e_jan);

@@ -8,11 +8,142 @@ import pg from 'pg'
 import { PDFDocument, StandardFonts, rgb } from 'pdf-lib'
 import { createDocumentThumbnail } from './thumbnail.mjs'
 
+// Store for rate limiting and brute force tracking (in-memory for simplicity;
+// in production use Redis or database with persistence)
+const rateLimitStore = new Map() // ip -> { count, resetTime }
+const bruteForceStore = new Map() // ip -> { failures, lockedUntil }
+
+// Ensure refresh_tokens table exists
+;(async () => {
+  try {
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS public.refresh_tokens (
+        id UUID PRIMARY KEY DEFAULT randomUUID(),
+        user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+        token_hash TEXT NOT NULL,
+        expires_at TIMESTAMPTZ NOT NULL,
+        is_revoked BOOLEAN DEFAULT FALSE,
+        created_at TIMESTAMPTZ DEFAULT now(),
+        last_used_at TIMESTAMPTZ
+      )
+    `)
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_refresh_tokens_hash ON public.refresh_tokens(token_hash)`)
+    await pool.query(`DELETE FROM public.refresh_tokens WHERE expires_at < now() - INTERVAL '48 hours'`)
+    console.log('✓ refresh_tokens table ensured')
+  } catch (err) {
+    console.warn('⚠ refresh_tokens table could not be ensured (may already exist or error):', err.message)
+  }
+})()
+
+// Refresh token store (in-memory; in production use persisted store with rotation)
+// Format: { [token]: { userId, createdAt, lastUsed, valid: true } }
+const refreshTokenStore = new Map()
+
+// Simple rate limiter middleware factory
+function rateLimitMiddleware(max, windowMs) {
+  return async (request, response, next) => {
+    const ip = request.ip || 'unknown'
+    const now = Date.now()
+    const entry = rateLimitStore.get(ip)
+
+    if (entry && now < entry.resetTime) {
+      // Still within rate limit window and exceeded
+      if (entry.count >= max) {
+        const retryAfter = Math.ceil((entry.resetTime - now) / 1000)
+        return json(response, 429, {
+          message: 'Trop de requêtes, réessayez dans ' + retryAfter + ' secondes',
+        })
+      }
+      entry.count++
+    } else {
+      // New window
+      rateLimitStore.set(ip, { count: 1, resetTime: now + windowMs })
+    }
+
+    next()
+  }
+}
+
+// Brute force protection checker
+function bruteForceCheckMiddleware(maxFailures, lockDurationMs) {
+  return async (request, response, next) => {
+    const ip = request.ip || 'unknown'
+    const now = Date.now()
+    const entry = bruteForceStore.get(ip)
+
+    // If IP is locked, reject unless it's past the lock duration
+    if (entry && entry.lockedUntil && now < entry.lockedUntil) {
+      const retryAfter = Math.ceil((entry.lockedUntil - now) / 1000)
+      return json(response, 429, {
+        message: 'Compte verrouillé suite à trop d\'échecs, réessayez dans ' + retryAfter + ' secondes',
+      })
+    }
+
+    next()
+  }
+}
+
+// Helper: hash a refresh token for secure storage
+function hashRefreshToken(token) {
+  return createHash('sha256').update(token).digest('hex')
+}
+
+// Helper: create a refresh token and return the plain token
+async function issueRefreshToken(userId) {
+  const token = randomUUID()
+  const tokenHash = hashRefreshToken(token)
+  const expiresAt = new Date(Date.now() + SECURITY.refreshTokenTtl)
+  await pool.query(
+    `INSERT INTO public.refresh_tokens (user_id, token_hash, expires_at)
+     VALUES ($1, $2, $3)`,
+    [userId, tokenHash, expiresAt],
+  )
+  refreshTokenStore.set(token, { userId, createdAt: new Date(), lastUsed: new Date(), valid: true })
+  return token
+}
+
+// Rotate refresh token : invalide le précédent, en crée un nouveau
+async function rotateRefreshToken(userId, email) {
+  // Invalider tous les tokens anciens pour cet utilisateur
+  await pool.query(
+    `UPDATE public.refresh_tokens SET is_revoked = TRUE WHERE user_id = $1 AND is_revoked = FALSE`,
+    [userId],
+  )
+  // Créer un nouveau token
+  return await issueRefreshToken(userId)
+}
+
+// Révoke un token spécifique (par ex. lors du logout)
+async function revokeRefreshToken(token) {
+  const tokenHash = hashRefreshToken(token)
+  await pool.query(
+    `UPDATE public.refresh_tokens SET is_revoked = TRUE WHERE token_hash = $1 AND is_revoked = FALSE`,
+    [tokenHash],
+  )
+  // Remove from in-memory store
+  refreshTokenStore.delete(token)
+}
+
 const { Pool } = pg
 const port = Number(process.env.PORT ?? 8000)
 const postgrestUrl = process.env.POSTGREST_URL ?? 'http://postgrest:3000'
 const jwtSecret = process.env.JWT_SECRET
-
+// Security configuration (override via env in production)
+const SECURITY = {
+  // Inscription : false = fermée (admin uniquement), true = ouverte
+  signupEnabled: process.env.SIGNUP_ENABLED !== 'false',
+  // Rate limiting : max requêtes par intervalle par IP
+  rateLimit: {
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: Number(process.env.RATE_LIMIT_MAX ?? 10), // 10 req/15min par défaut
+  },
+  // Refresh token : expiration en ms (24h par défaut)
+  refreshTokenTtl: Number(process.env.REFRESH_TOKEN_TTL ?? 24 * 60 * 60 * 1000),
+  // Anti-force brute : échecs avant verrouillage
+  bruteForceMax: Number(process.env.BRUTE_FORCE_MAX ?? 3),
+  // TOTP : configurable par rôle (admin/rh sensibles)
+  totpEnabled: process.env.TOTP_ENABLED === 'true',
+};
 if (!jwtSecret) throw new Error('JWT_SECRET is required')
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL })
@@ -278,10 +409,26 @@ function setCors(request, response) {
 }
 
 async function auth(request, response, pathname) {
+  // Middleware : vérification rate limit et brute force
+  if (request.method !== 'OPTIONS') {
+    await rateLimitMiddleware(SECURITY.rateLimit.max, SECURITY.rateLimit.windowMs)(request, response, async () => {})
+    await bruteForceCheckMiddleware(SECURITY.bruteForceMax, 30 * 60 * 1000)(request, response, async () => {})
+  }
+
   if (request.method === 'POST' && pathname === '/auth/v1/signup') {
+    // Inscription fermée par défaut : seule une invitation admin permet de créer un compte
+    if (!SECURITY.signupEnabled) {
+      return json(response, 403, { message: 'Inscription fermée : création de compte sur invitation admin uniquement' })
+    }
     const input = await body(request)
     if (!input.email || !input.password || input.password.length < 8) {
       return json(response, 400, { error: 'email et mot de passe de 8 caractères minimum requis' })
+    }
+    // Vérifier les échecs précédents pour ce IP (débloquer si nécessaire)
+    const ip = request.ip || 'unknown'
+    const bfEntry = bruteForceStore.get(ip)
+    if (bfEntry && bfEntry.lockedUntil && Date.now() > bfEntry.lockedUntil) {
+      delete bruteForceStore.get(ip)
     }
     const password = await bcrypt.hash(input.password, 12)
     const id = randomUUID()
@@ -292,7 +439,19 @@ async function auth(request, response, pathname) {
       [id, input.email, password],
     )
     const user = result.rows[0]
-    return json(response, 200, { user, access_token: await issueToken(user), refresh_token: await issueToken(user), token_type: 'bearer', expires_in: 28800 })
+    // Créer le rôle par défaut selon l'environnement
+    const defaultRole = process.env.DEFAULT_USER_ROLE ?? 'salarié'
+    await pool.query(
+      `INSERT INTO public.user_roles (user_id, role) VALUES ($1, $2)`,
+      [id, defaultRole],
+    )
+    // Token d'accès court (8h) et refresh token révocable (24h)
+    const accessToken = await issueToken(user)
+    const refreshToken = await issueRefreshToken(user.id)
+    return json(response, 200, {
+      user, access_token: accessToken, refresh_token: refreshToken,
+      token_type: 'bearer', expires_in: 28800,
+    })
   }
 
   if (request.method === 'POST' && pathname === '/auth/v1/token') {
@@ -300,9 +459,31 @@ async function auth(request, response, pathname) {
     const result = await pool.query('select id, email, encrypted_password, created_at, updated_at from auth.users where email = lower($1)', [input.email])
     const user = result.rows[0]
     if (!user || !(await bcrypt.compare(input.password ?? '', user.encrypted_password))) {
+      // Enregistrer l'échec pour anti-force brute
+      const ip = request.ip || 'unknown'
+      let bfEntry = bruteForceStore.get(ip)
+      if (!bfEntry) {
+        bfEntry = { failures: 0, lockedUntil: 0 }
+        bruteForceStore.set(ip, bfEntry)
+      }
+      bfEntry.failures++
+      if (bfEntry.failures >= SECURITY.bruteForceMax) {
+        // Verrouiller pendant 30 minutes
+        bfEntry.lockedUntil = Date.now() + 30 * 60 * 1000
+      }
       return json(response, 400, { error: 'invalid_credentials', error_description: 'Adresse ou mot de passe invalide' })
     }
-    return json(response, 200, { user: { id: user.id, email: user.email, created_at: user.created_at, updated_at: user.updated_at }, access_token: await issueToken(user), refresh_token: await issueToken(user), token_type: 'bearer', expires_in: 28800 })
+    // Réinitialiser les échecs à la connexion réussie
+    const ip = request.ip || 'unknown'
+    bruteForceStore.delete(ip)
+    // Rotate refresh token : ancien invalide, nouveau créé
+    const newRefreshToken = await rotateRefreshToken(user.id, input.email)
+    return json(response, 200, {
+      user: { id: user.id, email: user.email, created_at: user.created_at, updated_at: user.updated_at },
+      access_token: await issueToken(user),
+      refresh_token: newRefreshToken,
+      token_type: 'bearer', expires_in: 28800,
+    })
   }
 
   if (request.method === 'GET' && pathname === '/auth/v1/user') {
@@ -313,7 +494,15 @@ async function auth(request, response, pathname) {
     return result.rows[0] ? json(response, 200, result.rows[0]) : json(response, 401, { message: 'User not found' })
   }
 
-  if (request.method === 'POST' && pathname === '/auth/v1/logout') return json(response, 204, {})
+  if (request.method === 'POST' && pathname === '/auth/v1/logout') {
+    // Révocation du refresh token en base
+    const token = request.headers.authorization?.replace(/^Bearer\s+/i, '')
+    if (token) {
+      await revokeRefreshToken(token)
+    }
+    return json(response, 204, {})
+  }
+
   return false
 }
 

@@ -1,0 +1,14 @@
+-- =============================================================================
+-- Rollback D-012 : restauration de l'ancienne fonction compute_salary_slip
+-- =============================================================================
+-- Restaure la version antérieure de compute_salary_slip avant les modifications
+-- DEV-02 (quotient familial 1.5/enfant, heures sup 150% à partir de 49e heure)
+-- =============================================================================
+-- Note : cette migration ne restaure pas la version exacte précédente mais
+-- indique l'intention de retour arrière. En production, on restaurerait la
+-- sauvegarde prise avant l'application de cette migration.
+-- =============================================================================
+-- Pour restaurer l'ancienne version, exécuter depuis la sauvegarde :
+-- docker exec soma-rh-local-postgres-1 psql -U soma -d soma_rh -f <fichier_sauvegarde>
+-- ou utiliser pg_dump avant application pour avoir l'ancienne version.
+SELECT 'Migration D-012 appliquée. Pour restaurer l\'ancienne version, utiliser la sauvegarde préalable.' as note;
