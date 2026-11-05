@@ -9,6 +9,7 @@ import { useAuth } from '../lib/auth'
 import { usePayrollEntries } from '../lib/queries'
 import { AnnualSynthesis } from '../components/AnnualSynthesis'
 import { DeletePayrollModal } from '../components/DeletePayrollModal'
+import { LegalAlerts } from '../components/LegalAlerts'
 import { Button, Empty, ErrorNote, Figure, PageHeader, Section, SelectField, Spinner } from '../components/ui'
 
 type Dashboard = {
@@ -131,6 +132,7 @@ export default function DashboardPage() {
         <div className="space-y-6">
           <PayrollComposition d={d} />
           <MonthContributions d={d} />
+          {can('rh', 'paie') && <LegalAlerts />}
 
           <div className="grid gap-6 lg:grid-cols-3">
             <Section title="Effectif actif" className="lg:col-span-1">

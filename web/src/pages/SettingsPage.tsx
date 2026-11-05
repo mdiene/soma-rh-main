@@ -3,7 +3,8 @@ import { createColumnHelper } from '@tanstack/react-table'
 import clsx from 'clsx'
 import { Plus, Save, ShieldCheck } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { dataApi, unwrap, type Tables } from '../lib/api'
+import { dataApi, omit, unwrap, type Tables } from '../lib/api'
+import { checkRateSettings, settingsSaveMode, type RateSettings } from '../lib/payrollGuards'
 import { useAuth, type Role } from '../lib/auth'
 import { useAgreements, useCompany, useComponents, useEmployees, useGrades } from '../lib/queries'
 import { date, fcfa, num, pct } from '../lib/format'
@@ -164,18 +165,45 @@ function PayrollSettingsTab() {
   })
   const current = q.data?.[0]
   const [f, setF] = useState<Partial<Tables<'payroll_settings'>>>({})
-  useEffect(() => { if (current) setF(current) }, [current])
+  const [effective, setEffective] = useState('')
+  useEffect(() => { if (current) { setF(current); setEffective(current.effective_from) } }, [current])
+  // Contrôles anti-erreur : taux en fraction, plafonds positifs et cohérents, baisse signalée (voir lib/payrollGuards.ts)
+  const warnings = current ? checkRateSettings(f as RateSettings, current as RateSettings) : []
+  const blocking = warnings.some((w) => w.level === 'erreur')
+  const mode = current && effective ? settingsSaveMode(effective, current.effective_from) : 'correction'
   const save = useMutation({
-    mutationFn: async () => unwrap(await dataApi.from('payroll_settings').update(f).eq('id', current!.id).select()),
+    mutationFn: async () => {
+      if (mode === 'refus') throw new Error('La date d’application ne peut pas précéder la version en cours : cela réécrirait des périodes déjà calculées.')
+      if (blocking) throw new Error('Corrigez les erreurs signalées avant d’enregistrer.')
+      if (mode === 'nouvelle_version') {
+        // Nouvelle version datée : l'ancienne reste intacte, les périodes antérieures gardent leurs taux.
+        const copy = omit({ ...f, effective_from: effective } as Tables<'payroll_settings'>, 'id', 'created_at')
+        return unwrap(await dataApi.from('payroll_settings').insert(copy).select())
+      }
+      return unwrap(await dataApi.from('payroll_settings').update(f).eq('id', current!.id).select())
+    },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['payroll_settings'] }),
   })
   if (q.isLoading) return <Spinner />
   return (
     <Section
       title={`Paramètres en vigueur depuis le ${date(current?.effective_from)}`}
-      actions={can('paie') && <Button size="sm" variant="primary" icon={<Save className="h-3.5 w-3.5" />} loading={save.isPending} onClick={() => save.mutate()}>Enregistrer</Button>}
+      actions={can('paie') && <Button size="sm" variant="primary" icon={<Save className="h-3.5 w-3.5" />} loading={save.isPending} disabled={blocking || mode === 'refus'} onClick={() => save.mutate()}>{mode === 'nouvelle_version' ? 'Créer la nouvelle version' : 'Enregistrer la correction'}</Button>}
     >
-      <p className="mb-4 max-w-prose text-sm text-ink-soft">Les taux s'expriment en fraction (0,056 = 5,6 %). Une modification s'applique aux prochains calculs ; les bulletins déjà validés ne changent pas.</p>
+      <p className="mb-4 max-w-prose text-sm text-ink-soft">Les taux s'expriment en fraction (0,056 = 5,6 %). Pour un changement de taux ou de plafond, choisissez la date d'application : une nouvelle version est créée et les périodes antérieures gardent leurs taux. Gardez la date actuelle pour corriger une erreur de saisie. Les bulletins déjà validés ne changent jamais.</p>
+      <fieldset disabled={!can('paie')} className="mb-4 max-w-xs">
+        <TextField label="Applicable à partir du" type="date" value={effective} onChange={(e) => setEffective(e.target.value)}
+          hint={mode === 'nouvelle_version' ? 'Nouvelle version datée' : mode === 'refus' ? 'Date antérieure à la version en cours : refusée' : 'Correction de la version en cours'} />
+      </fieldset>
+      {warnings.length > 0 && (
+        <ul role="alert" className="mb-4 space-y-1 rounded border border-signal bg-signal-light px-3 py-2 text-sm">
+          {warnings.map((w) => (
+            <li key={w.field + w.message} className={w.level === 'erreur' ? 'font-medium text-signal' : 'text-ink'}>
+              {w.level === 'erreur' ? 'Erreur : ' : 'Attention : '}{w.message}
+            </li>
+          ))}
+        </ul>
+      )}
       <fieldset disabled={!can('paie')} className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
         {SETTING_FIELDS.map((s) => (
           <TextField key={s.key} label={s.label} type="number" step="any" value={(f[s.key] as number) ?? ''}
@@ -206,7 +234,33 @@ function PayrollSettingsTab() {
         </SelectField>
       </fieldset>
       <div className="mt-3"><ErrorNote error={q.error || save.error} /></div>
+      <LoanCapSetting />
     </Section>
+  )
+}
+
+/* Plafond de la retenue mensuelle de prêt : modifiable par l'administrateur, la paie ou les RH */
+function LoanCapSetting() {
+  const { can } = useAuth()
+  const qc = useQueryClient()
+  const q = useQuery({ queryKey: ['loan_max_rate'], queryFn: async () => unwrap(await dataApi.rpc('get_loan_max_rate')) as number })
+  const [v, setV] = useState('')
+  useEffect(() => { if (q.data != null) setV(String(q.data)) }, [q.data])
+  const save = useMutation({
+    mutationFn: async () => unwrap(await dataApi.rpc('set_loan_max_rate', { p_rate: Number(v) })),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['loan_max_rate'] }),
+  })
+  return (
+    <>
+      <h3 className="mb-1 mt-6 text-sm font-semibold">Prêts et acomptes</h3>
+      <p className="mb-3 max-w-prose text-xs text-ink-muted">La retenue mensuelle d'un prêt ne peut pas dépasser cette part du brut du salarié. Un bulletin ne peut jamais avoir un net négatif.</p>
+      <div className="flex max-w-md items-end gap-3">
+        <TextField label="Plafond de retenue (part du brut)" type="number" step="0.01" value={v} disabled={!can('rh', 'paie')}
+          hint={pct(Number(v))} onChange={(e) => setV(e.target.value)} />
+        {can('rh', 'paie') && <Button size="sm" variant="primary" icon={<Save className="h-3.5 w-3.5" />} loading={save.isPending} onClick={() => save.mutate()}>Enregistrer</Button>}
+      </div>
+      <div className="mt-3"><ErrorNote error={q.error || save.error} /></div>
+    </>
   )
 }
 
@@ -416,6 +470,7 @@ function CompanyTab() {
   const { can } = useAuth()
   const qc = useQueryClient()
   const company = useCompany()
+  const agreements = useAgreements()
   const [f, setF] = useState<Partial<Tables<'companies'>>>({})
   useEffect(() => { if (company.data) setF(company.data) }, [company.data])
   const save = useMutation({
@@ -434,6 +489,14 @@ function CompanyTab() {
         <TextField label="Adresse" className="sm:col-span-2" value={f.address ?? ''} onChange={t('address')} />
         <TextField label="NINEA" value={f.ninea ?? ''} onChange={t('ninea')} />
         <TextField label="RCCM" value={f.rccm ?? ''} onChange={t('rccm')} />
+        <TextField label="N° employeur IPRES" value={f.ipres_number ?? ''} onChange={t('ipres_number')} />
+        <TextField label="N° employeur CSS" value={f.css_number ?? ''} onChange={t('css_number')} />
+        <SelectField label="Convention collective appliquée" value={f.collective_agreement_code ?? ''}
+          hint="Détermine les grilles de catégories proposées à l'embauche."
+          onChange={(e) => setF({ ...f, collective_agreement_code: e.target.value || null })}>
+          <option value="">Non renseignée</option>
+          {(agreements.data ?? []).map((a) => <option key={a.code} value={a.code}>{a.name}</option>)}
+        </SelectField>
         <TextField label="E-mail" type="email" value={f.email ?? ''} onChange={t('email')} />
       </fieldset>
       <div className="mt-3"><ErrorNote error={company.error || save.error} /></div>

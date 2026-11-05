@@ -6,6 +6,7 @@ import { omit, dataApi, unwrap, type Tables } from '../lib/api'
 import { selectable, useAgreements, useCompany, useContractTypes, useDesignations, useGrades, usePaymentModes } from '../lib/queries'
 import { useAuth } from '../lib/auth'
 import { currentPeriod, fcfa, monthBounds, monthLabel } from '../lib/format'
+import { checkBaseSalary } from '../lib/payrollGuards'
 import { Badge, Button, ErrorNote, Modal, PageHeader, Section, SelectField, Spinner, TextField } from '../components/ui'
 import { EmployeeFicheButton } from '../components/EmployeeFiche'
 
@@ -210,6 +211,11 @@ function SalaryAssignment({ employee }: { employee: Emp }) {
     queryKey: ['assignment', employee.id],
     queryFn: async () => unwrap(await dataApi.from('salary_structure_assignments').select('*').eq('employee_id', employee.id).order('from_date', { ascending: false })),
   })
+  // SMIG en vigueur : sert à avertir d'un salaire de base trop bas (lib/payrollGuards.ts)
+  const settings = useQuery({
+    queryKey: ['payroll_settings_current'],
+    queryFn: async () => unwrap(await dataApi.from('payroll_settings').select('smig_hourly, monthly_hours').lte('effective_from', new Date().toISOString().slice(0, 10)).order('effective_from', { ascending: false }).limit(1)),
+  })
   const structures = useQuery({
     queryKey: ['structures'],
     queryFn: async () => unwrap(await dataApi.from('salary_structures').select('*').eq('is_active', true)),
@@ -252,6 +258,7 @@ function SalaryAssignment({ employee }: { employee: Emp }) {
     onSuccess: (v) => setF((x) => ({ ...x, sursalaire: Math.round(Number(v) * 100) / 100 })),
   })
   const num = (k: keyof Assign) => (e: React.ChangeEvent<HTMLInputElement>) => setF((x) => ({ ...x, [k]: e.target.value === '' ? null : Number(e.target.value) }))
+  const salaryWarning = settings.data?.[0] && employee.employment_type !== 'Prestataire' ? checkBaseSalary(f.base_salary, settings.data[0]) : []
   const readOnly = !can('paie')
 
   return (
@@ -289,7 +296,8 @@ function SalaryAssignment({ employee }: { employee: Emp }) {
           {save.isSuccess && <p role="status" className="rounded border border-river/30 bg-river-light px-3 py-2 text-xs text-river-dark">Structure salariale enregistrée.</p>}
           <div className="grid gap-3 sm:grid-cols-2">
             <TextField label="En vigueur à partir du" type="date" value={f.from_date ?? ''} onChange={(e) => setF((x) => ({ ...x, from_date: e.target.value }))} />
-            <TextField label="Salaire de base (vide = minimum de la catégorie)" type="number" value={f.base_salary ?? ''} onChange={num('base_salary')} />
+            <TextField label="Salaire de base (vide = minimum de la catégorie)" type="number" value={f.base_salary ?? ''} onChange={num('base_salary')}
+              hint={salaryWarning[0]?.message} />
             <TextField label="Sursalaire" type="number" step="0.01" value={f.sursalaire ?? 0} onChange={num('sursalaire')} />
             <TextField label="Honoraires (prestataires)" type="number" value={f.fees ?? 0} onChange={num('fees')} />
             <TextField label="Autre élément fixe" type="number" value={f.other_fixed ?? 0} onChange={num('other_fixed')} />

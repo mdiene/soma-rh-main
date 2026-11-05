@@ -229,10 +229,13 @@ export type Database = {
       companies: {
         Row: {
           address: string | null
+          collective_agreement_code: string | null
           created_at: string
+          css_number: string | null
           currency: string
           email: string | null
           id: string
+          ipres_number: string | null
           legal_form: string | null
           logo_url: string | null
           name: string
@@ -244,10 +247,13 @@ export type Database = {
         }
         Insert: {
           address?: string | null
+          collective_agreement_code?: string | null
           created_at?: string
+          css_number?: string | null
           currency?: string
           email?: string | null
           id?: string
+          ipres_number?: string | null
           legal_form?: string | null
           logo_url?: string | null
           name: string
@@ -259,10 +265,13 @@ export type Database = {
         }
         Update: {
           address?: string | null
+          collective_agreement_code?: string | null
           created_at?: string
+          css_number?: string | null
           currency?: string
           email?: string | null
           id?: string
+          ipres_number?: string | null
           legal_form?: string | null
           logo_url?: string | null
           name?: string
@@ -272,7 +281,15 @@ export type Database = {
           share_capital?: number | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "companies_collective_agreement_code_fkey"
+            columns: ["collective_agreement_code"]
+            isOneToOne: false
+            referencedRelation: "collective_agreements"
+            referencedColumns: ["code"]
+          },
+        ]
       }
       contract_types: {
         Row: {
@@ -2456,6 +2473,8 @@ export type Database = {
         }
       }
       claim_first_admin: { Args: never; Returns: boolean }
+      get_loan_max_rate: { Args: never; Returns: number }
+      set_loan_max_rate: { Args: { p_rate: number }; Returns: number }
       compute_income_tax: {
         Args: { p_date: string; p_monthly_gross: number; p_parts: number }
         Returns: Json
@@ -2555,6 +2574,10 @@ export type Database = {
         Returns: number
       }
       has_role: { Args: { p_roles: string[] }; Returns: boolean }
+      legal_alerts: {
+        Args: { p_as_of?: string; p_horizon_days?: number }
+        Returns: { code: string; severity: string; employee_id: string; employee_number: string; employee_name: string; due_date: string; message: string }[]
+      }
       hr_dashboard: { Args: { p_period?: string }; Returns: Json }
       hr_dashboard_year: { Args: { p_year: number }; Returns: Json }
       my_employee_id: { Args: never; Returns: string }
