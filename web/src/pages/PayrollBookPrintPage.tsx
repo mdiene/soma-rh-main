@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { ArrowLeft, Printer } from 'lucide-react'
 import { Link, useParams } from 'react-router-dom'
-import { dataApi, unwrap } from '../lib/api'
+import { dataApi, isPayrollValidated, unwrap } from '../lib/api'
 import { useCompany } from '../lib/queries'
 import { date, fcfa } from '../lib/format'
 import { Button, ErrorNote, Spinner } from '../components/ui'
@@ -90,7 +90,7 @@ export default function PayrollBookPrintPage() {
   const now = new Date()
   const today = date(now.toISOString().slice(0, 10))
   const time = now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
-  const closing = e.status === 'Validée' ? '(Après clôture mensuelle)' : '(Avant clôture mensuelle)'
+  const closing = isPayrollValidated(e.status) ? '(Après clôture mensuelle)' : '(Avant clôture mensuelle)'
   const first = list[0]?.employee_number ?? ''
   const last = list[list.length - 1]?.employee_number ?? ''
   const sumRub = (r: Rubrique) => list.reduce((a, s) => a + amountOf(lineOf(s, r.code), r.field), 0)

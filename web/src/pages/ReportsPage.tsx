@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import clsx from 'clsx'
 import { useEffect, useMemo, useState } from 'react'
-import { dataApi, unwrap, type Views } from '../lib/api'
+import { dataApi, isPayrollValidated, unwrap, type Views } from '../lib/api'
 import { useCompany, usePayrollEntries } from '../lib/queries'
 import { date, fcfa, monthLabel } from '../lib/format'
 import { GroupedTable, type Check, type GBlock, type GCol } from '../components/GroupedTable'
@@ -188,7 +188,7 @@ export default function ReportsPage() {
       Sous-totaux par statut
     </label>
   )
-  const notValidated = entry && entry.status !== 'Validée'
+  const notValidated = entry && !isPayrollValidated(entry.status)
 
   return (
     <>
@@ -225,7 +225,7 @@ export default function ReportsPage() {
             </div>
             <div className="text-right text-[8.5px] leading-snug text-ink-muted">
               <p>Édité le {date(new Date().toISOString().slice(0, 10))}</p>
-              {entry && <p className="font-semibold text-ink">{entry.status === 'Validée' ? 'Paie validée' : `Traitement ${entry.status.toLowerCase()} — provisoire`}</p>}
+              {entry && <p className="font-semibold text-ink">{isPayrollValidated(entry.status) ? 'Paie validée' : `Traitement ${entry.status.toLowerCase()} — provisoire`}</p>}
               <p>Montants en F CFA</p>
             </div>
           </header>

@@ -4,7 +4,7 @@ import { ArrowLeft, Ban, BookOpen, CheckCircle2, ChevronRight, Banknote, Downloa
 import { DeletePayrollModal } from '../components/DeletePayrollModal'
 import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { PayrollRefusal, REVERTIBLE, dataApi, transitionPayroll, unwrap, type ApiClient, type Views } from '../lib/api'
+import { PayrollRefusal, REVERTIBLE, dataApi, isPayrollValidated, transitionPayroll, unwrap, type ApiClient, type Views } from '../lib/api'
 import { useAuth } from '../lib/auth'
 import { date, fcfa, monthLabel } from '../lib/format'
 import { BatchModal, ComparisonPanel, RevertModal, downloadPayrollSummary } from '../components/PayrollEntryExtras'
@@ -157,7 +157,7 @@ export default function PayrollEntryPage() {
         </div>
       )}
 
-      {rows.length > 0 && <ComparisonPanel entryId={id!} enabled={e.status === 'Calculée' || e.status === 'Validée'} />}
+      {rows.length > 0 && <ComparisonPanel entryId={id!} enabled={e.status === 'Calculée' || isPayrollValidated(e.status)} />}
 
       {(checks.data?.length ?? 0) > 0 && (() => {
         const list = checks.data!

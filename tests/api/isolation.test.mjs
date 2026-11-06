@@ -70,7 +70,8 @@ test('salarié : toute table avec employee_id ne renvoie que ses lignes', async 
 
 test('salarié : ne voit que des bulletins validés', async () => {
   const { rows } = await get('salary_slips?select=status', salarie)
-  const brouillons = rows.filter((r) => !['Validée', 'Payée', 'Clôturée', 'Approuvée'].includes(r.status))
+  // Les bulletins n'ont que deux statuts : Brouillon et Validé (D-62 : ancien test au mauvais vocabulaire).
+  const brouillons = rows.filter((r) => !['Validé', 'Validée', 'Payée', 'Clôturée', 'Approuvée'].includes(r.status))
   assert.equal(brouillons.length, 0, `bulletins non validés visibles : ${brouillons.length}`)
 })
 
@@ -121,13 +122,20 @@ for (const [nom, jeton] of [['rh', rh]]) {
   })
 }
 
-test('manager : ne lit aucune rémunération ni aucun bulletin', async () => {
+test('manager : ne lit aucune rémunération ni aucun bulletin d\'autrui (ses propres bulletins validés restent lisibles)', async () => {
+  const uid = JSON.parse(Buffer.from(manager.split('.')[1], 'base64url').toString()).sub
+  const moi = (await get(`employees?select=id&user_id=eq.${uid}`, manager)).rows.map((r) => r.id)
   const fuites = []
-  for (const t of ['salary_structure_assignments', 'salary_slips', 'salary_slip_details', 'salary_payments']) {
-    const { rows } = await get(`${t}?limit=1`, manager)
-    if (rows.length > 0) fuites.push(t)
+  for (const t of ['salary_structure_assignments', 'salary_payments']) {
+    const { rows } = await get(`${t}?select=employee_id&limit=1000`, manager)
+    if (rows.some((r) => !moi.includes(r.employee_id))) fuites.push(t)
   }
-  assert.deepEqual(fuites, [], `données de paie lisibles par un manager : ${fuites.join(', ')}`)
+  const slips = (await get('salary_slips?select=id,employee_id,status&limit=1000', manager)).rows
+  if (slips.some((r) => !moi.includes(r.employee_id) || r.status !== 'Validé')) fuites.push('salary_slips')
+  const ids = new Set(slips.map((r) => r.id))
+  const det = (await get('salary_slip_details?select=salary_slip_id&limit=5000', manager)).rows
+  if (det.some((r) => !ids.has(r.salary_slip_id))) fuites.push('salary_slip_details')
+  assert.deepEqual(fuites, [], `données de paie d'autrui lisibles par un manager : ${fuites.join(', ')}`)
 })
 
 test('paie : peut modifier les taux (droit documenté, voir constat C-006 sur la double validation)', async () => {
