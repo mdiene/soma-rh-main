@@ -426,11 +426,14 @@ export type Database = {
           address: string | null
           collective_agreement_code: string | null
           created_at: string
+          css_at_rate: number | null
           css_number: string | null
           currency: string
           email: string | null
+          ett_agreement_number: string | null
           id: string
           ipres_number: string | null
+          is_ett: boolean
           legal_form: string | null
           logo_url: string | null
           name: string
@@ -445,11 +448,14 @@ export type Database = {
           address?: string | null
           collective_agreement_code?: string | null
           created_at?: string
+          css_at_rate?: number | null
           css_number?: string | null
           currency?: string
           email?: string | null
+          ett_agreement_number?: string | null
           id?: string
           ipres_number?: string | null
+          is_ett?: boolean
           legal_form?: string | null
           logo_url?: string | null
           name: string
@@ -463,11 +469,14 @@ export type Database = {
           address?: string | null
           collective_agreement_code?: string | null
           created_at?: string
+          css_at_rate?: number | null
           css_number?: string | null
           currency?: string
           email?: string | null
+          ett_agreement_number?: string | null
           id?: string
           ipres_number?: string | null
+          is_ett?: boolean
           legal_form?: string | null
           logo_url?: string | null
           name?: string
@@ -4864,6 +4873,7 @@ export type Database = {
         Args: { p_payroll_entry_id: string }
         Returns: string
       }
+      css_at_rate_effective: { Args: { p_default: number }; Returns: number }
       dearmor: { Args: { "": string }; Returns: string }
       decide_employee_request: {
         Args: { p_note?: string; p_request_id: string; p_status: string }

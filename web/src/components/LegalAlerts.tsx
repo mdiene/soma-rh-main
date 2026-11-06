@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { dataApi, unwrap } from '../lib/api'
 import { Section } from './ui'
 
-type Alert = { code: string; severity: 'erreur' | 'alerte' | 'info'; employee_id: string; employee_number: string; employee_name: string; due_date: string; message: string }
+type Alert = { code: string; severity: 'erreur' | 'alerte' | 'info'; employee_id: string | null; employee_number: string | null; employee_name: string; due_date: string | null; message: string }
 
 const TONE: Record<Alert['severity'], string> = {
   erreur: 'border-signal bg-signal-light text-signal',
@@ -22,7 +22,7 @@ export function LegalAlerts() {
     queryKey: ['legal_alerts'],
     queryFn: async () => unwrap(await dataApi.rpc('legal_alerts', { p_horizon_days: 30 })) as Alert[],
   })
-  const sorted = [...(q.data ?? [])].sort((a, b) => ORDER[a.severity] - ORDER[b.severity] || a.due_date.localeCompare(b.due_date))
+  const sorted = [...(q.data ?? [])].sort((a, b) => ORDER[a.severity] - ORDER[b.severity] || (a.due_date ?? '9999').localeCompare(b.due_date ?? '9999'))
   return (
     <Section title="Alertes réglementaires">
       <p className="mb-3 text-xs text-ink-muted">Fins de CDD, salaires sous le SMIG paramétré, pièces d'identité à renouveler (horizon de 30 jours).</p>
@@ -34,7 +34,9 @@ export function LegalAlerts() {
             {sorted.map((a) => (
               <li key={a.code + a.employee_id} className="flex flex-wrap items-center gap-2 py-2">
                 <span className={`rounded border px-2 py-0.5 text-xs font-medium ${TONE[a.severity]}`}>{LABEL[a.severity]}</span>
-                <Link to={`/salaries/${a.employee_id}`} className="font-medium text-river hover:underline">{a.employee_number} {a.employee_name}</Link>
+                {a.employee_id
+                  ? <Link to={`/salaries/${a.employee_id}`} className="font-medium text-river hover:underline">{a.employee_number} {a.employee_name}</Link>
+                  : <Link to="/parametres" className="font-medium text-river hover:underline">{a.employee_name} (société)</Link>}
                 <span className="text-ink-soft">{a.message}</span>
               </li>
             ))}

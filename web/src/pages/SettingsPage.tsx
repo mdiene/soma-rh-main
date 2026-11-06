@@ -498,6 +498,19 @@ function CompanyTab() {
           {(agreements.data ?? []).map((a) => <option key={a.code} value={a.code}>{a.name}</option>)}
         </SelectField>
         <TextField label="E-mail" type="email" value={f.email ?? ''} onChange={t('email')} />
+        <TextField label="Taux AT/MP de la société (%)" type="number" step="0.01" min={0} max={100}
+          value={f.css_at_rate == null ? '' : String(Number((f.css_at_rate * 100).toFixed(4)))}
+          onChange={(e) => setF({ ...f, css_at_rate: e.target.value === '' ? null : Number(e.target.value) / 100 })}
+          hint="Attribué par la CSS (appel de cotisation), de 1 % à 5 % selon le risque. Vide : taux du paramétrage." />
+        <label className="flex items-center gap-2 text-sm sm:pt-6">
+          <input type="checkbox" checked={f.is_ett === true} onChange={(e) => setF({ ...f, is_ett: e.target.checked })} />
+          <span>Entreprise de travail temporaire (ETT)</span>
+        </label>
+        {f.is_ett && (
+          <TextField label="N° d'agrément (Direction générale du Travail et de la Sécurité sociale)" className="sm:col-span-2"
+            value={f.ett_agreement_number ?? ''} onChange={t('ett_agreement_number')}
+            hint="Requis pour ouvrir une entreprise de travail temporaire (Code du travail 2026, art. 292). Sans numéro, une alerte s'affiche tant que le module Intérim est actif." />
+        )}
       </fieldset>
       <div className="mt-3"><ErrorNote error={company.error || save.error} /></div>
     </Section>
