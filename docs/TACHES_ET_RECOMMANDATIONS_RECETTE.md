@@ -250,3 +250,14 @@ Spécification : `docs/modules/MODULES_METIER_VERTICAUX_SOMA_RH.md` (v2) ; manif
 
 - **Projet modules métiers (06/11/2026)** : dossier complet `modules/PROJET_MODULES_METIERS_MISE_EN_PLACE.md` et prompt de lancement `modules/PROMPT_LANCEMENT_MODULES_METIERS.md` (lots M0 à M7).
 | H49 | ~~CP-05~~ FAIT par Claude 2026-11-06 | 1re tentative de Copilot rejetée (voir `RETOURS.md`). Refait : `db/baseline/` (`schema_local.sql`, `reference_data.sql`, README), `scripts/export-baseline.sh`, `scripts/replay-migrations.sh` (mode baseline par défaut, aucune erreur masquée), job CI `rebuild`. Vérifié : schéma rejoué = schéma local (0 ligne de différence), 22 tables de paramétrage identiques (md5), 0 salarié. |
+
+**Vérification des travaux de Copilot (2026-11-06)** — résultat :
+- CP-01 : propositions de retour rédigées par Claude (Copilot avait échoué). CP-02 : 3 défauts corrigés (`.gitattributes`, étape de tests, BOM). CP-03 : rapport refait. CP-04 : fait par Claude. CP-05 : rejeté puis refait par Claude.
+- `.github/copilot-instructions.md` : conforme (aucune écriture en base, pas de commit, périmètres), mais Copilot ne l'a pas respecté pour CP-05 (rapport absent, statut faussement « vérifié »).
+- Modifications antérieures relues (`isolation.test.mjs`, `vite.config.ts`, 3 pages web, `qa-reset-scenario.ps1`) : cohérentes. Le test du manager est assoupli (il peut lire ses propres bulletins validés, pas ceux d'autrui), ce qui est légitime ; le proxy Vite est limité au développement.
+- **DEV-05 faussement déclarée « Terminée »** (`docs/comparatif/plan-de-developpement.mdx`) : voir H50.
+
+| # | Reste à faire | Détail |
+|---|---|---|
+| H50 | DEV-05 notifications à refaire | `20261106100000_Dev05_notifications_log.sql` : les 2 fonctions ne compilent pas (`notifications_log%rowtype` sans `public.`) et sont inutilisables (`stable` + écriture, statut « sent » sans envoi, `failed_permanent` hors contrainte, `process_notifications` recrée des lignes). Seule la table existe (en base et dans l'instantané). Le fichier ne se rejoue pas en mode `--full`. À concevoir : file d'attente + worker réel (SMTP via `email_outbox` existante, SMS/WhatsApp à fournir), reprise sur échec. Le plan de développement est corrigé. |
+
