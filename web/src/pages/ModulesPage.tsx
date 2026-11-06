@@ -7,7 +7,7 @@ import { Badge, Button, Empty, ErrorNote, PageHeader, Section, Spinner } from '.
 type Row = {
   module_id: string; name: string; version: string; status: string
   manifest: { parameters?: Record<string, unknown> }
-  activation: { enabled: boolean; enabled_at: string | null }[]
+  activation: { enabled: boolean; enabled_at: string | null } | null  // relation 1-1 (module_id unique)
   params: { param_key: string }[]
 }
 
@@ -37,14 +37,14 @@ export default function ModulesPage() {
       {list.isLoading ? <Spinner /> : !list.data?.length ? <Empty title="Aucun module chargé" /> : (
         <div className="grid gap-4 lg:grid-cols-2">
           {list.data.map((m) => {
-            const enabled = m.activation[0]?.enabled ?? false
+            const enabled = m.activation?.enabled ?? false
             const expected = Object.keys(m.manifest.parameters ?? {}).length
             const filled = new Set(m.params.map((p) => p.param_key)).size
             return (
               <Section key={m.module_id} title={m.name} actions={<Badge value={enabled ? 'Actif' : 'Inactif'} />}>
                 <p className="text-sm text-ink-soft">
                   Version {m.version} · manifeste « {m.status === 'draft' ? 'brouillon' : m.status} »
-                  {enabled && m.activation[0]?.enabled_at && ` · activé le ${date(m.activation[0].enabled_at.slice(0, 10))}`}
+                  {enabled && m.activation?.enabled_at && ` · activé le ${date(m.activation.enabled_at.slice(0, 10))}`}
                 </p>
                 <p className={filled < expected ? 'mt-1 text-sm text-signal' : 'mt-1 text-sm text-ink-soft'}>
                   {filled} paramètre(s) renseigné(s) sur {expected}

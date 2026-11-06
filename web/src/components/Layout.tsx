@@ -2,7 +2,7 @@ import clsx from 'clsx'
 import { ChevronsLeft, ChevronsRight, LogOut, Menu } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { Suspense, useState } from 'react'
-import { NavLink, Outlet, useLocation } from 'react-router-dom'
+import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../lib/auth'
 import { dataApi, unwrap, type ApiClient } from '../lib/api'
 import { SPACES, matches, visibleItems } from '../lib/nav'
@@ -12,6 +12,7 @@ import { Spinner } from './ui'
 export function Layout() {
   const { session, can, roles, signOut } = useAuth()
   const { pathname } = useLocation()
+  const navigate = useNavigate()
   const [open, setOpen] = useState(false)
   const [picked, setPicked] = useState<string>()
   // sidebar réduite aux icônes (bureau seulement), mémorisée par navigateur
@@ -48,7 +49,7 @@ export function Layout() {
           {spaces.map((s) => (
             <li key={s.id}>
               <button
-                onClick={() => setPicked(s.id)}
+                onClick={() => { setPicked(s.id); if (!inPath(s)) navigate(s.items[0].to) }}
                 title={rail ? s.label : undefined}
                 aria-current={s.id === current?.id ? 'true' : undefined}
                 className={clsx(
