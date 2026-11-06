@@ -31,13 +31,13 @@ export type GBlock<T> = { id: string; label: string; tone: Tone; columns: GCol<T
 export type Check = { label: string; ok: boolean; detail?: string }
 
 const TONES: Record<Tone, { band: string; head: string; total: string; edge: string }> = {
-  neutral:       { band: 'bg-[#E9ECEA] text-ink',     head: 'bg-paper',           total: 'bg-paper',           edge: 'border-l-line' },
+  neutral:       { band: 'bg-paper text-ink',     head: 'bg-paper',           total: 'bg-paper',           edge: 'border-l-line' },
   river:         { band: 'bg-river text-white',       head: 'bg-river-light',     total: 'bg-river-light',     edge: 'border-l-river' },
   signal:        { band: 'bg-signal text-white',      head: 'bg-signal-light',    total: 'bg-signal-light',    edge: 'border-l-signal' },
-  inkSoft:       { band: 'bg-ink-soft text-white',    head: 'bg-[#EDF0F1]',       total: 'bg-[#EDF0F1]',       edge: 'border-l-ink-soft' },
-  ink:           { band: 'bg-ink text-white',         head: 'bg-[#E4E8EA]',       total: 'bg-[#E4E8EA]',       edge: 'border-l-ink' },
+  inkSoft:       { band: 'bg-ink-soft text-white',    head: 'bg-paper',       total: 'bg-paper',       edge: 'border-l-ink-soft' },
+  ink:           { band: 'bg-ink text-white',         head: 'bg-paper',       total: 'bg-paper',       edge: 'border-l-ink' },
   phosphate:     { band: 'bg-phosphate text-ink',     head: 'bg-phosphate-light', total: 'bg-phosphate-light', edge: 'border-l-phosphate' },
-  phosphateSoft: { band: 'bg-[#EBD27A] text-ink',     head: 'bg-[#FDF8E6]',       total: 'bg-[#FDF8E6]',       edge: 'border-l-[#EBD27A]' },
+  phosphateSoft: { band: 'bg-phosphate text-ink',     head: 'bg-phosphate-light',       total: 'bg-phosphate-light',       edge: 'border-l-phosphate' },
   riverDark:     { band: 'bg-river-dark text-white',  head: 'bg-river-light',     total: 'bg-river-light',     edge: 'border-l-river-dark' },
 }
 
@@ -231,7 +231,7 @@ export function GroupedTable<T>({
                     <tr key={rowKey(r)} onClick={onRowClick ? () => onRowClick(r) : undefined} className={clsx('group', onRowClick && 'cursor-pointer')}>
                       {tc.map((c) => (
                         <td key={c.id} style={stickyStyle(c)}
-                          className={clsx(cellCls(c), 'border-b border-line/70 bg-white group-hover:bg-[#F1F7F6]', c.stickyWidth && 'sticky z-10', c.id === 'employee_number' && 'font-medium')}>
+                          className={clsx(cellCls(c), 'border-b border-line/70 bg-white group-hover:bg-river-light', c.stickyWidth && 'sticky z-10', c.id === 'employee_number' && 'font-medium')}>
                           {c.stickyWidth
                             ? <span className="block truncate" title={String(c.value(r) ?? '')}>{display(c.value(r), c.kind)}</span>
                             : display(c.value(r), c.kind)}

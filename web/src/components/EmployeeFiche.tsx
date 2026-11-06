@@ -29,7 +29,7 @@ function Block({ title, rows }: { title: string; rows: [string, ReactNode][] }) 
       <dl className="grid grid-cols-[38mm_1fr_38mm_1fr] gap-x-3 gap-y-1">
         {rows.map(([k, v]) => (
           <div key={k} className="contents">
-            <dt className="text-[#52606B]">{k}</dt>
+            <dt className="text-ink-soft">{k}</dt>
             <dd className="font-medium">{v || '—'}</dd>
           </div>
         ))}
@@ -79,7 +79,7 @@ function EmployeeFicheDocument({ employee: e }: { employee: Emp }) {
         <div className="text-right">
           <p className="text-lg font-bold">FICHE DU SALARIÉ</p>
           <p>Éditée le {today}</p>
-          <p className="text-[10px] text-[#52606B]">Document confidentiel</p>
+          <p className="text-[10px] text-ink-soft">Document confidentiel</p>
         </div>
       </header>
 
@@ -158,7 +158,7 @@ function EmployeeFicheDocument({ employee: e }: { employee: Emp }) {
             <thead><tr className="text-left"><th className="py-0.5">Type</th><th className="text-right">Acquis</th><th className="text-right">Pris</th><th className="text-right">Solde</th></tr></thead>
             <tbody>
               {balances.data!.map((b) => (
-                <tr key={b.leave_type_name} className="border-t border-[#D5DBE0]">
+                <tr key={b.leave_type_name} className="border-t border-line">
                   <td className="py-0.5">{b.leave_type_name}</td>
                   <td className="text-right tabular-nums">{num(b.allocated, 1)}</td>
                   <td className="text-right tabular-nums">{num(b.taken, 1)}</td>
@@ -177,7 +177,7 @@ function EmployeeFicheDocument({ employee: e }: { employee: Emp }) {
             <thead><tr className="text-left"><th className="py-0.5">Mois</th><th className="text-right">Brut</th><th className="text-right">Net à payer</th><th className="pl-4">État</th></tr></thead>
             <tbody>
               {recent.map((s) => (
-                <tr key={s.id} className="border-t border-[#D5DBE0]">
+                <tr key={s.id} className="border-t border-line">
                   <td className="py-0.5">{monthLabel(s.period_start)}</td>
                   <td className="text-right tabular-nums">{fcfa(s.gross_pay)}</td>
                   <td className="text-right font-semibold tabular-nums">{fcfa(s.net_pay)}</td>

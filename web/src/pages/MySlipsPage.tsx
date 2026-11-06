@@ -105,7 +105,7 @@ export default function MySlipsPage() {
   }
 
   const SlipLine = ({ s, showIdent, indent }: { s: Slip; showIdent: boolean; indent?: boolean }) => (
-    <li className="flex flex-wrap items-center gap-x-4 gap-y-1 px-4 py-2.5 hover:bg-[#F1F7F6]">
+    <li className="flex flex-wrap items-center gap-x-4 gap-y-1 px-4 py-2.5 hover:bg-river-light">
       <input type="checkbox" className={clsx('h-4 w-4 accent-river', indent && 'ml-6')} checked={selected.has(s.id)} onChange={() => toggle(s.id)}
         aria-label={`Sélectionner ${monthLabel(s.period_start)} — ${ident(s)}`} />
       <Link to={`/bulletins/${s.id}`} className="min-w-[16rem] flex-1 font-medium text-river hover:underline">

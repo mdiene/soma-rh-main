@@ -86,7 +86,7 @@ function AttestationDocument({ employeeId, kind }: { employeeId: string; kind: A
 
       <div className="ml-auto w-72 text-center">
         <p className="font-bold">La Direction</p>
-        <div className="mt-20 border-t border-ink pt-1 text-xs text-[#52606B]">Signature et cachet</div>
+        <div className="mt-20 border-t border-ink pt-1 text-xs text-ink-soft">Signature et cachet</div>
       </div>
     </div>
   )

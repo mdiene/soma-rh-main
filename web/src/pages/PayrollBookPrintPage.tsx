@@ -96,17 +96,17 @@ export default function PayrollBookPrintPage() {
   const sumRub = (r: Rubrique) => list.reduce((a, s) => a + amountOf(lineOf(s, r.code), r.field), 0)
   const sumAll = (f: (s: Slip) => number) => list.reduce((a, s) => a + f(s), 0)
 
-  const SECTION = 'bg-[#E9F1F0] text-[#0A4F4C] text-[8.5px] font-bold uppercase tracking-[0.08em] [print-color-adjust:exact]'
+  const SECTION = 'bg-river-light text-river-dark text-[8.5px] font-bold uppercase tracking-[0.08em] [print-color-adjust:exact]'
 
   function renderTable(slipsOfPage: Slip[], withTotal: boolean) {
     const span = 1 + slipsOfPage.length + (withTotal ? 1 : 0)
-    const totalCell = 'border-l-2 border-river bg-[#F1F7F6] [print-color-adjust:exact]'
+    const totalCell = 'border-l-2 border-river bg-river-light [print-color-adjust:exact]'
     const sectionRow = (label: string) => (
       <tr><td colSpan={span} className={`${SECTION} px-1.5 py-[3px]`}>{label}</td></tr>
     )
     const rubRow = (r: Rubrique) => (
-      <tr key={r.code} className="border-b border-line even:bg-[#FAFBFA] [print-color-adjust:exact]">
-        <td className="whitespace-nowrap py-[2.5px] pl-1.5 pr-2"><span className="inline-block w-7 text-right text-[8px] text-[#7A8791]">{r.sort}</span> {r.label}</td>
+      <tr key={r.code} className="border-b border-line even:bg-paper [print-color-adjust:exact]">
+        <td className="whitespace-nowrap py-[2.5px] pl-1.5 pr-2"><span className="inline-block w-7 text-right text-[8px] text-ink-muted">{r.sort}</span> {r.label}</td>
         {slipsOfPage.map((s) => <td key={s.id} className={cell}>{show(amountOf(lineOf(s, r.code), r.field))}</td>)}
         {withTotal && <td className={`${cell} font-semibold ${totalCell}`}>{show(sumRub(r))}</td>}
       </tr>
@@ -122,39 +122,39 @@ export default function PayrollBookPrintPage() {
       <table className="w-full table-fixed border-collapse text-[9.5px] leading-tight text-ink">
         <colgroup><col style={{ width: '47mm' }} />{slipsOfPage.map((s) => <col key={s.id} />)}{withTotal && <col />}</colgroup>
         <thead>
-          <tr className="bg-[#17323B] align-bottom text-white [print-color-adjust:exact]">
+          <tr className="bg-ink align-bottom text-white [print-color-adjust:exact]">
             <th className="px-1.5 py-1.5 text-left text-[8.5px] font-semibold uppercase tracking-wider text-white/80">Rubriques</th>
             {slipsOfPage.map((s) => (
               <th key={s.id} className="border-l border-white/20 px-1.5 py-1.5 text-left font-normal leading-tight">
-                <span className="block text-[10px] font-bold tracking-wide text-[#F2C94C]">{s.employee_number}</span>
+                <span className="block text-[10px] font-bold tracking-wide text-phosphate">{s.employee_number}</span>
                 <span className="block break-words text-[9px] font-semibold uppercase">{s.employee?.last_name}</span>
                 <span className="block break-words text-[8.5px] uppercase text-white/80">{s.employee?.gender === 'F' ? 'Mme ' : ''}{s.employee?.first_name}</span>
               </th>
             ))}
-            {withTotal && <th className="border-l-2 border-[#F2C94C] px-1.5 py-1.5 text-right text-[10px] font-bold uppercase tracking-wider text-[#F2C94C]">Total</th>}
+            {withTotal && <th className="border-l-2 border-phosphate px-1.5 py-1.5 text-right text-[10px] font-bold uppercase tracking-wider text-phosphate">Total</th>}
           </tr>
         </thead>
         <tbody>
           {sectionRow('Rémunération')}
           {gains.map(rubRow)}
-          {emphasis('Total brut', (s) => Number(s.gross_pay), 'bg-[#FFF3B8] text-ink', 'bg-[#FFE97A]')}
+          {emphasis('Total brut', (s) => Number(s.gross_pay), 'bg-phosphate-light text-ink', 'bg-phosphate')}
           {sectionRow('Retenues salariales')}
           {retenues.map(rubRow)}
-          {emphasis('Total retenues', (s) => Number(s.total_employee_deductions), 'bg-[#FADCD6] text-[#8A2C1F]', 'bg-[#F5C4BA]')}
+          {emphasis('Total retenues', (s) => Number(s.total_employee_deductions), 'bg-signal-light text-signal', 'bg-signal-light')}
           {others.length > 0 && sectionRow('Indemnités et autres éléments')}
           {others.map(rubRow)}
           {sectionRow('Synthèse')}
           {STATS.map((st) => {
             const strong = st.label === 'Net à payer'
             return (
-              <tr key={st.label} className={strong ? 'bg-[#CFE7E4] font-bold text-[#0A4F4C] [print-color-adjust:exact]' : 'border-b border-line even:bg-[#FAFBFA] [print-color-adjust:exact]'}>
+              <tr key={st.label} className={strong ? 'bg-river-light font-bold text-river-dark [print-color-adjust:exact]' : 'border-b border-line even:bg-paper [print-color-adjust:exact]'}>
                 <td className={`py-[2.5px] pl-1.5 ${strong ? 'text-[10px]' : ''}`}>{st.label}</td>
                 {slipsOfPage.map((s) => <td key={s.id} className={`${cell} ${strong ? 'text-[10px]' : ''}`}>{st.hours ? round2(st.value(s)) : fcfa(st.value(s))}</td>)}
-                {withTotal && <td className={`${cell} font-semibold border-l-2 border-river ${strong ? 'bg-[#B5DBD6] text-[10px]' : 'bg-[#F1F7F6]'}`}>{st.hours ? round2(sumAll(st.value)) : fcfa(sumAll(st.value))}</td>}
+                {withTotal && <td className={`${cell} font-semibold border-l-2 border-river ${strong ? 'bg-river-light text-[10px]' : 'bg-river-light'}`}>{st.hours ? round2(sumAll(st.value)) : fcfa(sumAll(st.value))}</td>}
               </tr>
             )
           })}
-          <tr className="border-y-2 border-[#17323B]">
+          <tr className="border-y-2 border-ink">
             <td className="py-[3px] pl-1.5 font-bold">Nombre de salariés</td>
             {slipsOfPage.map((s) => <td key={s.id} />)}
             {withTotal && <td className={`${cell} border-l-2 border-river text-[11px] font-bold`}>{list.length}</td>}
@@ -169,21 +169,21 @@ export default function PayrollBookPrintPage() {
       <header className="mb-3">
         <div className="flex items-end justify-between border-b-[3px] border-river pb-2">
           <div>
-            <p className="text-[8.5px] font-semibold uppercase tracking-[0.14em] text-[#52606B]">Société</p>
+            <p className="text-[8.5px] font-semibold uppercase tracking-[0.14em] text-ink-soft">Société</p>
             <p className="text-[13px] font-bold leading-tight">{company.data?.name ?? ''}</p>
-            {company.data?.ninea && <p className="text-[8.5px] text-[#52606B]">NINEA {company.data.ninea}</p>}
+            {company.data?.ninea && <p className="text-[8.5px] text-ink-soft">NINEA {company.data.ninea}</p>}
           </div>
           <div className="text-center">
-            <p className="text-[17px] font-bold uppercase tracking-[0.18em] text-[#0A4F4C]">Livre de paie mensuel</p>
+            <p className="text-[17px] font-bold uppercase tracking-[0.18em] text-river-dark">Livre de paie mensuel</p>
             <p className="text-[10px] font-semibold">Période du {date(e!.period_start)} au {date(e!.period_end)}</p>
           </div>
-          <div className="text-right text-[8.5px] leading-snug text-[#52606B]">
+          <div className="text-right text-[8.5px] leading-snug text-ink-soft">
             <p className="text-[11px] font-bold text-ink">Page {page} / {totalPages}</p>
             <p>Édité le {today} à {time}</p>
-            <p className="font-semibold text-[#8A6A00]">{closing}</p>
+            <p className="font-semibold text-ink">{closing}</p>
           </div>
         </div>
-        <p className="mt-1 text-[8.5px] text-[#52606B]">Matricules {first} à {last} · {list.length} salarié(s) · montants en F CFA</p>
+        <p className="mt-1 text-[8.5px] text-ink-soft">Matricules {first} à {last} · {list.length} salarié(s) · montants en F CFA</p>
       </header>
     )
   }
@@ -202,14 +202,14 @@ export default function PayrollBookPrintPage() {
             <section key={i} className={`${sheetCls} print:break-after-page`}>
               {renderHeader(i + 1)}
               {renderTable(p, totalOnLast && i === pages.length - 1)}
-              <p className="mt-2 border-t border-line pt-1 text-[8px] text-[#7A8791]">(*) Rubriques particulières · document confidentiel</p>
+              <p className="mt-2 border-t border-line pt-1 text-[8px] text-ink-muted">(*) Rubriques particulières · document confidentiel</p>
             </section>
           ))}
           {!totalOnLast && (
             <section className={sheetCls}>
               {renderHeader(totalPages)}
               {renderTable([], true)}
-              <p className="mt-2 border-t border-line pt-1 text-[8px] text-[#7A8791]">(*) Rubriques particulières · document confidentiel</p>
+              <p className="mt-2 border-t border-line pt-1 text-[8px] text-ink-muted">(*) Rubriques particulières · document confidentiel</p>
             </section>
           )}
         </div>

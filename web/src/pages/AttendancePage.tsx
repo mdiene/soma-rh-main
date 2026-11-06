@@ -290,7 +290,7 @@ export default function AttendancePage() {
                       className={clsx('field w-20 py-1 text-right', err[k] && 'border-signal ring-2 ring-signal/20')} />
                   )
                   return (
-                    <tr key={e.id} className={clsx(modified ? 'bg-phosphate-light/60' : 'bg-white', 'hover:bg-[#F1F7F6]')}>
+                    <tr key={e.id} className={clsx(modified ? 'bg-phosphate-light/60' : 'bg-white', 'hover:bg-river-light')}>
                       <td className={cell}>
                         <span className="whitespace-nowrap font-medium">{e.last_name} {e.first_name}</span>
                         <span className="block text-xs text-ink-muted">{e.designation?.name ?? ''}</span>

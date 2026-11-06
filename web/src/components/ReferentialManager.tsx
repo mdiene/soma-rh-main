@@ -169,7 +169,7 @@ export function ReferentialManager({ config }: { config: RefConfig }) {
             </thead>
             <tbody>
               {rows.map((r) => (
-                <tr key={String(r[config.keyField])} className={clsx('hover:bg-[#F1F7F6]', !r.is_active && 'text-ink-muted')}>
+                <tr key={String(r[config.keyField])} className={clsx('hover:bg-river-light', !r.is_active && 'text-ink-muted')}>
                   {listFields.map((f) => <td key={f.key} className={clsx('border-b border-line/70 px-3 py-1.5', f.type === 'number' && 'num text-right')}>{cell(f, r[f.key])}</td>)}
                   <td className="border-b border-line/70 px-3 py-1.5">
                     <span className={clsx('rounded border px-1.5 py-0.5 text-xs', r.is_active ? 'border-river/30 bg-river-light text-river-dark' : 'border-line bg-paper text-ink-muted')}>{r.is_active ? 'Actif' : 'Désactivé'}</span>
