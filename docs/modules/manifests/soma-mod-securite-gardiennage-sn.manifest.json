@@ -80,8 +80,25 @@
       "value": null,
       "legal_status": "to_provide",
       "client_input_allowed": true
+    },
+    "night_bonus_rate": {
+      "value": null,
+      "legal_status": "to_provide",
+      "client_input_allowed": true,
+      "note": "Taux de la prime de nuit saisi par le client (convention ou accord). Aucune valeur par défaut : le 0,50 du document de départ n'a pas de source"
     }
   },
+  "payroll_rules": [
+    {
+      "rule_id": "GARD_NIGHT_BONUS",
+      "label": "Prime de nuit (gardiennage)",
+      "inputs": ["INP_NIGHT_HOURS"],
+      "params": ["night_bonus_rate"],
+      "taxable": true,
+      "logic": { "*": [{ "var": "INP_NIGHT_HOURS" }, { "var": "hourly_rate" }, { "var": "night_bonus_rate" }] },
+      "note": "Exécutable (JSONLogic) de la règle texte GARD_NIGHT_BONUS de calculation_rules. Cotisable : à confirmer avec le comptable"
+    }
+  ],
   "planning_rules": {
     "shift_templates": [
       {

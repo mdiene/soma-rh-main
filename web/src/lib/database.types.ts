@@ -7,8 +7,6 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instantiate createClient with right options
-  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "14.17"
   }
@@ -2375,6 +2373,69 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "module_parameter_value_module_id_fkey"
+            columns: ["module_id"]
+            isOneToOne: false
+            referencedRelation: "module_manifest"
+            referencedColumns: ["module_id"]
+          },
+        ]
+      }
+      module_payroll_input: {
+        Row: {
+          employee_id: string
+          entered_at: string
+          entered_by: string | null
+          id: string
+          input_key: string
+          module_id: string
+          period: string
+          value: number
+        }
+        ComputedFields: never
+        Insert: {
+          employee_id: string
+          entered_at?: string
+          entered_by?: string | null
+          id?: string
+          input_key: string
+          module_id: string
+          period: string
+          value: number
+        }
+        Update: {
+          employee_id?: string
+          entered_at?: string
+          entered_by?: string | null
+          id?: string
+          input_key?: string
+          module_id?: string
+          period?: string
+          value?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "module_payroll_input_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "module_payroll_input_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "v_conformite_embauche"
+            referencedColumns: ["employee_id"]
+          },
+          {
+            foreignKeyName: "module_payroll_input_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "v_leave_balances"
+            referencedColumns: ["employee_id"]
+          },
+          {
+            foreignKeyName: "module_payroll_input_module_id_fkey"
             columns: ["module_id"]
             isOneToOne: false
             referencedRelation: "module_manifest"
@@ -4888,6 +4949,9 @@ export type Database = {
         Args: { p_code: string; p_fallback: number }
         Returns: number
       }
+      jl_eval: { Args: { p_rule: Json; p_vars: Json }; Returns: Json }
+      jl_num: { Args: { p_rule: Json; p_vars: Json }; Returns: number }
+      jl_truthy: { Args: { j: Json }; Returns: boolean }
       legal_alerts: {
         Args: { p_as_of?: string; p_horizon_days?: number }
         Returns: {
@@ -4944,6 +5008,14 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
+      }
+      module_active_for: {
+        Args: { p_employee_id: string; p_module_id: string; p_period: string }
+        Returns: boolean
+      }
+      module_payroll_adjustments: {
+        Args: { p_employee_id: string; p_hourly: number; p_period: string }
+        Returns: Json
       }
       my_employee_id: { Args: Record<PropertyKey, never>; Returns: string }
       my_leave_approvals: {
