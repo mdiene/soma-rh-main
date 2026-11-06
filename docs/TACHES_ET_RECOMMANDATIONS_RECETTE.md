@@ -240,7 +240,7 @@ Spécification : `docs/modules/MODULES_METIER_VERTICAUX_SOMA_RH.md` (v2) ; manif
 
 | # | Reste à faire | Détail |
 |---|---|---|
-| H43 | Erreurs de requêtes masquées | ~60 `useQuery` sans lecture de l'erreur (liste dans `RETOURS.md` §D) ; gestionnaire global `QueryCache({ onError })` + bandeau d'erreur dans `main.tsx`. |
+| H43 | ~~Erreurs de requêtes masquées~~ FAIT 2026-11-06 | `QueryCache({ onError })` (`main.tsx`) + bandeau `QueryErrorBanner` dans `Layout` (3 derniers messages, dédoublonnés, fermable). Essai navigateur non fait ; les pages peuvent encore afficher leur propre `ErrorNote` (cumul possible). |
 | H44 | Couleurs hors palette | Hexadécimaux en dur (graphiques, impressions, `GroupedTable`) : jetons Tailwind (`RETOURS.md` §C). |
 | H45 | Export des paiements | `PayrollPaymentsPage.tsx:69` arrondit le net : confirmer que l'arrondi à l'unité est voulu pour le fichier de virement. |
 | H46 | Types RPC | Retirer les `as never` (`decide_leave`, `cancel_my_request`, `mark_employee_notification_read`) maintenant que les types sont régénérés ; tester `decide_leave` (refus d'un non-approbateur). |

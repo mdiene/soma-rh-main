@@ -6,6 +6,7 @@ import {
 import { Suspense, useState } from 'react'
 import { NavLink, Outlet } from 'react-router-dom'
 import { useAuth, type Role } from '../lib/auth'
+import QueryErrorBanner from './QueryErrorBanner'
 import { Spinner } from './ui'
 
 type Item = { to: string; label: string; icon: React.ElementType; roles?: Role[]; withoutRole?: boolean }
@@ -109,6 +110,7 @@ export function Layout() {
 
       <main className="min-w-0 px-4 py-6 sm:px-6 lg:px-10 lg:py-8">
         <Suspense fallback={<Spinner />}>
+          <QueryErrorBanner />
           <Outlet />
         </Suspense>
       </main>
