@@ -1,290 +1,36 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "SomaRH Module Manifest Schema",
+  "title": "Manifeste de module métier SOMA-RH (socle M0)",
+  "description": "Valide ce que le chargeur utilise : identité, version et paramètres avec statut légal. Les autres sections (custom_fields, planning_rules, calculation_rules, compliance_checks, tests…) sont tolérées telles quelles : leur structure sera harmonisée en M2/M3. Un paramètre to_provide peut avoir une valeur provisoire ou null ; il n'est jamais pré-rempli.",
   "type": "object",
-  "description": "JSON Schema validating module manifest files for SOMA-RH modules",
-  "required": ["manifest_version", "module_id", "module_name", "version"],
+  "required": ["manifest_version", "module_id", "module_name", "version", "parameters"],
   "properties": {
-    "manifest_version": {
-      "type": "string",
-      "description": "Version of the manifest format (e.g., '2.0')",
-      "enum": ["1.0", "2.0"]
-    },
-    "module_id": {
-      "type": "string",
-      "description": "Unique module identifier (kebab-case, e.g., 'soma-mod-payroll')",
-      "pattern": "^[a-z][a-z0-9-]*$"
-    },
-    "module_name": {
-      "type": "string",
-      "description": "Human-readable module name in French",
-      "pattern": "^[A-Za-zÀ-ÖØ-öø-ÿ\s]+$"
-    },
-    "version": {
-      "type": "string",
-      "description": "Module version following semantic versioning",
-      "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(?:-((?:0|[1-9]\\d*|[0-9]*[a-zA-Z-][0-9a-zA-Z-]*)(??:\\.(?:0|[1-9]\\d*|[0-9]*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\\+[0-9a-zA-Z-]+)?$"
-    },
-    "status": {
-      "type": "string",
-      "description": "Deployment status",
-      "enum": ["draft", "prototype", "deployed", "deprecated"]
-    },
-    "jurisdiction": {
-      "type": "string",
-      "description": "Country code (ISO 3166-1 alpha-2)",
-      "pattern": "^[A-Z]{2}$"
-    },
-    "target_sector": {
-      "type": "string",
-      "description": "Target business sector",
-      "enum": ["PAIE", "RH", "SALARIE", "CONTRACT", "SÉCURITÉ_PRIVÉE", "GARDENNAGE", "INDUSTRIE", "MINES"]
-    },
-    "requires_core": {
-      "type": "string",
-      "description": "Minimum core module version required",
-      "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)"
-    },
-    "custom_fields": {
-      "type": "array",
-      "description": "Module-specific custom fields beyond the core schema",
-      "items": {
-        "type": "object",
-        "required": ["field_key", "target_entity", "label", "data_type"],
-        "properties": {
-          "field_key": {
-            "type": "string",
-            "description": "Unique key for the field (kebab-case)",
-            "pattern": "^[a-z][a-z0-9-]*$"
-          },
-          "target_entity": {
-            "type": "string",
-            "description": "Entity the field belongs to (Employee, Contract, etc.)"
-          },
-          "label": {
-            "type": "string",
-            "description": "Human-readable label in French"
-          },
-          "data_type": {
-            "type": "string",
-            "description": "JSON Schema data type",
-            "enum": ["string", "number", "integer", "boolean", "array", "object"]
-          },
-          "required": {
-            "type": "boolean",
-            "description": "Whether the field is required"
-          },
-          "default_value": {
-            "type": ["string", "number", "integer", "boolean", "null"],
-            "description": "Default value if not provided"
-          },
-          "enum": {
-            "type": "array",
-            "description": "Allowed values (if any)",
-            "items": {"type": "string"}
-          },
-          "validation": {
-            "type": "object",
-            "description": "Custom validation rules",
-            "properties": {
-              "regex": {
-                "type": "string",
-                "description": "Regex pattern for string validation"
-              },
-              "note": {
-                "type": "string",
-                "description": "Additional notes about validation"
-              },
-              "legal_status": {
-                "type": "string",
-                "enum": ["verified", "to_provide", "secondary"],
-                "description": "Legal compliance status"
-              },
-              "client_input_allowed": {
-                "type": "boolean",
-                "description": "Whether the client can input this value"
-              }
-            }
-          },
-          "enum_source": {
-            "type": "string",
-            "description": "Reference to parameters that provide enum values"
-          }
-        }
-      }
-    },
+    "manifest_version": { "type": "string", "enum": ["1.0", "2.0"] },
+    "module_id": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" },
+    "module_name": { "type": "string", "minLength": 1 },
+    "version": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+(-[0-9A-Za-z.-]+)?$" },
+    "status": { "type": "string", "enum": ["draft", "prototype", "deployed", "deprecated"] },
+    "jurisdiction": { "type": "string", "pattern": "^[A-Z]{2}$" },
+    "requires_core": { "type": "string" },
+    "custom_fields": { "type": ["array", "object"] },
     "parameters": {
       "type": "object",
-      "description": "Module-specific parameters with legal references",
-      "properties": {
-        "weekly_legal_hours": {
-          "type": "object",
-          "description": "Weekly legal working hours parameter",
-          "required": ["value", "unit", "source", "legal_status"],
-          "properties": {
-            "value": {"type": "number"},
-            "unit": {"type": "string"},
-            "source": {"type": "string"},
-            "legal_status": {
-              "type": "string",
-              "enum": ["verified", "to_provide"]
-            }
-          }
-        },
-        "night_window": {
-          "type": "object",
-          "description": "Night shift window parameter",
-          "required": ["value", "source", "legal_status"],
-          "properties": {
-            "value": {
-              "type": "object",
-              "properties": {
-                "start": {"type": "string", "pattern": "^([01]\\d|2[0-3]):([0-5]\\d)$"},
-                "end": {"type": "string", "pattern": "^([01]\\d|2[0-3]):([0-5]\\d)$"}
-              },
-              "end": {"type": "string", "pattern": "^([01]\\d|2[0-3]):([0-5]\\d)$"}
-            },
-            "source": {"type": "string"},
-            "legal_status": {
-              "type": "string",
-              "enum": ["verified", "to_provide"]
-            }
-          }
-        },
-        "overtime_rates_table": {
-          "type": "object",
-          "description": "Overtime rates table reference",
-          "required": ["value", "source", "legal_status"],
-          "properties": {
-            "value": {"type": "string"},
-            "source": {"type": "string"},
-            "legal_status": {
-              "type": "string",
-              "enum": ["verified", "secondary", "to_provide"]
-            }
-          }
-        }
-      },
-      "additionalProperties": false
-    },
-    "planning_rules": {
-      "type": "object",
-      "description": "Shift planning and scheduling rules",
-      "properties": {
-        "shift_templates": {
-          "type": "array",
-          "description": "Available shift templates",
-          "items": {
-            "type": "object",
-            "required": ["code", "label", "duration_hours"],
-            "properties": {
-              "code": {"type": "string"},
-              "label": {"type": "string"},
-              "duration_hours": {"type": "integer", "minimum": 1}
-            }
-          }
-        },
-        "equivalence_policy": {
-          "type": "string",
-          "description": "Policy for converting presence to effective hours"
-        },
-        "overtime_basis": {
-          "type": "string",
-          "description": "Basis for overtime calculation"
-        }
-      },
-      "additionalProperties": false
-    },
-    "payroll_inputs": {
-      "type": "array",
-      "description": "Payroll input definitions for the module",
-      "items": {
+      "additionalProperties": {
         "type": "object",
-        "required": ["input_code", "label", "input_type", "unit"],
+        "required": ["legal_status"],
         "properties": {
-          "input_code": {"type": "string", "pattern": "^INP_[A-Z_]+$"},
-          "label": {"type": "string"},
-          "input_type": {
-            "type": "string",
-            "enum": ["quantity", "amount", "multiple_of_hourly_rate"]
-          },
-          "unit": {"type": "string"},
-          "is_taxable": {"type": "boolean"},
-          "is_cotisable": {"type": "boolean"},
-          "legal_status": {
-            "type": "string",
-            "enum": ["verified", "to_provide"]
-          },
-          "note": {"type": "string"}
-        }
-      }
-    },
-    "calculation_rules": {
-      "type": "array",
-      "description": "Business calculation rules ordered by dependency",
-      "items": {
-        "type": "object",
-        "required": ["rule_id", "trigger_event", "formula"],
-        "properties": {
-          "rule_id": {"type": "string"},
-          "trigger_event": {
-            "type": "string",
-            "enum": ["PRE_GROSS_CALCULATION", "GROSS_ELEMENT_ADDITION"]
-          },
-          "depends_on": {
-            "type": "array",
-            "items": {"type": "string"},
-            "description": "Rule IDs this rule depends on"
-          },
-          "formula": {"type": "string"},
-          "legal_status": {
-            "type": "string",
-            "enum": ["verified", "to_provide", "verified_rule_unverified_rates"]
-          },
-          "legal_ref": {"type": "string"},
-          "parameters_required": {
-            "type": "array",
-            "items": {"type": "string"}
-          },
-          "note": {"type": "string"}
-        }
-      }
-    },
-    "compliance_checks": {
-      "type": "array",
-      "description": "Compliance checks that trigger alerts",
-      "items": {
-        "type": "object",
-        "required": ["check_id", "description", "severity"],
-        "properties": {
-          "check_id": {"type": "string"},
-          "description": {"type": "string"},
-          "legal_ref": {"type": "string"},
-          "emit_to": {"type": "string"},
-          "alert_days_before_expiry": {"type": "integer"},
-          "severity": {
-            "type": "string",
-            "enum": ["low", "medium", "high", "blocking"]
+          "legal_status": { "type": "string", "enum": ["verified", "secondary", "to_provide"] },
+          "source": { "type": "string" },
+          "unit": { "type": "string" },
+          "note": { "type": "string" }
+        },
+        "allOf": [
+          {
+            "if": { "properties": { "legal_status": { "enum": ["verified", "secondary"] } } },
+            "then": { "required": ["source"] }
           }
-        },
-        "additionalProperties": false
-      }
-    },
-    "tests": {
-      "type": "array",
-      "description": "Test cases for the module",
-      "items": {
-        "type": "object",
-        "required": ["case_id", "description", "expected"],
-        "properties": {
-          "case_id": {"type": "string"},
-          "description": {"type": "string"},
-          "expected": {"type": "object"},
-          "payslip_computed": {"type": "boolean"}
-        },
-        "additionalProperties": false
+        ]
       }
     }
-  },
-  "additionalProperties": false
+  }
 }
