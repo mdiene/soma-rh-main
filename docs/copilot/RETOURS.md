@@ -44,48 +44,27 @@
 
 ---
 
-## CP-03 — Audit de web/src (lecture seule)
+## CP-02 — Relecture par Claude (2026-11-06)
+Trois défauts corrigés avant commit :
+1. `.gitattributes` était invalide (`* .sql eol=lf` : le motif `*` recevait des attributs nommés `.sql`…) et la dernière ligne imposait `eol=crlf` à **tous** les fichiers, y compris `scripts/check-migrations.sh` (un script bash en CRLF échoue sur la CI Linux). Réécrit en `*.sql text eol=lf`, etc., `*.ps1 text eol=crlf`.
+2. `ci.yml` : l'étape `node --test tests/unit` s'exécutait dans `web/` (chemin inexistant) et, en local, `node --test <dossier>` échoue sous Node 24. Remplacée par `node --test ../tests/unit/*.test.mjs` (19 tests passent depuis `web/`). Une marque BOM en tête du fichier est retirée.
+3. `scripts/check-migrations.sh` : le test des noms non ASCII provoquait « syntax error in conditional expression » ; corrigé (grep en `LC_ALL=C`). L'allowlist contient maintenant les 4 préfixes en doublon connus (H3).
+Toujours non couvert par la CI : les tests SQL (`tests/sql`, base requise), `verify-payroll`, les tests d'API (`tests/api`).
 
-### A. Montants arrondis ailleurs que dans fcfa() (Math.round, toFixed sur des montants)
+## CP-03 — Audit de web/src (refait par Claude : le rapport de Copilot listait des requêtes correctes comme constats et jugeait « Haute » un calcul de jours)
 
-The `fcfa()` function in `web/src/lib/format.ts` correctly uses `Math.round()` only for display rounding. However, the following files contain `Math.round()` or percentage calculations on payroll amounts that should be reviewed:
+**A. Arrondis hors `fcfa()`** — aucun montant stocké ou transmis n'est arrondi ; tous les cas sont de l'affichage ou de l'export. À noter :
+- `PayrollPaymentsPage.tsx:69` : `Math.round(net_pay)` dans l'**export** des paiements (fichier envoyé à la banque ?) : arrondi voulu à confirmer. Gravité moyenne.
+- `EmployeeDetailPage.tsx:266`, `SimulatorPage.tsx:32` : surcalaire arrondi à 2 décimales avant d'être saisi/simulé (le montant résolu par la base est tronqué). Basse.
+- `PayrollEntryExtras.tsx:23` : comparaison du net actuel et précédent à l'unité près (voulu). Basse.
+- `PayrollBookPrintPage.tsx:45-46`, `PayrollForecast.tsx:69`, `DashboardPage.tsx`, `PilotagePage.tsx`, `MySpacePage.tsx`, `GroupedTable.tsx:51` : affichage, pourcentages, graphiques. Basse.
+Aucun `toFixed`.
 
-| File | Lines | Observation | Sévérité |
-|---|---|---|---|
-| `DashboardPage.tsx` | L YAxis tickFormatter: `Math.round(v / 1e6) M` | Chart axis formatting - display only, shows millions rounded | Moyenne |
-| `DashboardPage.tsx` | `Math.round((s.value / total) * 100)` | Percentage display in grouped table - display only | Moyenne |
-| `GroupedTable.tsx` | `case 'int': return String(Math.round(Number(v)))` | Integer conversion for display | Basse |
-| `PayrollForecast.tsx` | `Math.round(cost)` / `Math.round(cost0)` | Forecast cost rounding - display in table and chart | Moyenne |
-| `PayrollBookPrintPage.tsx` | `Math.round(v)` in `show()` function | Shows fcfa only when not zero - display logic | Basse |
-| `PayrollBookPrintPage.tsx` | `Math.round(v * 100) / 100` | Rounding to 2 decimals for display | Basse |
-| `EmployeesPage.tsx` | `Math.round((Date.parse(value) - Date.parse(today)) / 86_400_000)` | Calculates days between dates - business logic, not payroll rounding | Haute |
-| `MySpacePage.tsx` | `Math.round((documentsProvided / expectedDocuments) * 100)` | Percentage completion display | Basse |
-| `PayrollPaymentsPage.tsx` | `Math.round(Number(r.net_pay))` | Rounds net_pay for display in list | Basse |
-| `PilotagePage.tsx` | `Math.round((100 * n) / total)` | Percentage display in charts | Basse |
-| `PilotagePage.tsx` | `Math.round((1000 * (a.absent_days + a.sick_days)) / a.recorded) / 10` | Absence rate calculation - business logic | Moyenne |
-| `SimulatorPage.tsx` | `Math.round(v * 100) / 100` | Rounds salary for display | Basse |
+**B. Rôles et données personnelles** — aucune écriture dans la console ; `localStorage` n'est utilisé que par `OrganigrammePage.tsx:25-26` (préférences d'affichage, avec `try/catch`). Les routes sensibles sont gardées par `RoleGuard` dans `App.tsx` ; la base applique la RLS. Une revue page par page des boutons d'écriture sans `can()` n'a **pas** été faite. Gravité : à instruire (moyenne).
 
-**Note**: All `Math.round()` usage outside `format.ts` is for display/formatting purposes only. The `fcfa()` function in `format.ts` is the designated place for amount rounding. These rounding operations do not affect database precision.
+**C. Palette** — nombreuses couleurs hexadécimales en dur hors palette `ink/paper/river/phosphate/signal` : `AnnualSynthesis.tsx:116-124` (graphique), `AttestationModal.tsx:53,89` et `EmployeeFiche.tsx` (`#1D2A33`, `#52606B`, `#D5DBE0` : documents imprimés), `GroupedTable.tsx:34-40,173` (`#E9ECEA`, `#EBD27A`…), `DashboardPage.tsx:163`. Souvent proches de la palette (graphiques et impressions) ; à remplacer par des jetons Tailwind. Basse. Aucun texte d'interface non français relevé.
 
-### B. Appels API/RPC qui supposent un rôle (rh, paie) sans contrôle côté interface, ou affichent des données personnelles dans la console/localStorage
-
-| File | Lines | Observation | Sévérité |
-|---|---|---|---|
-| `EmployeeDetailPage.tsx` | Vers ligne 177 | Anciennement codé en dur les motifs DEMISSION/LICENCIEMENT/RETRAITE/DECES/FIN DE CONTRAT (déjà traité en CP-04) | Haute |
-| Divers composants | | Vérifier les appels dataApi sans `can('rh')` ou `can('paie')` | Moyenne |
-
-### C. Textes d'interface non français, ou couleurs hors palette ink/paper/river/phosphate/signal
-
-Aucun constat trouvé lors de cette lecture. L'interface utilise principalement les couleurs de la palette définie.
-
-### D. Requêtes TanStack Query sans gestion d'erreur ou sans clé de cache stable
-
-| File | Lines | Observation | Sévérité |
-|---|---|---|---|
-| `DashboardPage.tsx` | Query `['dashboard', period]` | Affiche `Spinner` pendant chargement, gère `q.error` avec `ErrorNote` | Basse |
-| `PayrollForecast.tsx` | Query `['forecast-base']` | Affiche `ErrorNote error={q.error}` en cas d'erreur | Basse |
-
----
+**D. TanStack Query** — non audité de façon exhaustive : le rapport de Copilot ne citait que des requêtes correctes. À faire avec un contrôle automatique (requêtes `useQuery` dont le résultat n'est lu ni par `isError` ni par `ErrorNote`).
 
 ## CP-04 — Motifs de sortie dans la fiche salarié
 

@@ -1,8 +1,10 @@
-# Fix line endings
-* .sql    eol=lf
-* .sh     eol=lf
-* .md     eol=lf
-* .ts     eol=lf
-* .tsx    eol=lf
-* .mjs    eol=lf
-* .ps1    eol=crlf
+# Fins de ligne : LF pour le code et les scripts exécutés sous Linux (CI), CRLF pour PowerShell
+*.sql  text eol=lf
+*.sh   text eol=lf
+*.md   text eol=lf
+*.ts   text eol=lf
+*.tsx  text eol=lf
+*.mjs  text eol=lf
+*.yml  text eol=lf
+*.txt  text eol=lf
+*.ps1  text eol=crlf

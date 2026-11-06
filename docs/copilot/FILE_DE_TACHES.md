@@ -9,8 +9,8 @@ Règles : `.github/copilot-instructions.md`. Comptes rendus : `docs/copilot/RETO
 | ID | Tâche | Assignée | Statut | Périmètre autorisé |
 |---|---|---|---|---|
 | CP-01 | Proposer 5 retours manquants (les `_backup`/`_fixed` de Dev04 sont exclus) | Claude (Copilot a échoué) | À REVOIR | écrire dans `docs/copilot/propositions/` |
-| CP-02 | CI : ajouter les tests unitaires JS et un contrôle des migrations | Copilot | FAIT | `.github/workflows/ci.yml`, `.gitattributes`, `scripts/` (nouveaux fichiers) |
-| CP-03 | Audit de `web/src` (lecture seule) | Copilot | FAIT | écrire seulement dans `docs/copilot/RETOURS.md` |
+| CP-02 | CI : ajouter les tests unitaires JS et un contrôle des migrations | Copilot | FAIT, relu et corrigé par Claude | `.github/workflows/ci.yml`, `.gitattributes`, `scripts/` (nouveaux fichiers) |
+| CP-03 | Audit de `web/src` (lecture seule) | Copilot (refait par Claude) | FAIT, volets B et D à compléter | écrire seulement dans `docs/copilot/RETOURS.md` |
 | CP-04 | Interface : motifs de sortie lus dans `exit_reasons` | Claude (repris) | FAIT (lint/build verts) | `web/src/pages/EmployeeDetailPage.tsx` uniquement |
 
 ---
