@@ -11,7 +11,6 @@ import { REQUEST_TYPES, type EmployeeRequest } from '../lib/requests'
 import { DocumentThumbnail } from './EmployeeDocumentsPage'
 
 const db = dataApi as unknown as ApiClient
-const today = () => new Date().toISOString().slice(0, 10)
 const documentSections = [
   { code: 'identite', label: 'État civil et identité', icon: '👤' },
   { code: 'qualification', label: 'Qualification et parcours professionnel', icon: '🎓' },
@@ -25,7 +24,7 @@ const statusLabels = {
   refuse: 'Refusé',
 } as const
 
-/** Mon espace : bulletin récent, soldes de congés, planning à venir et demandes du salarié. */
+/** Mon espace : bulletin récent, soldes de congés et demandes du salarié. */
 export default function MySpacePage() {
   const qc = useQueryClient()
   const me = useQuery({ queryKey: ['my_employee_id'], queryFn: async () => unwrap(await dataApi.rpc('my_employee_id')) as string | null })
@@ -45,10 +44,6 @@ export default function MySpacePage() {
   const balances = useQuery({
     queryKey: ['my_balances', meId], enabled: !!meId,
     queryFn: async () => unwrap(await dataApi.from('v_leave_balances').select('leave_type_name, balance').eq('employee_id', meId!)),
-  })
-  const planning = useQuery({
-    queryKey: ['my_planning', meId], enabled: !!meId,
-    queryFn: async () => unwrap(await db.from('shift_assignments').select('work_date, shift_code').eq('employee_id', meId!).gte('work_date', today()).order('work_date').limit(7)) as { work_date: string; shift_code: string }[],
   })
   const requests = useQuery({
     queryKey: ['my_requests', meId], enabled: !!meId,
@@ -109,10 +104,10 @@ export default function MySpacePage() {
 
   return (
     <>
-      <PageHeader title={`Bonjour ${emp.data?.first_name ?? ''}`} description="Vos bulletins, congés, planning et demandes."
+      <PageHeader title={`Bonjour ${emp.data?.first_name ?? ''}`} description="Vos bulletins, congés et demandes."
         actions={<Button variant="primary" icon={<FilePlus2 className="h-4 w-4" />} onClick={() => setOpen(true)}>Nouvelle demande</Button>} />
       <LeaveApprovals />
-      <div className="mb-6 grid gap-4 md:grid-cols-3">
+      <div className="mb-6 grid gap-4 md:grid-cols-2">
         <section className="panel p-4">
           <h2 className="text-base">Dernier bulletin</h2>
           {slip.isLoading ? <Spinner /> : last ? (
@@ -126,12 +121,6 @@ export default function MySpacePage() {
             <ul className="mt-2 space-y-1 text-sm">{(balances.data ?? []).map((b) => <li key={b.leave_type_name}>{b.leave_type_name} : <strong className="tabular-nums">{num(b.balance, 1)} j</strong></li>)}</ul>
           )}
           <Link className="mt-2 inline-block text-sm text-river hover:underline" to="/conges">Demander un congé</Link>
-        </section>
-        <section className="panel p-4">
-          <h2 className="text-base">Mon planning</h2>
-          {(planning.data ?? []).length === 0 ? <p className="mt-2 text-sm text-ink-muted">Aucun poste planifié à venir.</p> : (
-            <ul className="mt-2 space-y-0.5 text-sm tabular-nums">{planning.data!.map((p) => <li key={p.work_date}>{date(p.work_date)} · <strong>{p.shift_code}</strong></li>)}</ul>
-          )}
         </section>
       </div>
 

@@ -261,3 +261,13 @@ Spécification : `docs/modules/MODULES_METIER_VERTICAUX_SOMA_RH.md` (v2) ; manif
 |---|---|---|
 | H50 | DEV-05 notifications à refaire | `20261106100000_Dev05_notifications_log.sql` : les 2 fonctions ne compilent pas (`notifications_log%rowtype` sans `public.`) et sont inutilisables (`stable` + écriture, statut « sent » sans envoi, `failed_permanent` hors contrainte, `process_notifications` recrée des lignes). Seule la table existe (en base et dans l'instantané). Le fichier ne se rejoue pas en mode `--full`. À concevoir : file d'attente + worker réel (SMTP via `email_outbox` existante, SMS/WhatsApp à fournir), reprise sur échec. Le plan de développement est corrigé. |
 
+
+**Retrait du planning des gardiens (2026-11-06, décision de Moussa)** : la gestion des gardiens sera un module métier activé à la demande. Retiré de la version de base : page `/planning` (« Planning des postes », action « Générer une rotation »), entrée de menu, bloc « Mon planning » de Mon espace, tables `work_posts`, `shift_types`, `shift_assignments` (1 037 affectations de test), fonction `generate_rotation`. Migration `20261120090000_retrait_planning_gardiens` (+ retour testé : structure rétablie et 1 037 affectations rechargées, essai annulé) ; sauvegarde `backups/soma_rh_avant_retrait_gardiens_20261106_140753.sql` (et `_donnees.sql`), ignorée par Git. Build vert, `audit_parametrage` et `verify-payroll` inchangés ; le rejeu `replay-migrations.sh` applique bien la migration après l'instantané.
+
+**Correctif lié (3e récidive de D-013/D-021)** : `20261121090000_revoke_execute_anon_btree_gist`. La migration `m0` de Claude Desktop crée l'extension `btree_gist` dans `public` ; ses ~100 fonctions étaient exécutables par le rôle anonyme (`rpc_droits` en échec). Même correctif que D-013. À retenir pour le module : toute extension créée dans `public` exige ce `revoke` (idéalement dans la migration du module).
+
+| # | Reste à faire | Détail |
+|---|---|---|
+| H51 | Types web | `database.types.ts` contient encore les 3 tables retirées (et il est modifié par Claude Desktop, non commité) : à régénérer quand ses modifications seront commitées. |
+| H52 | Documents historiques | Les documents (`FEUILLE_DE_ROUTE*`, `ORGANIGRAMME_DECISIONS`, QA, analyses) citent encore le planning des gardiens ; ils sont conservés comme historique. Le futur module « sécurité / gardiennage » (`docs/modules/`) reprend le besoin (rotation 24 h/24, majorations de nuit, K15 du registre des risques). |
+| H53 | Mémoire du poste | La machine manque de mémoire (environ 300-400 Mo libres sur 7,8 Go) : Docker a déjà redémarré deux fois et tué les conteneurs SOMA (code 255) ; `flowise` et `docling` (hors SOMA) occupent 1,4 Go. Les arrêter pendant le développement ou augmenter la mémoire de WSL. |

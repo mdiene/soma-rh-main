@@ -13,7 +13,7 @@ begin
   select string_agg(c.relname, ', ') into manquantes
   from pg_class c where c.relnamespace = 'public'::regnamespace and c.relname in
     ('tax_slabs','tax_slab_brackets','trimf_brackets','ir_family_reductions','salary_components','salary_structures',
-     'salary_structure_components','leave_types','companies','payroll_periods','work_posts','shift_types','document_requirements')
+     'salary_structure_components','leave_types','companies','payroll_periods','document_requirements')
     and not exists (select 1 from pg_trigger t where t.tgrelid = c.oid and t.tgfoid = 'public.business_audit'::regproc);
   if manquantes is not null then raise exception 'FAIL : pas d''audit sur %', manquantes; end if;
   raise notice 'OK audit_parametrage';

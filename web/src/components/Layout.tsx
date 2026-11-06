@@ -1,7 +1,7 @@
 import clsx from 'clsx'
 import {
   Banknote, BarChart3, CalendarCheck2, Network, CalendarDays, Calculator, FileSpreadsheet, LayoutDashboard, LogOut, Menu,
-  CalendarClock, History, ShieldCheck, PieChart, Inbox, UserCircle, LockKeyhole, Settings, SlidersHorizontal, Users, Wallet, FileText,
+  History, ShieldCheck, PieChart, Inbox, UserCircle, LockKeyhole, Settings, SlidersHorizontal, Users, Wallet, FileText,
 } from 'lucide-react'
 import { Suspense, useState } from 'react'
 import { NavLink, Outlet } from 'react-router-dom'
@@ -27,7 +27,6 @@ const GROUPS: { title: string; items: Item[] }[] = [
       { to: '/salaries', label: 'Salariés', icon: Users, roles: ['rh', 'paie'] },
       { to: '/dossiers-salaries', label: 'Dossiers administratifs', icon: FileText, roles: ['rh'] },
       { to: '/conges', label: 'Congés', icon: CalendarDays },
-      { to: '/planning', label: 'Planning des postes', icon: CalendarClock, roles: ['rh', 'paie'] },
       { to: '/presences', label: 'Présences', icon: CalendarCheck2, roles: ['rh', 'paie'] },
     ],
   },
