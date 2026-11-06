@@ -32,3 +32,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: bash scripts/check-migrations.sh
+  rebuild:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # base neuve = instantané db/baseline + migrations postérieures à la coupure ; échoue à la première erreur
+      - run: bash scripts/replay-migrations.sh
