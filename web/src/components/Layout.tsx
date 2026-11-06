@@ -1,11 +1,12 @@
 import clsx from 'clsx'
-import { ChevronDown, ChevronsLeft, ChevronsRight, LogOut, Menu } from 'lucide-react'
+import { ChevronDown, ChevronsLeft, ChevronsRight, LogOut, Menu, Search } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { Suspense, useEffect, useState } from 'react'
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import { useAuth } from '../lib/auth'
 import { dataApi, unwrap, type ApiClient } from '../lib/api'
 import { SPACES, matches, visibleItems, type NavItem } from '../lib/nav'
+import { CommandPalette, type PaletteEntry } from './CommandPalette'
 import QueryErrorBanner from './QueryErrorBanner'
 import { Spinner } from './ui'
 
@@ -43,6 +44,7 @@ export function Layout() {
   const { session, can, roles, signOut } = useAuth()
   const { pathname } = useLocation()
   const [open, setOpen] = useState(false)
+  const [palette, setPalette] = useState(false)
   // accordéon à ouverture unique : un choix explicite ne vaut que pour la page où il a été fait
   const [picked, setPicked] = useState<{ id: string | null; path: string }>()
   // flyout (sidebar réduite) : panneau flottant à côté de l'icône cliquée
@@ -51,6 +53,13 @@ export function Layout() {
   const [rail, setRail] = useState(() => { try { return localStorage.getItem('nav-rail') === '1' } catch { return false } })
   const toggleRail = () => { setFly(undefined); setRail((v) => { try { localStorage.setItem('nav-rail', v ? '0' : '1') } catch { /* stockage indisponible */ } return !v }) }
   const hide = rail ? 'lg:hidden' : ''
+
+  // Ctrl+K / Cmd+K : recherche rapide
+  useEffect(() => {
+    const k = (e: KeyboardEvent) => { if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); setPalette((v) => !v) } }
+    window.addEventListener('keydown', k)
+    return () => window.removeEventListener('keydown', k)
+  }, [])
 
   useEffect(() => {
     if (!fly) return
@@ -81,6 +90,7 @@ export function Layout() {
   // ouvert : le choix fait sur cette page, sinon l'espace qui contient la page
   const openId = picked && picked.path === pathname ? picked.id : spaces.find(inPath)?.id ?? null
   const total = (s: (typeof spaces)[number]) => s.items.reduce((n, i) => n + (i.badge ? counts[i.badge] ?? 0 : 0), 0)
+  const entries: PaletteEntry[] = spaces.flatMap((s) => s.items.map((i) => ({ ...i, space: s.label })))
   const done = () => { setOpen(false); setFly(undefined) }
 
   const nav = (
@@ -149,6 +159,15 @@ export function Layout() {
         open ? 'flex' : 'hidden',
       )}>
         <div className={clsx('hidden pb-2 pt-5 lg:block', rail ? 'px-3' : 'px-5')}><Brand compact={rail} /></div>
+        <button
+          onClick={() => { setPalette(true); setOpen(false) }}
+          title="Rechercher (Ctrl+K)" aria-label="Rechercher une page (Ctrl+K)"
+          className={clsx('mx-3 mt-3 flex items-center gap-2.5 rounded border border-white/15 px-2 py-1.5 text-sm text-white/60 transition-colors hover:border-white/30 hover:text-white', rail && 'lg:justify-center')}
+        >
+          <Search className="h-4 w-4 shrink-0" aria-hidden />
+          <span className={clsx('flex-1 text-left', hide)}>Rechercher</span>
+          <kbd className={clsx('rounded bg-white/10 px-1 text-[11px]', hide)}>Ctrl K</kbd>
+        </button>
         {nav}
         {rail && fly && flySpace && (
           <>
@@ -180,6 +199,7 @@ export function Layout() {
         </div>
       </aside>
 
+      <CommandPalette open={palette} onClose={() => setPalette(false)} entries={entries} />
       <main className="min-w-0 px-4 py-6 sm:px-6 lg:px-10 lg:py-8">
         <Suspense fallback={<Spinner />}>
           <QueryErrorBanner />

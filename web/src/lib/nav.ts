@@ -13,6 +13,7 @@ export type NavItem = {
   icon: LucideIcon
   roles?: Role[]          // absent = tout utilisateur connecté
   withoutRole?: boolean   // visible même sans rôle (déclarer le premier administrateur)
+  keywords?: string       // mots de recherche supplémentaires (palette Ctrl+K)
   badge?: 'demandes' | 'validations'      // compteur dynamique affiché à droite
 }
 export type NavSpace = { id: string; label: string; icon: LucideIcon; items: NavItem[] }
@@ -20,18 +21,18 @@ export type NavSpace = { id: string; label: string; icon: LucideIcon; items: Nav
 export const SPACES: NavSpace[] = [
   { id: 'perso', label: 'Espace personnel', icon: UserCircle, items: [
     { to: '/mon-espace', label: 'Mon profil et mes demandes', icon: UserCircle, roles: ['salarie', 'rh', 'paie', 'manager'] },
-    { to: '/conges', label: 'Mes congés', icon: CalendarDays, roles: ['salarie', 'manager'] },
-    { to: '/mes-bulletins', label: 'Mes bulletins', icon: Receipt, roles: ['salarie', 'rh', 'paie', 'manager'] },
+    { to: '/conges', label: 'Mes congés', icon: CalendarDays, roles: ['salarie', 'manager'], keywords: 'conge absence solde demande' },
+    { to: '/mes-bulletins', label: 'Mes bulletins', icon: Receipt, roles: ['salarie', 'rh', 'paie', 'manager'], keywords: 'bulletin fiche de paie salaire' },
   ] },
   { id: 'equipe', label: 'Management', icon: UsersRound, items: [
     { to: '/mon-equipe', label: 'Mon équipe et validations', icon: Users, roles: ['manager'], badge: 'validations' },
     { to: '/equipes/organigramme', label: 'Organigramme d’équipe', icon: Network, roles: ['manager'] },
   ] },
   { id: 'rh', label: 'Administration du personnel', icon: Briefcase, items: [
-    { to: '/salaries', label: 'Salariés', icon: Users, roles: ['rh', 'paie'] },
+    { to: '/salaries', label: 'Salariés', icon: Users, roles: ['rh', 'paie'], keywords: 'annuaire employé personnel' },
     { to: '/dossiers-salaries', label: 'Dossiers administratifs', icon: FileText, roles: ['rh'] },
     { to: '/demandes', label: 'Demandes des salariés', icon: Inbox, roles: ['rh'], badge: 'demandes' },
-    { to: '/conges', label: 'Congés et absences', icon: CalendarDays, roles: ['rh', 'paie'], badge: 'validations' },
+    { to: '/conges', label: 'Congés et absences', icon: CalendarDays, roles: ['rh', 'paie'], badge: 'validations', keywords: 'conge solde rtt maladie' },
     { to: '/presences', label: 'Présences', icon: CalendarCheck2, roles: ['rh', 'paie'] },
     { to: '/equipes', label: 'Équipes et managers', icon: UsersRound, roles: ['rh'] },
     { to: '/conformite', label: 'Conformité', icon: ShieldCheck, roles: ['rh', 'paie'] },
@@ -39,9 +40,9 @@ export const SPACES: NavSpace[] = [
   { id: 'paie', label: 'Paie et rémunération', icon: Wallet, items: [
     { to: '/paie/variables', label: 'Variables du mois', icon: SlidersHorizontal, roles: ['paie', 'rh'] },
     { to: '/paie/ajustements', label: 'Prêts et régularisations', icon: Banknote, roles: ['paie', 'rh'] },
-    { to: '/paie', label: 'Traitements de paie', icon: Wallet, roles: ['paie', 'rh'] },
+    { to: '/paie', label: 'Traitements de paie', icon: Wallet, roles: ['paie', 'rh'], keywords: 'calcul bulletins salaire' },
     { to: '/paie/gouvernance', label: 'Contrôle et clôture', icon: LockKeyhole, roles: ['paie', 'rh'] },
-    { to: '/etats', label: 'États légaux et cotisations', icon: FileSpreadsheet, roles: ['paie', 'rh'] },
+    { to: '/etats', label: 'États légaux et cotisations', icon: FileSpreadsheet, roles: ['paie', 'rh'], keywords: 'ipres css cfce ir trimf brs ipm livre de paie déclaration écritures comptables' },
     { to: '/paie/simulateur', label: 'Simulateur net / brut', icon: Calculator, roles: ['paie', 'rh'] },
   ] },
   { id: 'pilotage', label: 'Pilotage et décision', icon: PieChart, items: [
