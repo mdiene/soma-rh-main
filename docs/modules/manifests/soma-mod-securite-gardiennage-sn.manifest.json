@@ -1,0 +1,174 @@
+{
+  "manifest_version": "2.0",
+  "module_id": "soma-mod-securite-gardiennage-sn",
+  "module_name": "Module vertical Sécurité privée et gardiennage (Sénégal)",
+  "version": "0.1.0-draft",
+  "status": "draft",
+  "jurisdiction": "SN",
+  "requires_core": ">=1.0",
+  "target_sector": "SECURITE_GARDIENNAGE",
+  "custom_fields": [
+    {
+      "field_key": "sec_carte_pro_id",
+      "target_entity": "Employee",
+      "label": "Numéro de carte professionnelle",
+      "data_type": "string",
+      "required": false,
+      "validation": { "regex": null, "note": "Format et caractère obligatoire à confirmer auprès de la réglementation du secteur" }
+    },
+    {
+      "field_key": "sec_port_arme_autorise",
+      "target_entity": "Contract",
+      "label": "Autorisation de port d'arme",
+      "data_type": "boolean",
+      "required": false,
+      "default_value": false
+    },
+    {
+      "field_key": "sec_loge_sur_site",
+      "target_entity": "Contract",
+      "label": "Logé sur le site gardé",
+      "data_type": "boolean",
+      "required": false,
+      "default_value": false
+    },
+    {
+      "field_key": "sec_categorie_poste",
+      "target_entity": "Contract",
+      "label": "Catégorie de poste pour l'équivalence horaire",
+      "data_type": "string",
+      "required": true,
+      "enum_source": "parameters.equivalence_thresholds"
+    }
+  ],
+  "parameters": {
+    "weekly_legal_hours": {
+      "value": 40,
+      "unit": "hours_per_week",
+      "source": "Code du travail 2026 (loi 2026-18), art. 241",
+      "legal_status": "verified"
+    },
+    "night_window": {
+      "value": { "start": "22:00", "end": "05:00" },
+      "source": "Code du travail 2026, art. 245 ; modalités par arrêté du ministre du Travail (non fourni)",
+      "legal_status": "verified"
+    },
+    "weekly_rest_hours": {
+      "value": 24,
+      "source": "Code du travail 2026, art. 246",
+      "legal_status": "verified"
+    },
+    "equivalence_thresholds": {
+      "value": null,
+      "unit": "hours_per_week_by_post_category",
+      "source": "Décret 70-183 (JO n° 4091 du 09/03/1970) à lire. Les valeurs 56 h et 72 h du document de départ proviennent d'un décret du Niger (2017-682) et ne s'appliquent pas",
+      "legal_status": "to_provide",
+      "client_input_allowed": true
+    },
+    "overtime_rates_table": {
+      "value": "overtime_rates",
+      "source": "Table du cœur ; classeur de référence : 115 / 140 / 160 / 200 %. Décret 70-184 à lire",
+      "legal_status": "secondary"
+    },
+    "max_shift_duration_hours": {
+      "value": null,
+      "legal_status": "to_provide",
+      "client_input_allowed": true
+    }
+  },
+  "planning_rules": {
+    "shift_templates": [
+      { "code": "V12", "label": "Vacation 12 h", "duration_hours": 12 },
+      { "code": "V24", "label": "Vacation 24 h", "duration_hours": 24 }
+    ],
+    "equivalence_policy": "convert_presence_to_effective_hours_using_parameter",
+    "overtime_basis": "hours_above_legal_or_equivalent_threshold"
+  },
+  "payroll_inputs": [
+    {
+      "input_code": "INP_NIGHT_HOURS",
+      "label": "Heures de nuit (22 h – 5 h)",
+      "input_type": "quantity",
+      "unit": "hours",
+      "is_taxable": true,
+      "is_cotisable": true
+    },
+    {
+      "input_code": "INP_HAZARD_ALLOWANCE",
+      "label": "Prime de pénibilité et de risque",
+      "input_type": "amount",
+      "unit": "currency",
+      "is_taxable": true,
+      "is_cotisable": true
+    },
+    {
+      "input_code": "INP_DRESS_MAINTENANCE",
+      "label": "Prime d'entretien de tenue",
+      "input_type": "amount",
+      "unit": "currency",
+      "is_taxable": null,
+      "is_cotisable": null,
+      "legal_status": "to_provide",
+      "note": "Drapeaux saisis par le client tant que le texte applicable n'est pas lu. Le document de départ la déclarait exonérée sans source"
+    },
+    {
+      "input_code": "INP_NIGHT_MEAL_ALLOWANCE",
+      "label": "Panier de nuit",
+      "input_type": "multiple_of_hourly_rate",
+      "unit": "multiplier",
+      "is_taxable": null,
+      "is_cotisable": null,
+      "legal_status": "to_provide",
+      "note": "Multiple du taux horaire catégoriel fixé par la convention applicable au client"
+    }
+  ],
+  "calculation_rules": [
+    {
+      "rule_id": "GARD_EQUIVALENCE_CONVERSION",
+      "trigger_event": "PRE_GROSS_CALCULATION",
+      "depends_on": [],
+      "formula": "effective_hours = min(presence_hours, equivalence_threshold(sec_categorie_poste))",
+      "legal_status": "to_provide",
+      "blocked_until": "parameters.equivalence_thresholds"
+    },
+    {
+      "rule_id": "GARD_OVERTIME",
+      "trigger_event": "PRE_GROSS_CALCULATION",
+      "depends_on": ["GARD_EQUIVALENCE_CONVERSION"],
+      "formula": "overtime_hours = max(0, presence_hours - equivalence_threshold(sec_categorie_poste)); amount = overtime_hours * hourly_base_rate * overtime_rate(slot)",
+      "legal_status": "verified_rule_unverified_rates",
+      "legal_ref": "Code du travail 2026, art. 244"
+    },
+    {
+      "rule_id": "GARD_NIGHT_BONUS",
+      "trigger_event": "GROSS_ELEMENT_ADDITION",
+      "depends_on": ["GARD_OVERTIME"],
+      "formula": "INP_NIGHT_HOURS * hourly_base_rate * night_bonus_rate",
+      "parameters_required": ["night_bonus_rate"],
+      "legal_status": "to_provide",
+      "note": "Taux saisi par le client (convention ou accord). Le 0,50 du document de départ n'a pas de source"
+    }
+  ],
+  "compliance_checks": [
+    {
+      "check_id": "GARD_CERT_REG_SOCIALE",
+      "description": "Attestation de régularité sociale à produire au client avant la conclusion du contrat de prestation puis tous les 6 mois",
+      "legal_ref": "Code du travail 2026, art. 291",
+      "alert_days_before_expiry": 30,
+      "severity": "high"
+    },
+    {
+      "check_id": "GARD_MISSING_EQUIVALENCE",
+      "description": "Paramètre d'équivalence absent pour la catégorie de poste du salarié",
+      "emit_to": "compliance_findings",
+      "severity": "blocking"
+    }
+  ],
+  "tests": [
+    {
+      "case_id": "GARD-T01",
+      "description": "Salarié sans seuil d'équivalence saisi : la paie émet un blocage, aucun montant inventé",
+      "expected": { "finding": "GARD_MISSING_EQUIVALENCE", "payslip_computed": false }
+    }
+  ]
+}

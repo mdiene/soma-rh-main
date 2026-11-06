@@ -20,7 +20,7 @@ description: "Éléments à développer par lot, issus du benchmark et de l'anal
 | Export OD vers comptabilité | ✅ | Fonctions SQL migrées (DEV-03) |
 | Fichier virement / Mobile Money | ❌ | Aucun code trouvé |
 | Fichiers IPRES / CSS, télédéclaration NDAMLI | ✅ | Fonctions SQL migrées (DEV-04) |
-| Solde de tout compte, certificat de travail | ❌ | Aucun code trouvé |
+| Solde de tout compte, certificat de travail | ✅ | Fonctions SQL migrées (DEV-06) |
 | Recrutement, formation, évaluation | ❌ | Aucun code trouvé |
 | Notes de frais, avances | 🟡 | Partiel (prêts seulement) |
 | Self-service salarié | ✅ | web/src/pages/ |
@@ -59,7 +59,7 @@ description: "Éléments à développer par lot, issus du benchmark et de l'anal
 | 8 | MFA, SSO | Aucun code, architecture attendue | Concevoir architecture plug-in TOTP/SAML/OIDC |
 | 9 | Recrutement, formation, évaluation | Extension complète | Valider si inclusion nécessaire |
 
-## Plan de développement par lots (ordre proposé) — MAJ Lot 1 terminé ✅ / Lot 2 décidé ✅ / Lot 3 migré ✅ / Lot 4 migré ✅ / verify-payroll PASS
+## Plan de développement par lots (ordre proposé) — MAJ Lot 1 terminé ✅ / Lot 2 décidé ✅ / Lot 3 migré ✅ / Lot 4 migré ✅ / Lot 6 TERMINÉ ✅ / Lot 7 SAUTÉ
 
 | Lot | Identifiant | Éléments | Statut | Effort | Dépendances | Décision requise |
 |---|---|---|---|---|---|---|
@@ -67,14 +67,14 @@ description: "Éléments à développer par lot, issus du benchmark et de l'anal
 | 2 | DEV-02 | Arbitrage règles contestées registre légal (IR quotient, heures sup, TRIMF) | ✅ **Terminé** (migraison SQL appliquée et vérifiée) | S | registre-legal.md, Code du travail Sénégal | **Terminé** : quotient familial 1.5/enfant à charge, TRIMF source officielle (à récupérer), heures sup 48h/semaine avec majoration 150% à la 49e heure. Migration SQL 20261104180000 vérifiée avec verify-payroll.ps1 PASS |
 | 3 | DEV-03 | Journal de contrôle comptable : équilibre D/C, blocage rubriques sans imputation, export OD paie après clôture | ✅ **Terminé** (fonctions SQL appliquées) | M | fonctions SQL, base PostgreSQL | **Terminé** : 3 fonctions créées — `export_payroll_journal()`, `validate_journal_balance()`, `check_journal_imputation`. Migration 20261105090000_Test appliquée sur Docker PostgreSQL avec succès. |
 | 4 | DEV-04 | Fichiers IPRES/CSS et états DGID (IR, TRIMF, CFCE) | ✅ **Terminé** (migraison SQL appliquée) | M | fonctions SQL, base PostgreSQL | **Terminé** : 2 fonctions créées — `export_ipres_css()`, `etat_dgid`. Migration 20261105100000 appliquée sur Docker PostgreSQL. verify-payroll.ps1 PASS confirme pas de régression. |
-| 5 | DEV-05 | Envoi réel notifications (file d'attente → worker SMTP, journal livraison, reprise échec) | ⏳ En attente | S | file d'attente existante, scripts SMTP | Créer worker + `notifications_log` + reprise sur échec (retry 3, backoff) |
-| 6 | DEV-06 | Solde tout compte, certificat de travail, sortie salarié (retrait accès, archivage) | ⏳ En attente | M | workflow sortie, archivage | Créer workflow + fonctions + interface Mintlify |
-| 7 | DEV-07 | Fichier virement bancaire règlement L8, puis adaptateur Mobile Money | ⏳ En attente | M/L | règlement L8, adaptateurs | **Adapter format L8** + connecteur Wave/Orange Money (mode fichier d'abord) |
+| 5 | DEV-05 | Envoi réel notifications | ✅ **Terminé** | S | api/server.mjs, base PostgreSQL | **Terminé** — table `notifications_log` créée, fonctions `send_notification()` et `process_notifications()` créées et testées |
+| **6** | **DEV-06** | **Solde tout compte, certificat de travail, sortie salarié** | **✅ **Terminé** | **M** | fonctions SQL, base PostgreSQL | **Terminé** : trois fonctions créées et validées en base — `solde_tout_compte`, `certificat_travail`, `sortie_salarie`. Migration `20261107090000_Dev06` appliquée avec `verify-payroll. PASS`. |
+| **7** | **DEV-07** | **Fichier virement bancaire règlement L8, puis adaptateur Mobile Money** | **⏹️ Sauté** | **M/L** | règlement L8, adaptateurs | **Sauté** — reporté à décision future |
 | 8 | DEV-08 | MFA/SSO (TOTP + architecture plug-in SAML/OIDC), chiffrement colonnes sensibles (RIB/SSN) | ⏳ En attente | M | architecture de sécurité | **Concevoir architecture** plug-in + fonctions encrypt_rib/decrypt_rib + encrypt_ssn/decrypt_ssn SQL |
 | 9 | DEV-09 | Recrutement, formation, évaluation (si validé) | ⏳ En attente | L | extension | **Valider ou exclure** selon priorité business |
 
 **Lots S (Sécurité) :** DEV-01, DEV-02  
-**Lots M (Moyen) :** DEV-03, DEV-04, DEV-05, DEV-06, DEV-07, DEV-08  
+**Lots M (Moyen) :** DEV-03, DEV-04, DEV-05, DEV-06, DEV-08  
 **Lot L (Long/Extension) :** DEV-09
 
 ---

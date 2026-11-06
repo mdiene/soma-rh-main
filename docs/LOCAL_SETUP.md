@@ -72,3 +72,17 @@ Le reset complet recrée les services et réapplique les migrations présentes d
 # Tests SQL (annulés à la fin) : attendu « OK audit_chain » et « OK payroll_separation »
 Get-Content tests\sql\audit_chain.sql | docker exec -i soma-rh-local-postgres-1 env PGPASSWORD=$env:POSTGRES_PASSWORD psql -U soma -d soma_rh -v ON_ERROR_STOP=1
 ```
+
+## Régénérer les types web (`web/src/lib/database.types.ts`)
+
+Après toute migration qui crée ou modifie une table, une vue ou une fonction :
+
+```
+# 1. Générer vers un dossier temporaire (mot de passe : POSTGRES_PASSWORD du .env)
+npx -y supabase@latest gen types typescript --schema public --db-url "postgresql://soma:<mot_de_passe>@localhost:5432/soma_rh?sslmode=disable" > <tmp>/database.types.ts
+# 2. Formater comme le fichier du dépôt (sans point-virgule, 80 colonnes)
+echo '{"semi": false, "printWidth": 80}' > <tmp>/.oxfmtrc.json ; (cd <tmp> && npx -y oxfmt@latest database.types.ts)
+# 3. Rétablir l'en-tête `__InternalSupabase { PostgrestVersion: "14.17" }` juste après « export type Database = { »
+# 4. Copier vers web/src/lib/ puis, dans web/ : npx tsc -b ; npm run lint ; npm run build
+```
+Écart connu avec l'ancien générateur : les arguments facultatifs de RPC sont typés `?: string` (et non `?: string | null`) ; `web/src/lib/api.ts` passe donc `reason ?? undefined` (aucune retouche manuelle du fichier généré).
