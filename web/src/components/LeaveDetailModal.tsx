@@ -159,7 +159,7 @@ export function LeaveDetailModal({ app, onClose }: { app: LeaveApp | null; onClo
       {/* Bon remis à l'employé : seul contenu imprimé */}
       <PrintPortal>
         <div className="sheet mx-auto max-w-[180mm] p-6" style={{ fontFamily: 'Archivo, sans-serif' }}>
-          <header className="flex items-start justify-between border-b-2 border-[#1D2A33] pb-3">
+          <header className="flex items-start justify-between border-b-2 border-ink pb-3">
             <div>
               <p className="text-base font-bold">{company.data?.name ?? ''}</p>
               <p className="text-[11px]">{company.data?.address ?? ''}</p>
@@ -186,8 +186,8 @@ export function LeaveDetailModal({ app, onClose }: { app: LeaveApp | null; onClo
                 ...(bal ? [['Solde après ce congé', `${num(Number(bal.balance) - (approved ? 0 : Number(app.total_days ?? 0)), 1)} jour(s)`]] : []),
               ] as [string, string][]).map(([k, v]) => (
                 <tr key={k}>
-                  <th className="w-48 border border-[#1D2A33] bg-[#F6F7F5] px-3 py-2 text-left font-semibold">{k}</th>
-                  <td className="border border-[#1D2A33] px-3 py-2">{v}</td>
+                  <th className="w-48 border border-ink bg-paper px-3 py-2 text-left font-semibold">{k}</th>
+                  <td className="border border-ink px-3 py-2">{v}</td>
                 </tr>
               ))}
             </tbody>
@@ -197,7 +197,7 @@ export function LeaveDetailModal({ app, onClose }: { app: LeaveApp | null; onClo
               <div key={who}>
                 <p className="font-semibold">{who}</p>
                 <p className="text-[11px]">Nom, date et signature</p>
-                <div className="mt-2 h-28 border border-[#1D2A33]" />
+                <div className="mt-2 h-28 border border-ink" />
               </div>
             ))}
           </div>

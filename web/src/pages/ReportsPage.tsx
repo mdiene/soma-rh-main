@@ -184,7 +184,7 @@ export default function ReportsPage() {
   const statusGroup = byStatus ? { key: (r: Reg) => r.staff_status ?? '—', label: (r: Reg) => r.staff_status ?? 'Sans statut' } : undefined
   const groupToggle = (
     <label className="inline-flex items-center gap-2 text-sm">
-      <input type="checkbox" className="h-4 w-4 accent-[#0F6E6A]" checked={byStatus} onChange={(e) => setByStatus(e.target.checked)} />
+      <input type="checkbox" className="h-4 w-4 accent-river" checked={byStatus} onChange={(e) => setByStatus(e.target.checked)} />
       Sous-totaux par statut
     </label>
   )

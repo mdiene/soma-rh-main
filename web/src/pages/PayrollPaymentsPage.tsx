@@ -151,31 +151,31 @@ export default function PayrollPaymentsPage() {
       <PrintPortal>
         {printMode && (
           <div className="sheet mx-auto max-w-[190mm] p-4 text-[11px]" style={{ fontFamily: 'Archivo, sans-serif' }}>
-            <header className="mb-3 border-b-2 border-[#1D2A33] pb-2">
+            <header className="mb-3 border-b-2 border-ink pb-2">
               <p className="text-base font-bold">{company.data?.name ?? ''}</p>
               <p className="text-lg font-bold">ÉTAT DE PAIEMENT DES SALAIRES — {printMode.toUpperCase()}</p>
               <p>{monthLabel(e.period_start)} · édité le {date(today())}</p>
             </header>
             <table className="w-full border-collapse">
-              <thead><tr className="bg-[#F6F7F5] text-left">
-                <th className="border border-[#1D2A33] px-2 py-1">N°</th><th className="border border-[#1D2A33] px-2 py-1">Matricule</th><th className="border border-[#1D2A33] px-2 py-1">Nom et prénoms</th>
-                {/mobile|wave|orange/i.test(printMode) && <th className="border border-[#1D2A33] px-2 py-1">Téléphone</th>}
-                <th className="border border-[#1D2A33] px-2 py-1 text-right">Net à payer</th>
-                <th className="border border-[#1D2A33] px-2 py-1">{/chèque|cheque/i.test(printMode) ? 'N° de chèque' : /mobile|wave|orange/i.test(printMode) ? 'Référence' : 'Émargement'}</th>
+              <thead><tr className="bg-paper text-left">
+                <th className="border border-ink px-2 py-1">N°</th><th className="border border-ink px-2 py-1">Matricule</th><th className="border border-ink px-2 py-1">Nom et prénoms</th>
+                {/mobile|wave|orange/i.test(printMode) && <th className="border border-ink px-2 py-1">Téléphone</th>}
+                <th className="border border-ink px-2 py-1 text-right">Net à payer</th>
+                <th className="border border-ink px-2 py-1">{/chèque|cheque/i.test(printMode) ? 'N° de chèque' : /mobile|wave|orange/i.test(printMode) ? 'Référence' : 'Émargement'}</th>
               </tr></thead>
               <tbody>{rows.filter((r) => r.mode === printMode).map((r, i) => (
                 <tr key={r.id} className="h-8">
-                  <td className="border border-[#1D2A33] px-2">{i + 1}</td><td className="border border-[#1D2A33] px-2">{r.employee_number}</td><td className="border border-[#1D2A33] px-2">{r.employee_name}</td>
-                  {/mobile|wave|orange/i.test(printMode) && <td className="border border-[#1D2A33] px-2">{r.employee?.phone_personal || r.employee?.phone_work || ''}</td>}
-                  <td className="border border-[#1D2A33] px-2 text-right tabular-nums">{fcfa(r.net_pay)}</td>
-                  <td className="border border-[#1D2A33] px-2">{r.pay?.reference ?? ''}</td>
+                  <td className="border border-ink px-2">{i + 1}</td><td className="border border-ink px-2">{r.employee_number}</td><td className="border border-ink px-2">{r.employee_name}</td>
+                  {/mobile|wave|orange/i.test(printMode) && <td className="border border-ink px-2">{r.employee?.phone_personal || r.employee?.phone_work || ''}</td>}
+                  <td className="border border-ink px-2 text-right tabular-nums">{fcfa(r.net_pay)}</td>
+                  <td className="border border-ink px-2">{r.pay?.reference ?? ''}</td>
                 </tr>
               ))}</tbody>
-              <tfoot><tr className="font-bold"><td colSpan={/mobile|wave|orange/i.test(printMode) ? 4 : 3} className="border border-[#1D2A33] px-2 py-1">Total</td><td className="border border-[#1D2A33] px-2 py-1 text-right tabular-nums">{fcfa(total(rows.filter((r) => r.mode === printMode)))}</td><td className="border border-[#1D2A33]" /></tr></tfoot>
+              <tfoot><tr className="font-bold"><td colSpan={/mobile|wave|orange/i.test(printMode) ? 4 : 3} className="border border-ink px-2 py-1">Total</td><td className="border border-ink px-2 py-1 text-right tabular-nums">{fcfa(total(rows.filter((r) => r.mode === printMode)))}</td><td className="border border-ink" /></tr></tfoot>
             </table>
             <div className="mt-10 flex justify-between">
-              <div className="w-64 border-t border-[#1D2A33] pt-1 text-center">Le comptable</div>
-              <div className="w-64 border-t border-[#1D2A33] pt-1 text-center">Visa de la Direction</div>
+              <div className="w-64 border-t border-ink pt-1 text-center">Le comptable</div>
+              <div className="w-64 border-t border-ink pt-1 text-center">Visa de la Direction</div>
             </div>
           </div>
         )}

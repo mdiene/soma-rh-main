@@ -12,6 +12,7 @@ Règles : `.github/copilot-instructions.md`. Comptes rendus : `docs/copilot/RETO
 | CP-02 | CI : ajouter les tests unitaires JS et un contrôle des migrations | Copilot | FAIT, relu et corrigé par Claude | `.github/workflows/ci.yml`, `.gitattributes`, `scripts/` (nouveaux fichiers) |
 | CP-03 | Audit de `web/src` (lecture seule) | Copilot (refait par Claude) | FAIT (A à D traités par Claude ; correctifs à décider) | écrire seulement dans `docs/copilot/RETOURS.md` |
 | CP-04 | Interface : motifs de sortie lus dans `exit_reasons` | Claude (repris) | FAIT (lint/build verts) | `web/src/pages/EmployeeDetailPage.tsx` uniquement |
+| CP-05 | Rejeu des migrations sur base neuve : instantané de schéma de référence (H48) | Copilot | À FAIRE | `db/baseline/` (nouveau), `scripts/replay-migrations.sh`, `docs/copilot/RETOURS.md` ; **aucune modification de `db/migrations/`** |
 
 ---
 
@@ -62,4 +63,18 @@ Utilise le client de données existant dans web/src/lib/api.ts SANS le modifier 
 Gère le chargement et l'erreur, en français. Ne modifie pas database.types.ts.
 Avant de rendre : dans web/, npm run lint puis npm run build doivent passer.
 Compte rendu dans docs/copilot/RETOURS.md.
+```
+
+## CP-05 — Instantané de schéma de référence pour reconstruire la base (H48)
+Contexte : `bash scripts/replay-migrations.sh` (rejeu de `db/migrations` sur PostgreSQL 17 neuf) échoue dès `20261031185900_payroll_rpc_security_definer.sql` : elle modifie `create_payroll_snapshot`, que seule la migration suivante crée. La base locale a reçu ses objets dans un autre ordre, donc l'historique n'est plus rejouable. Objectif : une base neuve = `instantané du schéma local` + `migrations récentes`, sans toucher à `db/migrations/` ni à la base locale en marche.
+```
+Lis .github/copilot-instructions.md, la tâche CP-05 de docs/copilot/FILE_DE_TACHES.md et scripts/replay-migrations.sh.
+RÈGLES : ne modifie rien dans db/migrations/ ni dans db/rollback/ ; n'écris jamais dans la base du conteneur soma-rh-local-postgres-1 (lecture seule : pg_dump, psql SELECT) ; aucune donnée de salarié dans un fichier (schéma seul, pas de INSERT de données personnelles).
+1. Dump du schéma : docker exec soma-rh-local-postgres-1 pg_dump -U soma -d soma_rh --schema-only --no-owner --no-privileges -n public > db/baseline/schema_local.sql
+   (ajoute à part les extensions, rôles anon/authenticated/service_role et le schéma auth déjà fournis par postgres/auth-compat.sql ; ne les duplique pas).
+2. Données de référence : exporte seulement les tables de paramétrage sans donnée personnelle (liste proposée dans RETOURS.md avant export : payroll_settings, grades, conventions, salary_components, exit_reasons, legal_sources, overtime_rates, notice_scales, garnishment_scale, severance_scales, leave_types, contract_types, payment_modes…). Dans db/baseline/reference_data.sql, en INSERT ... ON CONFLICT DO NOTHING. Exclus : employees, salary_slips, payroll_*, user_roles, auth.*, notifications_log, audit_*.
+3. Détermine la dernière migration incluse dans l'instantané (celle dont le contenu est déjà dans la base : 20261117090000_h41_rls_dev05_dev09) et écris db/baseline/README.md : date, commande de dump, version de PostgreSQL, migration de coupure.
+4. Modifie SEULEMENT scripts/replay-migrations.sh : mode « baseline » = auth-compat.sql, puis db/baseline/schema_local.sql, puis reference_data.sql, puis (vide aujourd'hui) les migrations postérieures à la coupure. Le mode actuel (rejeu complet) reste disponible avec un argument --full.
+5. Vérifie : bash scripts/replay-migrations.sh doit finir « Rejeu complet ». Puis compare le schéma rejoué au schéma local : pg_dump --schema-only des deux bases, trié, diff. Le diff doit être vide (hors commentaires, ordre, noms de séquences) ; sinon liste chaque écart dans RETOURS.md.
+6. Ne committe rien. Compte rendu dans docs/copilot/RETOURS.md : commandes lancées, résultat du rejeu, diff de schéma, tables de référence retenues/exclues, risques (ex. migrations futures à numéroter après la coupure ; db/migrations/ ne doit plus être rejoué seul).
 ```

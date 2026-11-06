@@ -106,7 +106,7 @@ export default function MySlipsPage() {
 
   const SlipLine = ({ s, showIdent, indent }: { s: Slip; showIdent: boolean; indent?: boolean }) => (
     <li className="flex flex-wrap items-center gap-x-4 gap-y-1 px-4 py-2.5 hover:bg-[#F1F7F6]">
-      <input type="checkbox" className={clsx('h-4 w-4 accent-[#0F6E6A]', indent && 'ml-6')} checked={selected.has(s.id)} onChange={() => toggle(s.id)}
+      <input type="checkbox" className={clsx('h-4 w-4 accent-river', indent && 'ml-6')} checked={selected.has(s.id)} onChange={() => toggle(s.id)}
         aria-label={`Sélectionner ${monthLabel(s.period_start)} — ${ident(s)}`} />
       <Link to={`/bulletins/${s.id}`} className="min-w-[16rem] flex-1 font-medium text-river hover:underline">
         {monthLabel(s.period_start)}{showIdent && <span className="font-normal text-ink"> — {ident(s)}</span>}
@@ -157,7 +157,7 @@ export default function MySlipsPage() {
             </label>
             {staff && (
               <label className="mb-2 inline-flex items-center gap-2 text-sm">
-                <input type="checkbox" className="h-4 w-4 accent-[#0F6E6A]" checked={groupedPref} onChange={(e) => { setGrouped(e.target.checked); reset() }} />
+                <input type="checkbox" className="h-4 w-4 accent-river" checked={groupedPref} onChange={(e) => { setGrouped(e.target.checked); reset() }} />
                 Regrouper par salarié
               </label>
             )}
@@ -188,7 +188,7 @@ export default function MySlipsPage() {
                 return (
                   <section key={g.id} aria-label={`Salarié ${g.label}`}>
                     <header className="flex flex-wrap items-center gap-x-4 gap-y-1 bg-paper px-4 py-2">
-                      <input type="checkbox" className="h-4 w-4 accent-[#0F6E6A]" checked={allOn} onChange={() => toggleMany(g.slips.map((s) => s.id), !allOn)}
+                      <input type="checkbox" className="h-4 w-4 accent-river" checked={allOn} onChange={() => toggleMany(g.slips.map((s) => s.id), !allOn)}
                         aria-label={`Sélectionner tous les bulletins de ${g.label}`} />
                       <button type="button" aria-expanded={open} onClick={() => setOpened((c) => { const n = new Set(c); if (open) n.delete(g.id); else n.add(g.id); return n })}
                         className="flex min-w-[16rem] flex-1 items-center gap-2 text-left font-semibold">

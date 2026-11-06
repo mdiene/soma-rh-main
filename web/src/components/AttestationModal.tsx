@@ -50,7 +50,7 @@ function AttestationDocument({ employeeId, kind }: { employeeId: string; kind: A
 
   return (
     <div className="sheet mx-auto min-h-[250mm] max-w-[190mm] p-8 text-[13px] leading-relaxed" style={{ fontFamily: 'Archivo, sans-serif' }}>
-      <header className="mb-10 border-b-2 border-[#1D2A33] pb-2">
+      <header className="mb-10 border-b-2 border-ink pb-2">
         <p className="text-lg font-bold">{c?.name ?? ''}</p>
         <p>{c?.address ?? ''}</p>
         <p>{c?.ninea ? `NINEA ${c.ninea}` : ''}{c?.rccm ? ` · RCCM ${c.rccm}` : ''}</p>
@@ -86,7 +86,7 @@ function AttestationDocument({ employeeId, kind }: { employeeId: string; kind: A
 
       <div className="ml-auto w-72 text-center">
         <p className="font-bold">La Direction</p>
-        <div className="mt-20 border-t border-[#1D2A33] pt-1 text-xs text-[#52606B]">Signature et cachet</div>
+        <div className="mt-20 border-t border-ink pt-1 text-xs text-[#52606B]">Signature et cachet</div>
       </div>
     </div>
   )

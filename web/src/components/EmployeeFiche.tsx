@@ -25,7 +25,7 @@ export function EmployeeFicheButton({ employee }: { employee: Emp }) {
 function Block({ title, rows }: { title: string; rows: [string, ReactNode][] }) {
   return (
     <section className="mb-4 break-inside-avoid">
-      <h2 className="mb-1 border-b border-[#1D2A33] pb-0.5 text-[13px] font-bold uppercase tracking-wide">{title}</h2>
+      <h2 className="mb-1 border-b border-ink pb-0.5 text-[13px] font-bold uppercase tracking-wide">{title}</h2>
       <dl className="grid grid-cols-[38mm_1fr_38mm_1fr] gap-x-3 gap-y-1">
         {rows.map(([k, v]) => (
           <div key={k} className="contents">
@@ -70,7 +70,7 @@ function EmployeeFicheDocument({ employee: e }: { employee: Emp }) {
 
   return (
     <div className="sheet mx-auto max-w-[190mm] p-4 text-[11px]" style={{ fontFamily: 'Archivo, sans-serif' }}>
-      <header className="mb-4 flex items-start justify-between border-b-2 border-[#1D2A33] pb-2">
+      <header className="mb-4 flex items-start justify-between border-b-2 border-ink pb-2">
         <div>
           <p className="text-base font-bold">{company.data?.name ?? ''}</p>
           <p>{company.data?.address ?? ''}</p>
@@ -83,7 +83,7 @@ function EmployeeFicheDocument({ employee: e }: { employee: Emp }) {
         </div>
       </header>
 
-      <div className="mb-4 flex items-baseline justify-between rounded border border-[#1D2A33] bg-[#F6F7F5] px-3 py-2">
+      <div className="mb-4 flex items-baseline justify-between rounded border border-ink bg-paper px-3 py-2">
         <p className="text-base font-bold">{e.first_name} {e.last_name}</p>
         <p>Matricule <strong>{e.employee_number}</strong> · {STATUS[e.status] ?? e.status}</p>
       </div>
@@ -153,7 +153,7 @@ function EmployeeFicheDocument({ employee: e }: { employee: Emp }) {
 
       {(balances.data ?? []).length > 0 && (
         <section className="mb-4 break-inside-avoid">
-          <h2 className="mb-1 border-b border-[#1D2A33] pb-0.5 text-[13px] font-bold uppercase tracking-wide">Soldes de congés</h2>
+          <h2 className="mb-1 border-b border-ink pb-0.5 text-[13px] font-bold uppercase tracking-wide">Soldes de congés</h2>
           <table className="w-full border-collapse">
             <thead><tr className="text-left"><th className="py-0.5">Type</th><th className="text-right">Acquis</th><th className="text-right">Pris</th><th className="text-right">Solde</th></tr></thead>
             <tbody>
@@ -172,7 +172,7 @@ function EmployeeFicheDocument({ employee: e }: { employee: Emp }) {
 
       {recent.length > 0 && (
         <section className="mb-4 break-inside-avoid">
-          <h2 className="mb-1 border-b border-[#1D2A33] pb-0.5 text-[13px] font-bold uppercase tracking-wide">Derniers bulletins</h2>
+          <h2 className="mb-1 border-b border-ink pb-0.5 text-[13px] font-bold uppercase tracking-wide">Derniers bulletins</h2>
           <table className="w-full border-collapse">
             <thead><tr className="text-left"><th className="py-0.5">Mois</th><th className="text-right">Brut</th><th className="text-right">Net à payer</th><th className="pl-4">État</th></tr></thead>
             <tbody>
@@ -193,7 +193,7 @@ function EmployeeFicheDocument({ employee: e }: { employee: Emp }) {
         {['Le responsable RH', 'Le salarié'].map((who) => (
           <div key={who}>
             <p className="font-semibold">{who}</p>
-            <div className="mt-1 h-20 border border-[#1D2A33]" />
+            <div className="mt-1 h-20 border border-ink" />
           </div>
         ))}
       </div>

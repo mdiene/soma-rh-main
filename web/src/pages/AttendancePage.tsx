@@ -297,7 +297,7 @@ export default function AttendancePage() {
                       </td>
                       <td className={clsx(cell, 'num')}>{e.employee_number}</td>
                       <td className={clsx(cell, 'text-center')}>
-                        <input type="checkbox" className="h-4 w-4 accent-[#0F6E6A]" disabled={!editable} checked={d.present}
+                        <input type="checkbox" className="h-4 w-4 accent-river" disabled={!editable} checked={d.present}
                           aria-label={`Présent — ${e.last_name}`} onChange={(ev) => togglePresent(e.id, ev.target.checked)} />
                       </td>
                       <td className={clsx(cell, 'text-right')}>{numInput('worked')}</td>

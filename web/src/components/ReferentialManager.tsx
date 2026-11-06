@@ -147,7 +147,7 @@ export function ReferentialManager({ config }: { config: RefConfig }) {
           </SelectField>
         )}
         <label className="mb-2 inline-flex items-center gap-2 text-sm">
-          <input type="checkbox" className="h-4 w-4 accent-[#0F6E6A]" checked={showInactive} onChange={(e) => setShowInactive(e.target.checked)} />
+          <input type="checkbox" className="h-4 w-4 accent-river" checked={showInactive} onChange={(e) => setShowInactive(e.target.checked)} />
           Afficher les valeurs désactivées ({inactiveCount})
         </label>
         <span className="mb-2 ml-auto text-xs text-ink-muted">{rows.length} valeur(s)</span>
@@ -249,7 +249,7 @@ function RefForm({ config, row, existing, defaultFilter, onClose, onSaved }: {
           if (fd.type === 'checkbox') {
             return (
               <label key={fd.key} className="inline-flex items-center gap-2 text-sm sm:col-span-2">
-                <input type="checkbox" className="h-4 w-4 accent-[#0F6E6A]" checked={!!f[fd.key]} onChange={(e) => setF({ ...f, [fd.key]: e.target.checked })} />
+                <input type="checkbox" className="h-4 w-4 accent-river" checked={!!f[fd.key]} onChange={(e) => setF({ ...f, [fd.key]: e.target.checked })} />
                 {fd.label}{fd.hint && <span className="text-xs text-ink-muted"> — {fd.hint}</span>}
               </label>
             )
