@@ -122,9 +122,11 @@
   "parameters": {
     "interim_end_of_contract_rate": {
       "value": 0.07,
-      "source": "Classeur de référence (précarité CDD 7 %). Décret 2009-1412 du 23/12/2009 : existence confirmée (NATLEX), article et taux non lus ; maintien sous le Code 2026 : art. 461",
-      "legal_status": "to_provide",
-      "note": "Valeur provisoire à confirmer avant activation"
+      "minimum": 0.07,
+      "legal_ref": "Décret 2009-1412, art. 10",
+      "source": "Décret n° 2009-1412 du 23/12/2009, art. 10 (JO du 27/03/2010, p. 327) : 7 % des rémunérations brutes totales dues depuis le début du contrat, hors remboursements de frais. Maintien sous le Code 2026 : art. 461",
+      "legal_status": "verified",
+      "note": "Pré-rempli à 7 %, modifiable : toute valeur inférieure déclenche un avertissement de conformité. Non due dans les cas de l'art. 10 (contrat d'une journée, saisonnier, docker, secteur d'usage, refus d'un CDI équivalent, faute lourde ou rupture anticipée à l'initiative du travailleur)"
     },
     "structural_multiplier_k": {
       "value": null,
@@ -140,9 +142,10 @@
     "interim_max_mission_duration_years": {
       "value": 2,
       "unit": "years",
-      "source": "Presse (décret 2009-1412 cité par Dakaractu) ; texte du décret non lu",
-      "legal_status": "secondary",
-      "note": "Alerte uniquement, pas de blocage tant que le texte n'est pas lu"
+      "legal_ref": "Décret 2009-1412, art. 4 et 8",
+      "source": "Décret n° 2009-1412 du 23/12/2009 (JO du 27/03/2010, p. 327) : une mission ne peut excéder deux ans (art. 4) ; le contrat de travail temporaire ne peut excéder deux ans, sauf ouvrage déterminé (art. 8)",
+      "legal_status": "verified",
+      "note": "Exception : contrat conclu pour la réalisation d'un ouvrage déterminé (art. 8, alinéa 2)"
     }
   },
   "calculation_rules": {

@@ -7,7 +7,7 @@ import { date } from '../lib/format'
 import { Badge, Button, Empty, ErrorNote, Modal, PageHeader, Section, Spinner, TextField } from '../components/ui'
 
 type LegalStatus = 'verified' | 'secondary' | 'to_provide'
-type ManifestParam = { value?: unknown; unit?: string; source?: string; legal_status?: LegalStatus; note?: string }
+type ManifestParam = { value?: unknown; unit?: string; source?: string; legal_status?: LegalStatus; note?: string; minimum?: number; legal_ref?: string }
 type ParamRow = { id: string; param_key: string; value: unknown }
 type Row = {
   module_id: string; name: string; version: string; status: string
@@ -90,6 +90,11 @@ function ParamsModal({ m, onClose }: { m: Row; onClose: () => void }) {
               onChange={(e) => setDraft((d) => ({ ...d, [k]: e.target.value }))} inputMode="decimal"
               hint={[p.note, p.source && `Source : ${p.source}`].filter(Boolean).join(' · ') || undefined} />
             <span className={clsx('text-xs', STATUS[statusOf(p)].cls)}>{STATUS[statusOf(p)].mark} {STATUS[statusOf(p)].label}</span>
+            {p.minimum !== undefined && draft[k]?.trim() && Number(parse(draft[k])) < p.minimum && (
+              <p role="alert" className="mt-1 text-xs text-signal">
+                Valeur inférieure au minimum légal : le taux légal est de {p.minimum * 100} %{p.legal_ref ? ` (${p.legal_ref})` : ''}.
+              </p>
+            )}
           </div>
         ))}
       </div>
