@@ -1,4 +1,4 @@
-name: CI
+﻿name: CI
 on:
   push:
     branches: [main]
@@ -26,3 +26,9 @@ jobs:
       # identique au build Vercel : tsc -b && vite build
       - run: npm run lint
       - run: npm run build
+      - run: node --test tests/unit
+  migrations:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: bash scripts/check-migrations.sh

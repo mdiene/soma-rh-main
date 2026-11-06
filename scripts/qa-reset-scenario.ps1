@@ -1,5 +1,5 @@
 param(
-  [Parameter(Mandatory)][ValidateSet('pme-25','pme-80','eti-200','grande-1000')][string]$Scenario,
+  [Parameter(Mandatory)][ValidateSet('pme-25','pme-80','pme-100','eti-200','grande-1000')][string]$Scenario,
   [switch]$NoBackup,
   [switch]$ResetOnly   # supprime les données QA sans en recréer
 )
@@ -8,7 +8,7 @@ param(
 $ErrorActionPreference = 'Stop'
 $OutputEncoding = [System.Text.UTF8Encoding]::new($false)  # D-018 : sans cela les accents deviennent « ? » vers Docker
 $root = Split-Path $PSScriptRoot -Parent
-$cfg = @{ 'pme-25' = @(25,0); 'pme-80' = @(80,1); 'eti-200' = @(210,1); 'grande-1000' = @(1050,1) }
+$cfg = @{ 'pme-25' = @(25,0); 'pme-80' = @(80,1); 'pme-100' = @(100,0); 'eti-200' = @(210,1); 'grande-1000' = @(1050,1) }
 $n, $extras = $cfg[$Scenario]
 $psql = @('exec','-i','soma-rh-local-postgres-1','psql','-U','soma','-d','soma_rh','-q','-v','ON_ERROR_STOP=1')
 
