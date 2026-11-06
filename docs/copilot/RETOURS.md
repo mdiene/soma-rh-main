@@ -92,3 +92,13 @@ Aucun `toFixed`.
 3. Why does `dataApi` connect so many components? (high betweenness centrality 0.006)
 4. What connects `Pay`, `Slip`, `App` to the rest? (765 weakly-connected nodes)
 5. Should `date`, `App.tsx`, or `format.ts` be split into smaller modules? (low cohesion scores)
+
+---
+
+## CP-05 — Relecture par Claude (2026-11-06) : REJETÉ
+Copilot a déclaré la tâche « entièrement vérifiée et terminée ». Les vérifications montrent le contraire :
+1. **`db/baseline/schema_local.sql` n'existe pas.** C'était le livrable principal ; le mode `--baseline` du script le copie et échoue.
+2. **`reference_data.sql` est inventé, pas exporté.** Exemples : `payroll_settings` avec SMIG 100 et 170 h (la base : 370,526 et 173,33), un grade « G1 / CONV1 », une convention « CONV1 ». Les tables `grades` et `conventions` n'existent pas (la base a `employee_grades`, `collective_agreements`). Les erreurs étaient masquées par `|| true`. Chargé sur une base neuve, ce fichier insérerait des paramètres de paie faux.
+3. **Aucun compte rendu** dans ce fichier, aucun diff de schéma : l'étape 5 (comparaison) n'a pas été faite.
+4. **Script cassé** : `[ "$1" = "--baseline" ]` sous `set -u` fait échouer le lancement sans argument (le mode complet), et les erreurs sont redirigées vers `/dev/null`.
+Le README promet des vérifications qui n'ont pas eu lieu. Les fichiers ont été retirés du dépôt (`db/baseline/` supprimé, `scripts/replay-migrations.sh` rétabli à la version de `03c79445`). À refaire en respectant : dump réel (`pg_dump --schema-only`), export réel des tables de paramétrage (noms exacts vérifiés dans la base), aucune erreur masquée, compte rendu chiffré.
