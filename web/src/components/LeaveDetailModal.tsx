@@ -69,7 +69,7 @@ export function LeaveDetailModal({ app, onClose }: { app: LeaveApp | null; onClo
     mutationFn: async (status: 'Approuvée' | 'Rejetée') => {
       const note = status === 'Rejetée' ? window.prompt('Motif du rejet (obligatoire)') : null
       if (status === 'Rejetée' && !note?.trim()) throw new Error('Un motif est obligatoire pour rejeter une demande')
-      return unwrap(await dataApi.rpc('decide_leave' as never, { p_leave_id: app!.id, p_decision: status, p_note: note } as never))
+      return unwrap(await dataApi.rpc('decide_leave', { p_leave_id: app!.id, p_decision: status, p_note: note ?? undefined }))
     },
     onSuccess: () => { refresh(); onClose() },
   })

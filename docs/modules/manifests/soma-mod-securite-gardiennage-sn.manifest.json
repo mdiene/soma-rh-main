@@ -2,7 +2,7 @@
   "manifest_version": "2.0",
   "module_id": "soma-mod-securite-gardiennage-sn",
   "module_name": "Module vertical Sécurité privée et gardiennage (Sénégal)",
-  "version": "0.1.0-draft",
+  "version": "0.1.1-draft",
   "status": "draft",
   "jurisdiction": "SN",
   "requires_core": ">=1.0",
@@ -14,7 +14,10 @@
       "label": "Numéro de carte professionnelle",
       "data_type": "string",
       "required": false,
-      "validation": { "regex": null, "note": "Format et caractère obligatoire à confirmer auprès de la réglementation du secteur" }
+      "validation": {
+        "regex": null,
+        "note": "Format et caractère obligatoire à confirmer auprès de la réglementation du secteur"
+      }
     },
     {
       "field_key": "sec_port_arme_autorise",
@@ -49,8 +52,11 @@
       "legal_status": "verified"
     },
     "night_window": {
-      "value": { "start": "22:00", "end": "05:00" },
-      "source": "Code du travail 2026, art. 245 ; modalités par arrêté du ministre du Travail (non fourni)",
+      "value": {
+        "start": "22:00",
+        "end": "05:00"
+      },
+      "source": "Code du travail 2026, art. 245 (22 h – 5 h) ; décret 70-182 de 1970 existe, texte non lu ; modalités par arrêté (non fourni)",
       "legal_status": "verified"
     },
     "weekly_rest_hours": {
@@ -61,13 +67,13 @@
     "equivalence_thresholds": {
       "value": null,
       "unit": "hours_per_week_by_post_category",
-      "source": "Décret 70-183 (JO n° 4091 du 09/03/1970) à lire. Les valeurs 56 h et 72 h du document de départ proviennent d'un décret du Niger (2017-682) et ne s'appliquent pas",
+      "source": "Décret 70-183 (JO n° 4091 du 09/03/1970, art. 4 : régime d'équivalence ; art. 11 modifié par le décret 2006-1262) : existence confirmée, seuils par catégorie non lus. Les valeurs 56 h et 72 h du document de départ proviennent d'un décret du Niger (2017-682) et ne s'appliquent pas",
       "legal_status": "to_provide",
       "client_input_allowed": true
     },
     "overtime_rates_table": {
       "value": "overtime_rates",
-      "source": "Table du cœur ; classeur de référence : 115 / 140 / 160 / 200 %. Décret 70-184 à lire",
+      "source": "Table du cœur ; classeur de référence : 115 / 140 / 160 / 200 %. Décret 70-184 (JO 4091 p. 259, non lu) : guides pratiques concordants +15 % (41e-48e h), +40 % (au-delà), +60 % nuit, +60 % repos/férié de jour, +100 % de nuit",
       "legal_status": "secondary"
     },
     "max_shift_duration_hours": {
@@ -78,8 +84,16 @@
   },
   "planning_rules": {
     "shift_templates": [
-      { "code": "V12", "label": "Vacation 12 h", "duration_hours": 12 },
-      { "code": "V24", "label": "Vacation 24 h", "duration_hours": 24 }
+      {
+        "code": "V12",
+        "label": "Vacation 12 h",
+        "duration_hours": 12
+      },
+      {
+        "code": "V24",
+        "label": "Vacation 24 h",
+        "duration_hours": 24
+      }
     ],
     "equivalence_policy": "convert_presence_to_effective_hours_using_parameter",
     "overtime_basis": "hours_above_legal_or_equivalent_threshold"
@@ -134,7 +148,9 @@
     {
       "rule_id": "GARD_OVERTIME",
       "trigger_event": "PRE_GROSS_CALCULATION",
-      "depends_on": ["GARD_EQUIVALENCE_CONVERSION"],
+      "depends_on": [
+        "GARD_EQUIVALENCE_CONVERSION"
+      ],
       "formula": "overtime_hours = max(0, presence_hours - equivalence_threshold(sec_categorie_poste)); amount = overtime_hours * hourly_base_rate * overtime_rate(slot)",
       "legal_status": "verified_rule_unverified_rates",
       "legal_ref": "Code du travail 2026, art. 244"
@@ -142,9 +158,13 @@
     {
       "rule_id": "GARD_NIGHT_BONUS",
       "trigger_event": "GROSS_ELEMENT_ADDITION",
-      "depends_on": ["GARD_OVERTIME"],
+      "depends_on": [
+        "GARD_OVERTIME"
+      ],
       "formula": "INP_NIGHT_HOURS * hourly_base_rate * night_bonus_rate",
-      "parameters_required": ["night_bonus_rate"],
+      "parameters_required": [
+        "night_bonus_rate"
+      ],
       "legal_status": "to_provide",
       "note": "Taux saisi par le client (convention ou accord). Le 0,50 du document de départ n'a pas de source"
     }
@@ -168,7 +188,10 @@
     {
       "case_id": "GARD-T01",
       "description": "Salarié sans seuil d'équivalence saisi : la paie émet un blocage, aucun montant inventé",
-      "expected": { "finding": "GARD_MISSING_EQUIVALENCE", "payslip_computed": false }
+      "expected": {
+        "finding": "GARD_MISSING_EQUIVALENCE",
+        "payslip_computed": false
+      }
     }
   ]
 }

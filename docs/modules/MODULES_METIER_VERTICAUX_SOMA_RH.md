@@ -78,24 +78,24 @@ Montants en `numeric` côté base et en décimal exact côté code, jamais en fl
 |---|---|---|---|
 | Durée légale | 40 h par semaine | Code du travail 2026 (loi 2026-18, JO du 17/09/2026), art. 241 | ✔ |
 | Heures supplémentaires | Heures au-delà de la durée légale **ou de la durée considérée comme équivalente** : majoration de salaire | Code du travail 2026, art. 244 | ✔ règle · ✖ taux (décret 70-184 non lu) |
-| Taux HS appliqués aujourd'hui | 115 % / 140 % / 160 % / 200 % | Classeur de référence (analyse Excel) | ✔ (classeur) · ✖ (texte) |
-| Travail de nuit | 22 h à 5 h ; modalités par arrêté | Code du travail 2026, art. 245 | ✔ · arrêté ✖ |
+| Taux HS appliqués aujourd'hui | 115 % / 140 % / 160 % / 200 % | Classeur de référence (analyse Excel) ; décret 70-184 (JO 4091 p. 259, texte non lu) : +15 % de la 41e à la 48e h, +40 % au-delà, +60 % nuit, +60 % repos/férié de jour, +100 % de nuit (guides pratiques concordants) | ✔ (classeur) · ◐ (décret) — voir `RESULTATS_RECHERCHE_TEXTES_A_FOURNIR.md` |
+| Travail de nuit | 22 h à 5 h ; modalités par arrêté | Code du travail 2026, art. 245 ; décret 70-182 (heures de nuit, 1970) existe, texte non lu | ✔ · arrêté ✖ |
 | Repos hebdomadaire | 24 h consécutives, en principe le dimanche ; dérogations par décret | Code du travail 2026, art. 246 | ✔ |
 | Congés payés | 2 jours ouvrables par mois de service | Code du travail 2026, art. 249 | ✔ |
-| Équivalences horaires par branche | Seuils sénégalais **non lus** (56/72 h = texte nigérien) | Décret 70-183 (JO 4091, 1970) à lire | ✖ |
+| Équivalences horaires par branche | Seuils sénégalais **non lus** (56/72 h = texte nigérien). Le décret 70-183 existe : son art. 4 institue un régime d'équivalence ; art. 11 modifié par le décret 2006-1262. Seule valeur trouvée : gens de maison, 260 h de présence par mois ≈ 173 h 33 | Décret 70-183 (JO 4091, 1970) à lire | ✖ pour gardiens/veilleurs |
 | Prestations de service spécialisées (sécurité, nettoyage, maintenance) | Autorisées si le prestataire reste l'employeur et apporte un savoir-faire propre ; attestation de régularité sociale **avant la conclusion puis tous les 6 mois** ; marchandage interdit | Code du travail 2026, art. 291 | ✔ |
 | Travail temporaire | Agrément de l'entreprise (art. 292) ; missions précises (remplacement, accroissement temporaire, tâches ponctuelles, travaux urgents) ; interdit pour un emploi durable ; sinon travailleur **réputé en CDI** chez l'utilisateur ; autres règles par décret | Code du travail 2026, art. 292-294 | ✔ |
-| IFC / précarité intérim | 7 % des salaires bruts de la mission | Décret 2009-1412 (existence confirmée) ; taux = classeur (CDD) et étude précédente | ✖ |
+| IFC / précarité intérim | 7 % des salaires bruts de la mission | Décret 2009-1412 (existence confirmée, taux non lu) ; taux = classeur (CDD). Durée maximale de mission : 2 ans (presse, ◐). Maintien du décret sous le Code 2026 : art. 461 (règlements d'application maintenus en tout ce qui n'est pas contraire) | ✖ taux · ✔ maintien |
 | Déplacement | Indemnité en multiples du salaire horaire de base selon repas et nuitée ; mission ≤ 6 mois | CCNI, art. 61 (copie de 1982 lue) ; la CCNI récente est dans le projet | ✔ (à rapprocher de la CCNI récente) |
 | IPRES régime général | 5,6 % salarié / 8,4 % employeur, plafond **432 000 F/mois** | Classeur de référence ; 4 sources secondaires concordantes (LinkedIn IPRES juin 2022, Mercans, MaCalculatrice, CLEISS pour la CSS) | ◐ — arrêtés de fixation non fournis (CSS 2026, art. 74) |
 | IPRES complémentaire cadres | 2,4 % / 3,6 %, tranche jusqu'à **1 296 000 F/mois** | Idem | ◐ |
 | CSS prestations familiales | 7 % employeur, plafond **63 000 F/mois** | CLEISS 2026, OCDE, classeur | ◐ |
 | CSS accidents du travail | 1 %, 3 % ou 5 % selon le risque, employeur seul ; plafond 63 000 F (CLEISS, OCDE) | Classeur : 5 % | ◐ — une source dit « sans plafond » : à trancher |
 | Répartition employeur/salarié | Part du salarié ≤ la moitié ; fixée par arrêté | CSS 2026 (loi 16/2026), art. 73 | ✔ règle · taux ✖ |
-| CFCE | 3 % du brut, employeur, sans plafond | Classeur ; MaCalculatrice, Mercans | ◐ — une loi de 1982 donne 5 % pour les travailleurs étrangers : à contrôler au CGI 2025 |
-| IR salaires | Abattement 30 % plafonné à 900 000 F/an ; barème 0 % jusqu'à 630 000, puis 20 / 30 / 35 / 37 / 40 % | Classeur ; sources secondaires | ◐ — certaines sources donnent un taux supérieur de 43 % : à vérifier au CGI 2025 (art. 173) |
-| TRIMF | Barème forfaitaire de 900 à 36 000 F/an | Classeur | ◐ |
-| BRS prestataires | 5 % du montant HT si la prestation est ≥ 25 000 F ; régime des art. 200 et suivants du CGI ; autres taux pour certaines professions depuis la LF 2025 (10 % pour des professions médicales non salariées) | Cabinet Deloitte (LF 2025) pour le taux et les articles ; seuil : source secondaire | ◐ |
+| CFCE | 3 % du brut, employeur, sans plafond | CGI janvier 2025, art. 265 à 267 (lu) ; base : traitements, primes, avantages en nature | ✔ — aucun taux de 5 % pour les étrangers dans le CGI 2025 |
+| IR salaires | Abattement 30 % plafonné à 900 000 F/an ; barème 0 % jusqu'à 630 000, puis 20 / 30 / 35 / 37 % jusqu'à 13 500 000, **40 % jusqu'à 50 000 000, 43 % au-delà** ; revenu arrondi au millier inférieur | CGI janvier 2025, art. 173 (loi 2022-19) et règles de l'abattement (lus) | ✔ |
+| TRIMF | Retenue sur salaire par tranche de revenu brut global : 0–599 999 : 900 ; 600 000–999 999 : 3 600 ; 1 000 000–1 999 999 : 4 800 ; 2 000 000–6 999 999 : 12 000 ; 7 000 000–11 999 999 : 18 000 ; ≥ 12 000 000 : 36 000 | CGI janvier 2025, art. 275 s. (lu) | ✔ |
+| BRS prestataires | 5 % du montant HT si la prestation est ≥ 25 000 F ; régime des art. 200 et suivants du CGI ; autres taux pour certaines professions depuis la LF 2025 (10 % pour des professions médicales non salariées) | Cabinet Deloitte (LF 2025) pour le taux et les articles ; seuil et taux : CGI janvier 2025, art. 200 §6 (lu) — 5 % si la facture est ≥ 25 000 F, versement avant le 15 du mois suivant | ✔ |
 | TVA | 18 % (taux normal) sur le montant total HT facturé | Sources secondaires | ◐ |
 | Conservation des bulletins | 5 ans minimum | Carnet (Mali, Sénégal) | ◐ |
 | Taux et plafonds sociaux 2026 | Registre légal RL-001 à 009 « à confirmer » | Arrêtés CSS non fournis | ✖ |
@@ -240,12 +240,15 @@ Chaque lot : une migration, un retour arrière, `verify-payroll` avant et après
 
 1. **Équivalences** : fournir le décret sénégalais de dérogations (70-183) ou accepter de livrer les modules avec seuils saisis par le client.
 2. **Plafond AT de la CSS** : 63 000 F (CLEISS, OCDE) ou sans plafond (une source secondaire) ? Le classeur applique 63 000 F.
-3. **Barème IR** : maximum à 40 % (classeur) ou 43 % (autres sources) ? À lire au CGI 2025.
-4. **CFCE** : 3 % pour tous ou 5 % pour les travailleurs étrangers ?
+3. ~~Barème IR~~ **Tranché le 06/11/2026** (CGI 2025, art. 173) : 40 % jusqu'à 50 M de revenu imposable, 43 % au-delà. Le classeur n'a pas la tranche à 43 % : vérifier si elle compte pour un salarié.
+4. ~~CFCE~~ **Tranché le 06/11/2026** (CGI 2025, art. 267) : 3 %, sans taux distinct pour les étrangers.
 5. **IFC intérim** : 7 % maintenu à titre provisoire ?
 6. **GPS** : option de preuve ou condition de saisie de certains per diem ?
 7. **Redis / multi-société** : reporter à M6 (recommandé).
 8. **Interprète des formules** : valider un langage existant par un spike avant de coder.
+9. **Textes de 1970 à obtenir** : le JO n° 4091 du 09/03/1970 (pp. 257-260 : décrets 70-182, 70-183, 70-184) n'est pas lisible depuis l'environnement de travail (téléchargement bloqué, PDF sans texte). À déposer dans `docs/sources-legales/` pour lecture OCR ; sinon les modules gardiennage restent à seuils saisis par le client.
+
+Résultats détaillés de la recherche du 06/11/2026 : `docs/modules/RESULTATS_RECHERCHE_TEXTES_A_FOURNIR.md`.
 
 ---
 
@@ -262,6 +265,8 @@ Questions posées le 6 novembre 2026 ; réponses du carnet résumées, avec les 
 
 - CLEISS, « Les cotisations au Sénégal », 2026 : https://www.cleiss.fr/docs/cotisations/senegal.html
 - OCDE, financement de la protection sociale au Sénégal : https://www.oecd.org/fr/publications/financement-de-la-protection-sociale-au-senegal_00d67508-fr/full-report/developper-les-regimes-contributifs_bc4ce1d3.html
+- CGI Sénégal janvier 2025 (fichier local `docs/sources-legales/CGI-Senegal-janvier-2025.pdf`), art. 173, 200, 265-267, 275 s.
+- Vie-publique.sn, JO n° 4091 du 09/03/1970 (sommaire) : https://www.vie-publique.sn/documents/4428/JO-4091-du-09-mars-1970
 - Vie-publique.sn, Code de la Sécurité sociale 2026 (loi 16/2026) : https://www.vie-publique.sn/dossiers/code-securite-sociale-2026-loi-16-2026-senegal
 - NATLEX (OIT), décret 2009-1412 du 23/12/2009 : https://natlex.ilo.org/dyn/natlex2/r/natlex/fe/details?p3_isn=49603
 - Deloitte Avocats, loi de finances 2025 (retenue à la source de 5 %, art. 200 et suivants) : https://blog.avocats.deloitte.fr/senegal-les-principales-mesures-importantes-de-la-loi-de-finances-pour-2025/

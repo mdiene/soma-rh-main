@@ -67,7 +67,7 @@ export default function MySpacePage() {
     queryFn: async () => unwrap(await db.from('document_requirements').select('code, section_code, title, description, required, conditional_rule, sort_order').eq('active', true).order('sort_order')) as { code: string; section_code: string; title: string; description: string; required: boolean; conditional_rule: string | null; sort_order: number }[],
   })
   const markNotificationRead = useMutation({
-    mutationFn: async (id: string) => unwrap(await dataApi.rpc('mark_employee_notification_read' as never, { p_notification_id: id } as never)),
+    mutationFn: async (id: string) => unwrap(await dataApi.rpc('mark_employee_notification_read', { p_notification_id: id })),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['my_notifications', meId] }),
   })
 
@@ -79,7 +79,7 @@ export default function MySpacePage() {
     onSuccess: () => { setOpen(false); setF({ request_type: 'attestation_travail', amount: '', target_date: '', message: '' }); qc.invalidateQueries({ queryKey: ['my_requests'] }) },
   })
   const cancel = useMutation({
-    mutationFn: async (id: string) => unwrap(await dataApi.rpc('cancel_my_request' as never, { p_request_id: id } as never)),
+    mutationFn: async (id: string) => unwrap(await dataApi.rpc('cancel_my_request', { p_request_id: id })),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['my_requests'] }),
   })
   const upload = useMutation({

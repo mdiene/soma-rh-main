@@ -208,16 +208,16 @@ Spécification : `docs/modules/MODULES_METIER_VERTICAUX_SOMA_RH.md` (v2) ; manif
 
 | ID | Prio | Tâche | Débloque |
 |---|---|---|---|
-| T-MV-01 | P0 | Décret de dérogations à la durée légale (70-183, JO n° 4091 du 09/03/1970, vie-publique.sn/documents/4428) | Équivalences gardiennage, HORECA, transport (les 56/72 h du document de départ sont nigériens) |
-| T-MV-02 | P0 | Décret 70-184 (taux des heures supplémentaires) | `overtime_rates` conforme (115/140/160/200 % : texte ou classeur ?) |
-| T-MV-03 | P0 | Décret 2009-1412 (travail temporaire) et son maintien sous le Code 2026 (art. 459-461) | IFC 7 %, égalité de rémunération, module Intérim |
-| T-MV-04 | P0 | Décret visé à l'art. 292 du Code 2026 (agrément, règles du travail temporaire) | Contrôles d'agrément et de missions |
-| T-MV-05 | P1 | Arrêté d'application du travail de nuit (art. 245 : 22 h–5 h) | Modalités de la nuit |
-| T-MV-06 | P1 | Arrêté n° 11719 du 17/12/2009 : non retrouvé, à fournir ou à retirer du registre | Statut de la preuve de déplacement |
-| T-MV-07 | P1 | Arrêtés CSS 2026 (taux, plafonds, répartition) | RL-001 à 009 « conforme » |
-| T-MV-08 | P1 | **Lire `sources-legales/CGI-Senegal-janvier-2025.pdf`** : barème IR (maximum 40 % ou 43 %), CFCE (3 % ou 5 % pour les étrangers), TRIMF, BRS (art. 200 et s., seuil 25 000 F) | Clôturer les écarts du §3 de la spécification |
-| T-MV-09 | P1 | Arrêté 012914 (avantages en nature) | Module HORECA |
-| T-MV-10 | P2 | Conventions de branche (gardiennage, hôtellerie-restauration, transport, BTP, nettoyage) | Paniers, primes de risque, salissure |
+| T-MV-01 | P0 | Décret de dérogations à la durée légale (70-183, JO n° 4091 du 09/03/1970, vie-publique.sn/documents/4428) | Équivalences gardiennage, HORECA, transport (les 56/72 h du document de départ sont nigériens) — **06/11 : ◐ décret trouvé (art. 4 équivalences) mais seuils gardiens non lus ; JO 4091 à déposer pour OCR** |
+| T-MV-02 | P0 | Décret 70-184 (taux des heures supplémentaires) | `overtime_rates` conforme (115/140/160/200 % : texte ou classeur ?) — **06/11 : ◐ +15/+40/+60/+100 % (guides concordants), texte JO 4091 p.259 à lire** |
+| T-MV-03 | P0 | Décret 2009-1412 (travail temporaire) et son maintien sous le Code 2026 (art. 459-461) | IFC 7 %, égalité de rémunération, module Intérim — **06/11 : ✔ maintien (art. 461) ; ✖ taux IFC non lu ; ◐ durée max 2 ans** |
+| T-MV-04 | P0 | Décret visé à l'art. 292 du Code 2026 (agrément, règles du travail temporaire) | Contrôles d'agrément et de missions — **06/11 : ✖ décret d'application non trouvé (art. 292 lu)** |
+| T-MV-05 | P1 | Arrêté d'application du travail de nuit (art. 245 : 22 h–5 h) | Modalités de la nuit — **06/11 : ◐ décret 70-182 existe, texte non lu ; art. 245 = 22 h–5 h ✔** |
+| T-MV-06 | P1 | Arrêté n° 11719 du 17/12/2009 : non retrouvé, à fournir ou à retirer du registre | Statut de la preuve de déplacement — **06/11 : ✖ introuvable, à retirer du registre ou à fournir** |
+| T-MV-07 | P1 | Arrêtés CSS 2026 (taux, plafonds, répartition) | RL-001 à 009 « conforme » — **06/11 : ◐ CLEISS/OCDE 2026 : PF 7 %, AT 1/3/5 %, plafond 63 000 F ; arrêtés non fournis** |
+| T-MV-08 | P1 | **Lire `sources-legales/CGI-Senegal-janvier-2025.pdf`** : barème IR (maximum 40 % ou 43 %), CFCE (3 % ou 5 % pour les étrangers), TRIMF, BRS (art. 200 et s., seuil 25 000 F) | Clôturer les écarts du §3 de la spécification — **06/11 : ✔ FAIT : IR 40 % jusqu'à 50 M puis 43 %, CFCE 3 %, TRIMF par tranche, BRS 5 % dès 25 000 F** |
+| T-MV-09 | P1 | Arrêté 012914 (avantages en nature) | Module HORECA — **06/11 : ◐ logement 33 500 / 20 000 / 13 500 F par pièce (secondaire) ; nourriture ✖** |
+| T-MV-10 | P2 | Conventions de branche (gardiennage, hôtellerie-restauration, transport, BTP, nettoyage) | Paniers, primes de risque, salissure — **06/11 : ✖ aucun texte de branche trouvé en ligne** |
 
 **Développement**
 
@@ -243,5 +243,5 @@ Spécification : `docs/modules/MODULES_METIER_VERTICAUX_SOMA_RH.md` (v2) ; manif
 | H43 | ~~Erreurs de requêtes masquées~~ FAIT 2026-11-06 | `QueryCache({ onError })` (`main.tsx`) + bandeau `QueryErrorBanner` dans `Layout` (3 derniers messages, dédoublonnés, fermable). Essai navigateur non fait ; les pages peuvent encore afficher leur propre `ErrorNote` (cumul possible). |
 | H44 | Couleurs hors palette | Hexadécimaux en dur (graphiques, impressions, `GroupedTable`) : jetons Tailwind (`RETOURS.md` §C). |
 | H45 | Export des paiements | `PayrollPaymentsPage.tsx:69` arrondit le net : confirmer que l'arrondi à l'unité est voulu pour le fichier de virement. |
-| H46 | Types RPC | Retirer les `as never` (`decide_leave`, `cancel_my_request`, `mark_employee_notification_read`) maintenant que les types sont régénérés ; tester `decide_leave` (refus d'un non-approbateur). |
+| H46 | ~~Types RPC~~ FAIT 2026-11-06 | `as never` retirés de 9 fichiers (12 RPC) ; `null` remplacé par `undefined` aux arguments facultatifs ; reste `PaymentControls.tsx` (aide générique `rpc(fn: string)`). `decide_leave` : test `tests/sql/decide_leave_droits.sql` (salarié simple et paie seule refusés). tsc, lint (0 erreur) et build verts. |
 | H47 | CI | Ne couvre pas `tests/sql`, `verify-payroll`, `tests/api` (base requise). |

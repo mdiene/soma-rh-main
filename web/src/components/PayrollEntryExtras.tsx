@@ -13,7 +13,7 @@ type Cmp = { previous_period: string; rows: CmpRow[] } | null
 export function ComparisonPanel({ entryId, enabled }: { entryId: string; enabled: boolean }) {
   const q = useQuery({
     queryKey: ['payroll_cmp', entryId], enabled,
-    queryFn: async () => unwrap(await dataApi.rpc('payroll_entry_comparison' as never, { p_payroll_entry_id: entryId } as never)) as unknown as Cmp,
+    queryFn: async () => unwrap(await dataApi.rpc('payroll_entry_comparison', { p_payroll_entry_id: entryId })) as unknown as Cmp,
   })
   if (!q.data) return <ErrorNote error={q.error} />
   const rows = q.data.rows
@@ -58,9 +58,9 @@ export function BatchModal({ entryId, open, onClose, onDone }: { entryId: string
   const [picked, setPicked] = useState<string[]>([])
   const list = (employees.data ?? []).filter((e) => e.status === 'Active' && (!type || e.employment_type === type))
   const m = useMutation({
-    mutationFn: async () => unwrap(await dataApi.rpc('run_payroll_batch' as never, {
-      p_payroll_entry_id: entryId, p_employment_type: type || null, p_employee_ids: picked.length ? picked : null,
-    } as never)),
+    mutationFn: async () => unwrap(await dataApi.rpc('run_payroll_batch', {
+      p_payroll_entry_id: entryId, p_employment_type: type || undefined, p_employee_ids: picked.length ? picked : undefined,
+    })),
     onSuccess: (r) => { setPicked([]); onDone(r) },
   })
   const toggle = (id: string) => setPicked((p) => (p.includes(id) ? p.filter((x) => x !== id) : [...p, id]))
@@ -94,7 +94,7 @@ export function RevertModal({ entryId, status, open, onClose, onDone }: { entryI
   const m = useMutation({
     mutationFn: async () => closed
       ? transitionPayroll(entryId, 'Réouverte', reason)
-      : unwrap(await dataApi.rpc('revert_payroll_entry' as never, { p_payroll_entry_id: entryId, p_reason: reason, p_cancel_payments: cancelPayments } as never)),
+      : unwrap(await dataApi.rpc('revert_payroll_entry', { p_payroll_entry_id: entryId, p_reason: reason, p_cancel_payments: cancelPayments })),
     onSuccess: () => { setReason(''); setCancelPayments(false); onDone() },
   })
   // la base refuse tant que l'on n'a pas confirmé l'annulation des paiements déjà enregistrés

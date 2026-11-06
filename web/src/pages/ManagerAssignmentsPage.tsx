@@ -52,12 +52,12 @@ export default function ManagerAssignmentsPage() {
       .order('valid_from', { ascending: false }).limit(300)) as Assignment[],
   })
   const assign = useMutation({
-    mutationFn: async () => unwrap(await dataApi.rpc('assign_manager_employee' as never, {
+    mutationFn: async () => unwrap(await dataApi.rpc('assign_manager_employee', {
       p_manager_employee_id: managerId,
       p_employee_id: employeeId,
       p_valid_from: validFrom,
-      p_valid_to: validTo || null,
-    } as never)),
+      p_valid_to: validTo || undefined,
+    })),
     onSuccess: () => {
       setEmployeeId('')
       qc.invalidateQueries({ queryKey: ['manager_assignments_admin'] })
@@ -66,7 +66,7 @@ export default function ManagerAssignmentsPage() {
     },
   })
   const close = useMutation({
-    mutationFn: async ({ id, end }: { id: string; end: string }) => unwrap(await dataApi.rpc('close_manager_assignment' as never, { p_assignment_id: id, p_valid_to: end } as never)),
+    mutationFn: async ({ id, end }: { id: string; end: string }) => unwrap(await dataApi.rpc('close_manager_assignment', { p_assignment_id: id, p_valid_to: end })),
     onSuccess: () => { void qc.invalidateQueries({ queryKey: ['manager_assignments_admin'] }); void qc.invalidateQueries({ queryKey: ['org_chart'] }) },
   })
   const activeEmployees = employees.data ?? []

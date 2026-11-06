@@ -41,7 +41,7 @@ export default function LeavesPage() {
     mutationFn: async ({ id, status }: { id: string; status: 'Approuvée' | 'Rejetée' }) => {
       const note = status === 'Rejetée' ? window.prompt('Motif du rejet (obligatoire)') : null
       if (status === 'Rejetée' && !note?.trim()) throw new Error('Un motif est obligatoire pour rejeter une demande')
-      return unwrap(await dataApi.rpc('decide_leave' as never, { p_leave_id: id, p_decision: status, p_note: note } as never))
+      return unwrap(await dataApi.rpc('decide_leave', { p_leave_id: id, p_decision: status, p_note: note ?? undefined }))
     },
     onSuccess: () => { for (const k of ['leave_applications', 'leave_balances', 'my_leave_approvals']) qc.invalidateQueries({ queryKey: [k] }) },
   })

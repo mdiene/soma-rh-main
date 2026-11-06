@@ -36,11 +36,11 @@ export default function RequestsPage() {
     queryFn: async () => unwrap(await db.from('employee_request_history').select('request_id, status, note, created_at').in('request_id', requestIds).order('created_at', { ascending: false })) as { request_id: string; status: string; note: string | null; created_at: string }[],
   })
   const decide = useMutation({
-    mutationFn: async () => unwrap(await db.rpc('decide_employee_request' as never, {
+    mutationFn: async () => unwrap(await db.rpc('decide_employee_request', {
       p_request_id: target!.r.id,
       p_status: target!.decision,
       p_note: note.trim() || null,
-    } as never)),
+    })),
     onSuccess: () => { setTarget(null); setNote(''); qc.invalidateQueries({ queryKey: ['employee_requests'] }) },
   })
 

@@ -36,7 +36,7 @@ function Bars({ items, total }: { items: [string, number][]; total: number }) {
 export default function PilotagePage() {
   const q = useQuery({
     queryKey: ['hr_analytics'],
-    queryFn: async () => unwrap(await dataApi.rpc('hr_analytics' as never, { p_months: 12 } as never)) as unknown as Analytics,
+    queryFn: async () => unwrap(await dataApi.rpc('hr_analytics', { p_months: 12 })) as unknown as Analytics,
   })
   if (q.isLoading) return <Spinner />
   const d = q.data

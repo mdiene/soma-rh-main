@@ -33,7 +33,7 @@ export function SlipExplain({ slipId }: { slipId: string }) {
   const [open, setOpen] = useState<string | null>(null)
   const q = useQuery({
     queryKey: ['slip-explained', slipId],
-    queryFn: async () => unwrap(await dataApi.rpc('salary_slip_explained' as never, { p_slip_id: slipId } as never)) as unknown as Explained | null,
+    queryFn: async () => unwrap(await dataApi.rpc('salary_slip_explained', { p_slip_id: slipId })) as unknown as Explained | null,
   })
   if (q.isLoading) return <Spinner />
   if (!q.data) return <ErrorNote error={q.error ?? 'Détail indisponible'} />

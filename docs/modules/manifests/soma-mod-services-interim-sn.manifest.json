@@ -2,7 +2,7 @@
   "manifest_version": "2.0",
   "module_id": "soma-mod-services-interim-sn",
   "module_name": "Module vertical Services, intérim, professions libérales, SAV, enseignement privé (Sénégal)",
-  "version": "0.2.0-draft",
+  "version": "0.2.1-draft",
   "status": "draft",
   "supersedes": "soma-mod-services-interim-sn 2026.2.0 (PDF Archive complète de conception)",
   "jurisdiction": "SN",
@@ -10,42 +10,119 @@
   "target_industry": "SERVICES_AND_INTERIM",
   "custom_fields": {
     "worker_profile": [
-      { "field_id": "is_interim", "label": "Statut intérimaire", "type": "BOOLEAN", "default": false },
-      { "field_id": "agency_id", "label": "Identifiant de l'entreprise de travail temporaire", "type": "STRING", "required_if": "is_interim == true" },
-      { "field_id": "mission_reason", "label": "Motif de la mission", "type": "STRING", "enum": ["REMPLACEMENT_SUSPENSION", "ACCROISSEMENT_TEMPORAIRE", "TACHE_PONCTUELLE", "TRAVAUX_URGENTS"], "required_if": "is_interim == true", "legal_ref": "Code du travail 2026, art. 293" },
-      { "field_id": "client_company_id", "label": "Entreprise utilisatrice", "type": "STRING", "required_if": "is_interim == true" },
-      { "field_id": "billable_hourly_rate", "label": "Taux horaire facturable (XOF)", "type": "NUMBER" },
-      { "field_id": "contractor_status", "label": "Prestataire externe soumis à la BRS (règle au cœur)", "type": "BOOLEAN", "default": false }
+      {
+        "field_id": "is_interim",
+        "label": "Statut intérimaire",
+        "type": "BOOLEAN",
+        "default": false
+      },
+      {
+        "field_id": "agency_id",
+        "label": "Identifiant de l'entreprise de travail temporaire",
+        "type": "STRING",
+        "required_if": "is_interim == true"
+      },
+      {
+        "field_id": "mission_reason",
+        "label": "Motif de la mission",
+        "type": "STRING",
+        "enum": [
+          "REMPLACEMENT_SUSPENSION",
+          "ACCROISSEMENT_TEMPORAIRE",
+          "TACHE_PONCTUELLE",
+          "TRAVAUX_URGENTS"
+        ],
+        "required_if": "is_interim == true",
+        "legal_ref": "Code du travail 2026, art. 293"
+      },
+      {
+        "field_id": "client_company_id",
+        "label": "Entreprise utilisatrice",
+        "type": "STRING",
+        "required_if": "is_interim == true"
+      },
+      {
+        "field_id": "billable_hourly_rate",
+        "label": "Taux horaire facturable (XOF)",
+        "type": "NUMBER"
+      },
+      {
+        "field_id": "contractor_status",
+        "label": "Prestataire externe soumis à la BRS (règle au cœur)",
+        "type": "BOOLEAN",
+        "default": false
+      }
     ],
     "agency_profile": [
-      { "field_id": "etp_agrement_ref", "label": "Référence de l'agrément de l'entreprise de travail temporaire", "type": "STRING", "legal_ref": "Code du travail 2026, art. 292" },
-      { "field_id": "etp_agrement_expiry", "label": "Échéance de l'agrément", "type": "DATE" }
+      {
+        "field_id": "etp_agrement_ref",
+        "label": "Référence de l'agrément de l'entreprise de travail temporaire",
+        "type": "STRING",
+        "legal_ref": "Code du travail 2026, art. 292"
+      },
+      {
+        "field_id": "etp_agrement_expiry",
+        "label": "Échéance de l'agrément",
+        "type": "DATE"
+      }
     ],
     "per_diem_matrix": {
       "unit": "MULTIPLE_OF_CATEGORY_HOURLY_RATE",
       "source": "CCNI, art. 61 ; multiples à saisir selon la convention applicable",
       "legal_status": "to_provide",
       "zones": [
-        { "zone_code": "SN_DKR", "zone_name": "Dakar", "rates": { "single_meal": null, "two_meals": null, "two_meals_and_lodging": null } },
-        { "zone_code": "SN_REGIONS", "zone_name": "Régions", "rates": { "single_meal": null, "two_meals": null, "two_meals_and_lodging": null } }
+        {
+          "zone_code": "SN_DKR",
+          "zone_name": "Dakar",
+          "rates": {
+            "single_meal": null,
+            "two_meals": null,
+            "two_meals_and_lodging": null
+          }
+        },
+        {
+          "zone_code": "SN_REGIONS",
+          "zone_name": "Régions",
+          "rates": {
+            "single_meal": null,
+            "two_meals": null,
+            "two_meals_and_lodging": null
+          }
+        }
       ],
       "note": "Les montants 4 500 / 4 000 / 30 000 F du document de départ n'avaient pas de source et sont retirés"
     }
   },
   "time_variables": {
-    "billable_hours": { "unit": "HOURS", "tracking": "TIMESHEET_OR_MOBILE", "geolocation": "OPTIONAL_PROOF" },
-    "travel_hours": { "unit": "HOURS", "is_effective_work_time": null, "legal_status": "to_provide" },
+    "billable_hours": {
+      "unit": "HOURS",
+      "tracking": "TIMESHEET_OR_MOBILE",
+      "geolocation": "OPTIONAL_PROOF"
+    },
+    "travel_hours": {
+      "unit": "HOURS",
+      "is_effective_work_time": null,
+      "legal_status": "to_provide"
+    },
     "academic_vacations": {
-      "cm_hours": { "unit": "HOURS" },
-      "td_tp_hours": { "unit": "HOURS" },
-      "supervision_hours": { "unit": "HOURS" },
-      "copies_count": { "unit": "UNITS" }
+      "cm_hours": {
+        "unit": "HOURS"
+      },
+      "td_tp_hours": {
+        "unit": "HOURS"
+      },
+      "supervision_hours": {
+        "unit": "HOURS"
+      },
+      "copies_count": {
+        "unit": "UNITS"
+      }
     }
   },
   "parameters": {
     "interim_end_of_contract_rate": {
       "value": 0.07,
-      "source": "Classeur de référence (précarité CDD 7 %). Décret 2009-1412 : existence confirmée, article et taux non lus",
+      "source": "Classeur de référence (précarité CDD 7 %). Décret 2009-1412 du 23/12/2009 : existence confirmée (NATLEX), article et taux non lus ; maintien sous le Code 2026 : art. 461",
       "legal_status": "to_provide",
       "note": "Valeur provisoire à confirmer avant activation"
     },
@@ -59,23 +136,44 @@
       "value": 0.18,
       "source": "Taux normal de TVA (sources secondaires)",
       "legal_status": "secondary"
+    },
+    "interim_max_mission_duration_years": {
+      "value": 2,
+      "unit": "years",
+      "source": "Presse (décret 2009-1412 cité par Dakaractu) ; texte du décret non lu",
+      "legal_status": "secondary",
+      "note": "Alerte uniquement, pas de blocage tant que le texte n'est pas lu"
     }
   },
   "calculation_rules": {
     "billing_engine": {
       "interim_agency": {
         "rule_id": "INT_BILLING",
-        "depends_on": ["INT_PAYROLL_GROSS", "INT_EMPLOYER_CHARGES", "INT_IFC"],
+        "depends_on": [
+          "INT_PAYROLL_GROSS",
+          "INT_EMPLOYER_CHARGES",
+          "INT_IFC"
+        ],
         "formula": "invoice_ht = (gross_salary_base + employer_contributions) * structural_multiplier_k + ifc_amount",
-        "vat": { "rate_param": "vat_rate", "base": "invoice_ht" },
+        "vat": {
+          "rate_param": "vat_rate",
+          "base": "invoice_ht"
+        },
         "legal_status": "partially_verified",
         "note": "Ne pas activer tant que K et l'IFC ne sont pas confirmés"
       }
     },
     "payroll_engine": {
       "interim_worker": {
-        "ifc_allowance": { "rate_param": "interim_end_of_contract_rate", "base": "gross_wages_of_mission" },
-        "equal_pay_check": { "enforce": true, "compare_to": "client_company_pay_scale", "emit_to": "compliance_findings" }
+        "ifc_allowance": {
+          "rate_param": "interim_end_of_contract_rate",
+          "base": "gross_wages_of_mission"
+        },
+        "equal_pay_check": {
+          "enforce": true,
+          "compare_to": "client_company_pay_scale",
+          "emit_to": "compliance_findings"
+        }
       },
       "independent_consultant": {
         "delegated_to_core": "BRS",
@@ -84,21 +182,53 @@
     }
   },
   "compliance_checks": [
-    { "check_id": "INT_AGREMENT_VALID", "description": "Agrément de l'entreprise de travail temporaire présent et non expiré", "legal_ref": "Code du travail 2026, art. 292", "severity": "blocking" },
-    { "check_id": "INT_MISSION_REASON", "description": "Le motif de la mission doit figurer parmi les cas de l'art. 293", "legal_ref": "Code du travail 2026, art. 293", "severity": "blocking" },
-    { "check_id": "INT_DURABLE_POST", "description": "Alerte si les missions enchaînées pour un même utilisateur et un même poste couvrent un emploi durable (risque de CDI réputé)", "legal_ref": "Code du travail 2026, art. 293", "severity": "high" },
-    { "check_id": "INT_MISSION_LOG", "description": "Journal des missions conservé (responsabilité solidaire en cas de collusion)", "legal_ref": "Code du travail 2026, art. 294", "severity": "medium" }
+    {
+      "check_id": "INT_AGREMENT_VALID",
+      "description": "Agrément de l'entreprise de travail temporaire présent et non expiré",
+      "legal_ref": "Code du travail 2026, art. 292",
+      "severity": "blocking"
+    },
+    {
+      "check_id": "INT_MISSION_REASON",
+      "description": "Le motif de la mission doit figurer parmi les cas de l'art. 293",
+      "legal_ref": "Code du travail 2026, art. 293",
+      "severity": "blocking"
+    },
+    {
+      "check_id": "INT_DURABLE_POST",
+      "description": "Alerte si les missions enchaînées pour un même utilisateur et un même poste couvrent un emploi durable (risque de CDI réputé)",
+      "legal_ref": "Code du travail 2026, art. 293",
+      "severity": "high"
+    },
+    {
+      "check_id": "INT_MISSION_LOG",
+      "description": "Journal des missions conservé (responsabilité solidaire en cas de collusion)",
+      "legal_ref": "Code du travail 2026, art. 294",
+      "severity": "medium"
+    },
+    {
+      "check_id": "INT_MAX_DURATION",
+      "description": "Alerte si une mission ou un enchaînement de missions dépasse la durée maximale paramétrée",
+      "legal_ref": "Décret 2009-1412 (à lire)",
+      "severity": "medium"
+    }
   ],
   "tests": [
     {
       "case_id": "INT-T01",
       "description": "Mission avec motif hors liste : création refusée",
-      "expected": { "finding": "INT_MISSION_REASON", "blocked": true }
+      "expected": {
+        "finding": "INT_MISSION_REASON",
+        "blocked": true
+      }
     },
     {
       "case_id": "INT-T02",
       "description": "Facturation sans coefficient K saisi : aucune facture générée",
-      "expected": { "finding": "missing_parameter:structural_multiplier_k", "invoice_generated": false }
+      "expected": {
+        "finding": "missing_parameter:structural_multiplier_k",
+        "invoice_generated": false
+      }
     }
   ]
 }

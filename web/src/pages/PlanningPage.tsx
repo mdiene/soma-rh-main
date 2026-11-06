@@ -66,10 +66,10 @@ export default function PlanningPage() {
     onSuccess: refresh,
   })
   const generate = useMutation({
-    mutationFn: async () => unwrap(await dataApi.rpc('generate_rotation' as never, {
+    mutationFn: async () => unwrap(await dataApi.rpc('generate_rotation', {
       p_employee_ids: sel, p_from: start, p_to: end,
       p_pattern: pattern.split(',').map((x) => x.trim().toUpperCase()).filter(Boolean), p_offset: Number(offset) || 0,
-    } as never)),
+    })),
     onSuccess: () => { setOpen(false); refresh() },
   })
 
