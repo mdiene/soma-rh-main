@@ -1,10 +1,11 @@
 import clsx from 'clsx'
-import { ChevronDown, ChevronsLeft, ChevronsRight, LogOut, Menu, Search } from 'lucide-react'
+import { ChevronDown, ChevronsLeft, ChevronsRight, LogOut, Menu, Search, Star } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { Suspense, useEffect, useState } from 'react'
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import { useAuth } from '../lib/auth'
 import { dataApi, unwrap, type ApiClient } from '../lib/api'
+import { MAX_FAVORITES, usePreferences } from '../lib/preferences'
 import { SPACES, matches, visibleItems, type NavItem } from '../lib/nav'
 import { CommandPalette, type PaletteEntry } from './CommandPalette'
 import QueryErrorBanner from './QueryErrorBanner'
@@ -21,22 +22,41 @@ function Badge({ n, className }: { n?: number; className?: string }) {
   )
 }
 
-function ItemLink({ item, counts, rail, onNavigate }: { item: NavItem; counts: Counts; rail?: boolean; onNavigate: () => void }) {
+type Fav = { on: boolean; disabled: boolean; toggle: () => void }
+
+function ItemLink({ item, counts, rail, fav, onNavigate }: { item: NavItem; counts: Counts; rail?: boolean; fav?: Fav; onNavigate: () => void }) {
   return (
-    <NavLink
-      to={item.to}
-      end={item.to === '/' || item.to === '/paie'}
-      title={rail ? item.label : undefined}
-      onClick={onNavigate}
-      className={({ isActive }) => clsx(
-        'relative flex items-center gap-2.5 rounded px-2 py-1.5 text-sm transition-colors',
-        isActive ? 'bg-white/10 text-white' : 'text-white/70 hover:bg-white/5 hover:text-white',
+    <div className="group relative">
+      <NavLink
+        to={item.to}
+        end={item.to === '/' || item.to === '/paie'}
+        title={rail ? item.label : undefined}
+        onClick={onNavigate}
+        className={({ isActive }) => clsx(
+          'relative flex items-center gap-2.5 rounded px-2 py-1.5 text-sm transition-colors',
+          fav && !rail && 'pr-8',
+          isActive ? 'bg-white/10 text-white' : 'text-white/70 hover:bg-white/5 hover:text-white',
+        )}
+      >
+        <item.icon className="h-4 w-4 shrink-0" aria-hidden />
+        <span className={rail ? 'lg:hidden' : ''}>{item.label}</span>
+        <Badge n={item.badge ? counts[item.badge] : undefined} className={clsx('ml-auto', rail && 'lg:absolute lg:right-1 lg:top-0 lg:ml-0')} />
+      </NavLink>
+      {fav && (
+        <button
+          onClick={fav.toggle} disabled={!fav.on && fav.disabled}
+          aria-pressed={fav.on}
+          aria-label={fav.on ? `Retirer ${item.label} des favoris` : `Ajouter ${item.label} aux favoris`}
+          title={fav.on ? 'Retirer des favoris' : fav.disabled ? `${MAX_FAVORITES} favoris au maximum` : 'Ajouter aux favoris'}
+          className={clsx(
+            'absolute right-1.5 top-1/2 hidden -translate-y-1/2 rounded p-0.5 text-white/60 hover:text-white focus-visible:opacity-100 disabled:cursor-not-allowed disabled:opacity-30 lg:group-hover:block',
+            rail ? 'lg:hidden lg:group-hover:hidden' : fav.on ? 'block' : 'focus-visible:block',
+          )}
+        >
+          <Star className={clsx('h-3.5 w-3.5', fav.on && 'fill-[#E0B000] text-[#E0B000]')} aria-hidden />
+        </button>
       )}
-    >
-      <item.icon className="h-4 w-4 shrink-0" aria-hidden />
-      <span className={rail ? 'lg:hidden' : ''}>{item.label}</span>
-      <Badge n={item.badge ? counts[item.badge] : undefined} className={clsx('ml-auto', rail && 'lg:absolute lg:right-1 lg:top-0 lg:ml-0')} />
-    </NavLink>
+    </div>
   )
 }
 
@@ -45,6 +65,7 @@ export function Layout() {
   const { pathname } = useLocation()
   const [open, setOpen] = useState(false)
   const [palette, setPalette] = useState(false)
+  const { favorites, toggleFavorite, canAddFavorite } = usePreferences()
   // accordéon à ouverture unique : un choix explicite ne vaut que pour la page où il a été fait
   const [picked, setPicked] = useState<{ id: string | null; path: string }>()
   // flyout (sidebar réduite) : panneau flottant à côté de l'icône cliquée
@@ -91,13 +112,24 @@ export function Layout() {
   const openId = picked && picked.path === pathname ? picked.id : spaces.find(inPath)?.id ?? null
   const total = (s: (typeof spaces)[number]) => s.items.reduce((n, i) => n + (i.badge ? counts[i.badge] ?? 0 : 0), 0)
   const entries: PaletteEntry[] = spaces.flatMap((s) => s.items.map((i) => ({ ...i, space: s.label })))
+  const favOf = (to: string): Fav => ({ on: favorites.includes(to), disabled: !canAddFavorite, toggle: () => toggleFavorite(to) })
+  // favoris : seulement les pages encore accessibles au rôle courant
+  const favItems = favorites.map((to) => entries.find((e) => e.to === to)).filter((e): e is PaletteEntry => !!e)
   const done = () => { setOpen(false); setFly(undefined) }
 
   const nav = (
     <nav className="flex flex-1 flex-col gap-1 overflow-y-auto px-3 py-4" aria-label="Navigation principale">
+      {favItems.length > 0 && (
+        <div className="mb-2 border-b border-white/10 pb-2">
+          <p className={clsx('px-2 pb-1 text-xs text-white/45', hide)}>Favoris</p>
+          <ul className="space-y-0.5">
+            {favItems.map((i) => <li key={i.to}><ItemLink item={i} counts={counts} rail={rail} fav={favOf(i.to)} onNavigate={done} /></li>)}
+          </ul>
+        </div>
+      )}
       {spaces.length === 1 ? (
         <ul className="space-y-0.5">
-          {spaces[0].items.map((i) => <li key={i.to}><ItemLink item={i} counts={counts} rail={rail} onNavigate={done} /></li>)}
+          {spaces[0].items.map((i) => <li key={i.to}><ItemLink item={i} counts={counts} rail={rail} fav={favOf(i.to)} onNavigate={done} /></li>)}
         </ul>
       ) : spaces.map((s) => {
         const isOpen = openId === s.id && !rail
@@ -133,7 +165,7 @@ export function Layout() {
               {...(isOpen ? {} : ({ inert: '' } as object))}
             >
               <ul className="ml-4 space-y-0.5 overflow-hidden border-l border-white/10 pl-2">
-                {s.items.map((i) => <li key={i.to}><ItemLink item={i} counts={counts} onNavigate={done} /></li>)}
+                {s.items.map((i) => <li key={i.to}><ItemLink item={i} counts={counts} fav={favOf(i.to)} onNavigate={done} /></li>)}
               </ul>
             </div>
           </div>
@@ -179,7 +211,7 @@ export function Layout() {
             >
               <p className="px-2 pb-1 pt-0.5 text-xs font-medium text-white/50">{flySpace.label}</p>
               <ul className="space-y-0.5">
-                {flySpace.items.map((i) => <li key={i.to}><ItemLink item={i} counts={counts} onNavigate={done} /></li>)}
+                {flySpace.items.map((i) => <li key={i.to}><ItemLink item={i} counts={counts} fav={favOf(i.to)} onNavigate={done} /></li>)}
               </ul>
             </div>
           </>
