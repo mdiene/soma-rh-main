@@ -235,3 +235,13 @@ Spécification : `docs/modules/MODULES_METIER_VERTICAUX_SOMA_RH.md` (v2) ; manif
 | T-MV-29 | P2 | Facturation client (taux horaire, coefficient K, TVA 18 %) dans Finance | M5 |
 
 **Décisions à prendre** : voir §10 de la spécification (équivalences, plafond AT de la CSS, barème IR, CFCE, IFC, GPS, Redis/multi-société, langage de formules).
+
+**CP-02 / CP-03 relus (2026-11-06)** : `.gitattributes`, étape de tests unitaires et BOM de `ci.yml` corrigés ; audit `web/src` refait (`docs/copilot/RETOURS.md`).
+
+| # | Reste à faire | Détail |
+|---|---|---|
+| H43 | Erreurs de requêtes masquées | ~60 `useQuery` sans lecture de l'erreur (liste dans `RETOURS.md` §D) ; gestionnaire global `QueryCache({ onError })` + bandeau d'erreur dans `main.tsx`. |
+| H44 | Couleurs hors palette | Hexadécimaux en dur (graphiques, impressions, `GroupedTable`) : jetons Tailwind (`RETOURS.md` §C). |
+| H45 | Export des paiements | `PayrollPaymentsPage.tsx:69` arrondit le net : confirmer que l'arrondi à l'unité est voulu pour le fichier de virement. |
+| H46 | Types RPC | Retirer les `as never` (`decide_leave`, `cancel_my_request`, `mark_employee_notification_read`) maintenant que les types sont régénérés ; tester `decide_leave` (refus d'un non-approbateur). |
+| H47 | CI | Ne couvre pas `tests/sql`, `verify-payroll`, `tests/api` (base requise). |
