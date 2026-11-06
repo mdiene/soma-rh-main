@@ -40,6 +40,7 @@ Détail du JO 4091 : `EXTRAITS_JO_4091_DU_09_MARS_1970.md` (projet : `claude/som
 - ~~PDF du JO 4091~~ **Fait** : lu par OCR le 06/11/2026.
 - Obtenir le **texte** du décret 2009-1412 (JO du 23/12/2009 ; copie PDF à télécharger sur NATLEX ou au JO) : le résumé reçu le 06/11 reste à vérifier article par article. Décret d'application de l'art. 292 : à identifier auprès de la DGTSS.
 - Demander à la CSS le taux AT et le plafond figurant sur les appels de cotisation de la société, et l'arrêté de plafond.
+- IFC et plafond AT : éléments reçus le 06/11/2026 consignés dans `docs/sources-legales/DECISIONS_IFC_ET_PLAFOND_AT.md` (plafond 63 000 F/mois = 756 000 F/an ; le barème 25/30/40 % est l'indemnité de licenciement CCNI art. 80, pas l'IFC de l'intérim, qui reste 7 % provisoire).
 - Obtenir les arrêtés de branche sur les équivalences et le décret 2006-1262.
 - Demander les conventions collectives de branche à la DGTSS.
 
