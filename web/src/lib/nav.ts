@@ -13,6 +13,7 @@ export type NavItem = {
   icon: LucideIcon
   roles?: Role[]          // absent = tout utilisateur connecté
   withoutRole?: boolean   // visible même sans rôle (déclarer le premier administrateur)
+  pinned?: boolean        // épinglé en tête du menu pour tous les rôles qui y ont accès, non retirable
   keywords?: string       // mots de recherche supplémentaires (palette Ctrl+K)
   badge?: 'demandes' | 'validations'      // compteur dynamique affiché à droite
 }
@@ -46,7 +47,7 @@ export const SPACES: NavSpace[] = [
     { to: '/paie/simulateur', label: 'Simulateur net / brut', icon: Calculator, roles: ['paie', 'rh'] },
   ] },
   { id: 'pilotage', label: 'Pilotage et décision', icon: PieChart, items: [
-    { to: '/', label: 'Tableau de bord', icon: LayoutDashboard, roles: ['rh', 'paie'] },
+    { to: '/', label: 'Tableau de bord', icon: LayoutDashboard, roles: ['rh', 'paie'], pinned: true },
     { to: '/pilotage', label: 'Pilotage RH', icon: PieChart, roles: ['rh', 'paie'] },
     { to: '/equipes/organigramme', label: 'Organigramme global', icon: Network, roles: ['rh', 'paie'] },
     { to: '/equipes/simulation', label: 'Simulation d’organisation', icon: Network, roles: ['rh'] },

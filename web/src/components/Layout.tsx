@@ -106,22 +106,30 @@ export function Layout() {
   }).data
   const counts: Counts = { demandes: pending, validations }
 
-  const spaces = SPACES.map((s) => ({ ...s, items: visibleItems(s, can, roles) })).filter((s) => s.items.length)
+  const allSpaces = SPACES.map((s) => ({ ...s, items: visibleItems(s, can, roles) })).filter((s) => s.items.length)
+  // palette et épinglés voient toutes les pages ; l'accordéon n'affiche pas les entrées déjà épinglées en tête
+  const entries: PaletteEntry[] = allSpaces.flatMap((s) => s.items.map((i) => ({ ...i, space: s.label })))
+  const spaces = allSpaces.map((s) => ({ ...s, items: s.items.filter((i) => !i.pinned) })).filter((s) => s.items.length)
   const inPath = (s: (typeof spaces)[number]) => s.items.some((i) => matches(i, pathname))
   // ouvert : le choix fait sur cette page, sinon l'espace qui contient la page
   const openId = picked && picked.path === pathname ? picked.id : spaces.find(inPath)?.id ?? null
   const total = (s: (typeof spaces)[number]) => s.items.reduce((n, i) => n + (i.badge ? counts[i.badge] ?? 0 : 0), 0)
-  const entries: PaletteEntry[] = spaces.flatMap((s) => s.items.map((i) => ({ ...i, space: s.label })))
-  const favOf = (to: string): Fav => ({ on: favorites.includes(to), disabled: !canAddFavorite, toggle: () => toggleFavorite(to) })
+  // épinglés imposés par le menu (non retirables, sans étoile), puis favoris choisis par l'utilisateur
+  const pinnedItems = entries.filter((e, k) => e.pinned && entries.findIndex((x) => x.to === e.to) === k)
+  const isPinned = (to: string) => pinnedItems.some((e) => e.to === to)
+  const favOf = (to: string): Fav | undefined => isPinned(to) ? undefined : ({ on: favorites.includes(to), disabled: !canAddFavorite, toggle: () => toggleFavorite(to) })
   // favoris : seulement les pages encore accessibles au rôle courant
-  const favItems = favorites.map((to) => entries.find((e) => e.to === to)).filter((e): e is PaletteEntry => !!e)
+  const favItems = favorites.filter((to) => !isPinned(to)).map((to) => entries.find((e) => e.to === to)).filter((e): e is PaletteEntry => !!e)
   const done = () => { setOpen(false); setFly(undefined) }
 
   const nav = (
     <nav className="flex flex-1 flex-col gap-1 overflow-y-auto px-3 py-4" aria-label="Navigation principale">
-      {favItems.length > 0 && (
+      {(pinnedItems.length > 0 || favItems.length > 0) && (
         <div className="mb-2 border-b border-white/10 pb-2">
-          <p className={clsx('px-2 pb-1 text-xs text-white/45', hide)}>Favoris</p>
+          <ul className="space-y-0.5">
+            {pinnedItems.map((i) => <li key={i.to}><ItemLink item={i} counts={counts} rail={rail} onNavigate={done} /></li>)}
+          </ul>
+          {favItems.length > 0 && <p className={clsx('px-2 pb-1 pt-2 text-xs text-white/45', hide)}>Favoris</p>}
           <ul className="space-y-0.5">
             {favItems.map((i) => <li key={i.to}><ItemLink item={i} counts={counts} rail={rail} fav={favOf(i.to)} onNavigate={done} /></li>)}
           </ul>
