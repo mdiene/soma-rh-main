@@ -9,6 +9,7 @@ import { currentPeriod, fcfa, monthBounds, monthLabel } from '../lib/format'
 import { checkBaseSalary } from '../lib/payrollGuards'
 import { Badge, Button, ErrorNote, Modal, PageHeader, Section, SelectField, Spinner, TextField } from '../components/ui'
 import { EmployeeFicheButton } from '../components/EmployeeFiche'
+import { ModuleSection } from '../components/ModuleSection'
 
 type Emp = Tables<'employees'>
 type Assign = Tables<'salary_structure_assignments'>
@@ -207,6 +208,7 @@ export default function EmployeeDetailPage() {
           <SlipHistory employeeId={emp.data.id} />
         </div>
       )}
+      {!isNew && emp.data && <ModuleSection employeeId={emp.data.id} />}
     </>
   )
 }

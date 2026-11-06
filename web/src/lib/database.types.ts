@@ -3887,113 +3887,6 @@ export type Database = {
           },
         ]
       }
-      shift_assignments: {
-        Row: {
-          created_at: string
-          created_by: string | null
-          employee_id: string
-          id: string
-          notes: string | null
-          post_id: string | null
-          shift_code: string
-          work_date: string
-        }
-        ComputedFields: never
-        Insert: {
-          created_at?: string
-          created_by?: string | null
-          employee_id: string
-          id?: string
-          notes?: string | null
-          post_id?: string | null
-          shift_code: string
-          work_date: string
-        }
-        Update: {
-          created_at?: string
-          created_by?: string | null
-          employee_id?: string
-          id?: string
-          notes?: string | null
-          post_id?: string | null
-          shift_code?: string
-          work_date?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "shift_assignments_employee_id_fkey"
-            columns: ["employee_id"]
-            isOneToOne: false
-            referencedRelation: "employees"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "shift_assignments_employee_id_fkey"
-            columns: ["employee_id"]
-            isOneToOne: false
-            referencedRelation: "v_conformite_embauche"
-            referencedColumns: ["employee_id"]
-          },
-          {
-            foreignKeyName: "shift_assignments_employee_id_fkey"
-            columns: ["employee_id"]
-            isOneToOne: false
-            referencedRelation: "v_leave_balances"
-            referencedColumns: ["employee_id"]
-          },
-          {
-            foreignKeyName: "shift_assignments_post_id_fkey"
-            columns: ["post_id"]
-            isOneToOne: false
-            referencedRelation: "work_posts"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "shift_assignments_shift_code_fkey"
-            columns: ["shift_code"]
-            isOneToOne: false
-            referencedRelation: "shift_types"
-            referencedColumns: ["code"]
-          },
-        ]
-      }
-      shift_types: {
-        Row: {
-          code: string
-          end_time: string | null
-          hours: number
-          is_active: boolean
-          is_night: boolean
-          is_rest: boolean
-          label: string
-          sort_order: number
-          start_time: string | null
-        }
-        ComputedFields: never
-        Insert: {
-          code: string
-          end_time?: string | null
-          hours?: number
-          is_active?: boolean
-          is_night?: boolean
-          is_rest?: boolean
-          label: string
-          sort_order?: number
-          start_time?: string | null
-        }
-        Update: {
-          code?: string
-          end_time?: string | null
-          hours?: number
-          is_active?: boolean
-          is_night?: boolean
-          is_rest?: boolean
-          label?: string
-          sort_order?: number
-          start_time?: string | null
-        }
-        Relationships: []
-      }
       statutory_notice: {
         Row: {
           amount: number
@@ -4287,6 +4180,25 @@ export type Database = {
           },
         ]
       }
+      user_preferences: {
+        Row: {
+          preferences: NonNullable<Json>
+          updated_at: string
+          user_id: string
+        }
+        ComputedFields: never
+        Insert: {
+          preferences?: NonNullable<Json>
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          preferences?: NonNullable<Json>
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -4303,31 +4215,6 @@ export type Database = {
           created_at?: string
           role?: string
           user_id?: string
-        }
-        Relationships: []
-      }
-      work_posts: {
-        Row: {
-          created_at: string
-          id: string
-          is_active: boolean
-          name: string
-          site: string | null
-        }
-        ComputedFields: never
-        Insert: {
-          created_at?: string
-          id?: string
-          is_active?: boolean
-          name: string
-          site?: string | null
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          is_active?: boolean
-          name?: string
-          site?: string | null
         }
         Relationships: []
       }
@@ -4992,17 +4879,6 @@ export type Database = {
       }
       gen_random_uuid: { Args: Record<PropertyKey, never>; Returns: string }
       gen_salt: { Args: { "": string }; Returns: string }
-      generate_rotation: {
-        Args: {
-          p_employee_ids: string[]
-          p_from: string
-          p_offset?: number
-          p_pattern: string[]
-          p_post_id?: string
-          p_to: string
-        }
-        Returns: number
-      }
       get_loan_max_rate: { Args: Record<PropertyKey, never>; Returns: number }
       has_role: { Args: { p_roles: string[] }; Returns: boolean }
       hr_analytics: { Args: { p_months?: number }; Returns: Json }
