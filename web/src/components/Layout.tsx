@@ -1,24 +1,63 @@
 import clsx from 'clsx'
-import { ChevronsLeft, ChevronsRight, LogOut, Menu } from 'lucide-react'
+import { ChevronDown, ChevronsLeft, ChevronsRight, LogOut, Menu } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
-import { Suspense, useState } from 'react'
-import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
+import { Suspense, useEffect, useState } from 'react'
+import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import { useAuth } from '../lib/auth'
 import { dataApi, unwrap, type ApiClient } from '../lib/api'
-import { SPACES, matches, visibleItems } from '../lib/nav'
+import { SPACES, matches, visibleItems, type NavItem } from '../lib/nav'
 import QueryErrorBanner from './QueryErrorBanner'
 import { Spinner } from './ui'
+
+type Counts = Partial<Record<NonNullable<NavItem['badge']>, number>>
+
+function Badge({ n, className }: { n?: number; className?: string }) {
+  if (!n) return null
+  return (
+    <span className={clsx('rounded-full bg-signal px-1.5 text-[11px] font-semibold leading-5 text-white', className)} aria-label={`${n} en attente`}>
+      {n >= 100 ? '99+' : n}
+    </span>
+  )
+}
+
+function ItemLink({ item, counts, rail, onNavigate }: { item: NavItem; counts: Counts; rail?: boolean; onNavigate: () => void }) {
+  return (
+    <NavLink
+      to={item.to}
+      end={item.to === '/' || item.to === '/paie'}
+      title={rail ? item.label : undefined}
+      onClick={onNavigate}
+      className={({ isActive }) => clsx(
+        'relative flex items-center gap-2.5 rounded px-2 py-1.5 text-sm transition-colors',
+        isActive ? 'bg-white/10 text-white' : 'text-white/70 hover:bg-white/5 hover:text-white',
+      )}
+    >
+      <item.icon className="h-4 w-4 shrink-0" aria-hidden />
+      <span className={rail ? 'lg:hidden' : ''}>{item.label}</span>
+      <Badge n={item.badge ? counts[item.badge] : undefined} className={clsx('ml-auto', rail && 'lg:absolute lg:right-1 lg:top-0 lg:ml-0')} />
+    </NavLink>
+  )
+}
 
 export function Layout() {
   const { session, can, roles, signOut } = useAuth()
   const { pathname } = useLocation()
-  const navigate = useNavigate()
   const [open, setOpen] = useState(false)
-  const [picked, setPicked] = useState<string>()
+  // accordéon à ouverture unique : un choix explicite ne vaut que pour la page où il a été fait
+  const [picked, setPicked] = useState<{ id: string | null; path: string }>()
+  // flyout (sidebar réduite) : panneau flottant à côté de l'icône cliquée
+  const [fly, setFly] = useState<{ id: string; top: number }>()
   // sidebar réduite aux icônes (bureau seulement), mémorisée par navigateur
   const [rail, setRail] = useState(() => { try { return localStorage.getItem('nav-rail') === '1' } catch { return false } })
-  const toggleRail = () => setRail((v) => { try { localStorage.setItem('nav-rail', v ? '0' : '1') } catch { /* stockage indisponible */ } return !v })
+  const toggleRail = () => { setFly(undefined); setRail((v) => { try { localStorage.setItem('nav-rail', v ? '0' : '1') } catch { /* stockage indisponible */ } return !v }) }
   const hide = rail ? 'lg:hidden' : ''
+
+  useEffect(() => {
+    if (!fly) return
+    const close = (e: KeyboardEvent) => e.key === 'Escape' && setFly(undefined)
+    window.addEventListener('keydown', close)
+    return () => window.removeEventListener('keydown', close)
+  }, [fly])
 
   // compteur des demandes ouvertes (clé sous ['employee_requests'] : invalidée par les décisions)
   const pending = useQuery({
@@ -35,61 +74,64 @@ export function Layout() {
     queryFn: async () => unwrap(await (dataApi as unknown as ApiClient).rpc('my_leave_approvals')) as unknown as unknown[],
     select: (rows) => rows.length,
   }).data
-  const counts = { demandes: pending, validations }
+  const counts: Counts = { demandes: pending, validations }
 
   const spaces = SPACES.map((s) => ({ ...s, items: visibleItems(s, can, roles) })).filter((s) => s.items.length)
-  // espace courant : choix explicite s'il contient la page, sinon celui qui contient la page, sinon le choix, sinon le premier
   const inPath = (s: (typeof spaces)[number]) => s.items.some((i) => matches(i, pathname))
-  const current = spaces.find((s) => s.id === picked && inPath(s)) ?? spaces.find(inPath) ?? spaces.find((s) => s.id === picked) ?? spaces[0]
+  // ouvert : le choix fait sur cette page, sinon l'espace qui contient la page
+  const openId = picked && picked.path === pathname ? picked.id : spaces.find(inPath)?.id ?? null
+  const total = (s: (typeof spaces)[number]) => s.items.reduce((n, i) => n + (i.badge ? counts[i.badge] ?? 0 : 0), 0)
+  const done = () => { setOpen(false); setFly(undefined) }
 
   const nav = (
-    <nav className="flex flex-1 flex-col gap-4 overflow-y-auto px-3 py-4" aria-label="Navigation principale">
-      {spaces.length > 1 && (
-        <ul className="space-y-0.5 border-b border-white/10 pb-3" aria-label="Espaces">
-          {spaces.map((s) => (
-            <li key={s.id}>
-              <button
-                onClick={() => { setPicked(s.id); if (!inPath(s)) navigate(s.items[0].to) }}
-                title={rail ? s.label : undefined}
-                aria-current={s.id === current?.id ? 'true' : undefined}
-                className={clsx(
-                  'flex w-full items-center gap-2.5 rounded px-2 py-1.5 text-left text-sm font-medium transition-colors',
-                  s.id === current?.id ? 'text-white' : 'text-white/55 hover:text-white',
-                )}
-              >
-                <s.icon className="h-4 w-4 shrink-0" aria-hidden />
-                <span className={hide}>{s.label}</span>
-              </button>
-            </li>
-          ))}
+    <nav className="flex flex-1 flex-col gap-1 overflow-y-auto px-3 py-4" aria-label="Navigation principale">
+      {spaces.length === 1 ? (
+        <ul className="space-y-0.5">
+          {spaces[0].items.map((i) => <li key={i.to}><ItemLink item={i} counts={counts} rail={rail} onNavigate={done} /></li>)}
         </ul>
-      )}
-      <ul className="space-y-0.5">
-        {current?.items.map((i) => (
-          <li key={i.to}>
-            <NavLink
-              to={i.to}
-              end={i.to === '/' || i.to === '/paie'}
-              title={rail ? i.label : undefined}
-              onClick={() => setOpen(false)}
-              className={({ isActive }) => clsx(
-                'relative flex items-center gap-2.5 rounded px-2 py-1.5 text-sm transition-colors',
-                isActive ? 'bg-white/10 text-white' : 'text-white/70 hover:bg-white/5 hover:text-white',
+      ) : spaces.map((s) => {
+        const isOpen = openId === s.id && !rail
+        const active = inPath(s)
+        return (
+          <div key={s.id}>
+            <button
+              onClick={(e) => {
+                if (rail) {
+                  const r = e.currentTarget.getBoundingClientRect()
+                  setFly((f) => (f?.id === s.id ? undefined : { id: s.id, top: r.top }))
+                } else setPicked({ id: isOpen ? null : s.id, path: pathname })
+              }}
+              title={rail ? s.label : undefined}
+              aria-label={total(s) ? `${s.label}, ${total(s)} en attente` : s.label}
+              aria-expanded={rail ? fly?.id === s.id : isOpen}
+              aria-controls={`space-${s.id}`}
+              className={clsx(
+                'relative flex w-full items-center gap-2.5 rounded px-2 py-1.5 text-left text-sm font-medium transition-colors hover:text-white',
+                active || isOpen || fly?.id === s.id ? 'text-white' : 'text-white/60',
               )}
             >
-              <i.icon className="h-4 w-4 shrink-0" aria-hidden />
-              <span className={hide}>{i.label}</span>
-              {i.badge && !!counts[i.badge] && (
-                <span className={clsx('ml-auto rounded-full bg-signal px-1.5 text-[11px] font-semibold leading-5 text-white', rail && 'lg:absolute lg:right-1 lg:top-0 lg:ml-0')} aria-label={`${counts[i.badge]} en attente`}>
-                  {counts[i.badge]! >= 100 ? '99+' : counts[i.badge]}
-                </span>
-              )}
-            </NavLink>
-          </li>
-        ))}
-      </ul>
+              <s.icon className="h-4 w-4 shrink-0" aria-hidden />
+              <span className={clsx('flex-1', hide)}>{s.label}</span>
+              {/* compteur d'un espace refermé : on voit où intervenir sans l'ouvrir */}
+              {!isOpen && <Badge n={total(s)} className={clsx(rail && 'lg:absolute lg:right-1 lg:top-0')} />}
+              <ChevronDown className={clsx('h-4 w-4 shrink-0 transition-transform duration-200 motion-reduce:transition-none', isOpen && 'rotate-180', hide)} aria-hidden />
+            </button>
+            {/* glissement : la hauteur passe de 0 à auto via grid-rows ; inert retire les liens cachés du clavier */}
+            <div
+              id={`space-${s.id}`}
+              className={clsx('grid transition-[grid-template-rows] duration-200 ease-out motion-reduce:transition-none', isOpen ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]')}
+              {...(isOpen ? {} : ({ inert: '' } as object))}
+            >
+              <ul className="ml-4 space-y-0.5 overflow-hidden border-l border-white/10 pl-2">
+                {s.items.map((i) => <li key={i.to}><ItemLink item={i} counts={counts} onNavigate={done} /></li>)}
+              </ul>
+            </div>
+          </div>
+        )
+      })}
     </nav>
   )
+  const flySpace = spaces.find((s) => s.id === fly?.id)
 
   return (
     <div className={clsx('min-h-screen lg:grid print:block print:bg-none print:bg-white',
@@ -108,6 +150,21 @@ export function Layout() {
       )}>
         <div className={clsx('hidden pb-2 pt-5 lg:block', rail ? 'px-3' : 'px-5')}><Brand compact={rail} /></div>
         {nav}
+        {rail && fly && flySpace && (
+          <>
+            <div className="fixed inset-0 z-40 hidden lg:block" onClick={() => setFly(undefined)} aria-hidden />
+            <div
+              role="group" aria-label={flySpace.label}
+              className="fixed z-50 hidden w-64 rounded-md border border-white/10 bg-ink p-2 text-white shadow-xl lg:block"
+              style={{ left: '4.25rem', top: Math.max(8, Math.min(fly.top, window.innerHeight - 48 - flySpace.items.length * 34)) }}
+            >
+              <p className="px-2 pb-1 pt-0.5 text-xs font-medium text-white/50">{flySpace.label}</p>
+              <ul className="space-y-0.5">
+                {flySpace.items.map((i) => <li key={i.to}><ItemLink item={i} counts={counts} onNavigate={done} /></li>)}
+              </ul>
+            </div>
+          </>
+        )}
         <div className="border-t border-white/10 px-4 py-3 text-xs text-white/60">
           <div className={hide}>
             <p className="truncate text-white/85">{session?.user.email}</p>
