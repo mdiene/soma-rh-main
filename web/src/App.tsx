@@ -20,6 +20,7 @@ const PayrollAdjustmentsPage = lazy(() => import('./pages/PayrollAdjustmentsPage
 const SalarySlipPage = lazy(() => import('./pages/SalarySlipPage'))
 const PrintSlipsPage = lazy(() => import('./pages/PrintSlipsPage'))
 const PayrollBookPrintPage = lazy(() => import('./pages/PayrollBookPrintPage'))
+const CompliancePage = lazy(() => import('./pages/CompliancePage'))
 const JournalPage = lazy(() => import('./pages/JournalPage'))
 const PlanningPage = lazy(() => import('./pages/PlanningPage'))
 const MySpacePage = lazy(() => import('./pages/MySpacePage'))
@@ -92,6 +93,7 @@ export default function App() {
         <Route path="bulletins/imprimer" element={<PrintSlipsPage />} />
         <Route path="bulletins/:id" element={<SalarySlipPage />} />
         <Route path="etats" element={<RoleGuard roles={staff}><ReportsPage /></RoleGuard>} />
+        <Route path="conformite" element={<RoleGuard roles={['rh', 'paie']}><CompliancePage /></RoleGuard>} />
         <Route path="journal" element={<RoleGuard roles={['rh']}><JournalPage /></RoleGuard>} />
         <Route path="parametres" element={roles.length === 0 ? <SettingsPage /> : <RoleGuard roles={staff}><SettingsPage /></RoleGuard>} />
         <Route path="mon-espace" element={<MySpacePage />} />

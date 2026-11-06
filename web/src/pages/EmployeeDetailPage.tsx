@@ -39,6 +39,10 @@ export default function EmployeeDetailPage() {
   const [form, setForm] = useState<Partial<Emp>>(EMPTY)
   useEffect(() => { if (emp.data) setForm(emp.data) }, [emp.data])
   const grades = useGrades(form.agreement_code)
+  const exitReasons = useQuery({
+    queryKey: ['exit-reasons'],
+    queryFn: async () => unwrap(await dataApi.from('exit_reasons').select('code, label, is_legacy, sort_order').order('sort_order')),
+  })
   const set = (k: keyof Emp) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const v = e.target.type === 'number' ? (e.target.value === '' ? null : Number(e.target.value)) : (e.target.value === '' ? null : e.target.value)
     setForm((f) => ({ ...f, [k]: v }))
@@ -174,8 +178,12 @@ export default function EmployeeDetailPage() {
             <TextField label="Date de sortie" type="date" value={form.relieving_date ?? ''} onChange={set('relieving_date')} />
             <SelectField label="Motif de sortie" value={form.exit_reason ?? ''} onChange={set('exit_reason')}>
               <option value="">—</option>
-              {['DEMISSION', 'LICENCIEMENT', 'RETRAITE', 'DECES', 'FIN DE CONTRAT'].map((s) => <option key={s}>{s}</option>)}
+              {exitReasons.isError && <option disabled>Motifs indisponibles</option>}
+              {(exitReasons.data ?? []).filter((r) => !r.is_legacy || r.code === form.exit_reason).map((r) => <option key={r.code} value={r.code}>{r.label}</option>)}
             </SelectField>
+            <TextField label="Référence de la déclaration d'embauche" value={form.hire_declaration_ref ?? ''} onChange={set('hire_declaration_ref')} />
+            <TextField label="Date de la déclaration d'embauche" type="date" value={form.hire_declared_on ?? ''} onChange={set('hire_declared_on')} />
+            <TextField label="Date d'affiliation à la sécurité sociale" type="date" value={form.affiliation_date ?? ''} onChange={set('affiliation_date')} />
             <SelectField label="État" value={form.status ?? 'Active'} onChange={set('status')}>
               <option value="Active">Actif</option><option value="Suspended">Suspendu</option><option value="Inactive">Inactif</option><option value="Left">Sorti</option>
             </SelectField>

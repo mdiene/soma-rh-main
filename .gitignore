@@ -21,3 +21,6 @@ backups/
 
 # Identifiants de test QA (mots de passe jetables)
 tests/.env.qa
+
+# Textes légaux (PDF volumineux, non versionnés)
+docs/sources-legales/

@@ -99,7 +99,7 @@ export async function reviewEmployeeDocument(documentId: string, status: 'valide
   const { data, error } = await dataApi.rpc('review_employee_document', {
     p_document_id: documentId,
     p_status: status,
-    p_reason: reason ?? null,
+    p_reason: reason ?? undefined,
   })
   if (error) throw new Error(error.message)
   return data
@@ -149,7 +149,7 @@ export class PayrollRefusal extends Error {
 /** Fait avancer une paie par la RPC qui journalise aussi les refus (L1-02). */
 export async function transitionPayroll(id: string, status: string, reason?: string | null) {
   const res = unwrap(await dataApi.rpc('try_transition_payroll_entry', {
-    p_payroll_entry_id: id, p_target_status: status, p_reason: reason?.trim() || null,
+    p_payroll_entry_id: id, p_target_status: status, p_reason: reason?.trim() || undefined,
   })) as unknown as { ok: boolean; message?: string; code?: string }
   if (!res.ok) throw new PayrollRefusal(res.message ?? 'Transition refusée', res.code)
   return res
@@ -157,3 +157,7 @@ export async function transitionPayroll(id: string, status: string, reason?: str
 
 /** Statuts d'une paie que l'administrateur peut faire reculer (pour la corriger ou la supprimer). */
 export const REVERTIBLE = ['En revue', 'Approuvée', 'Validée', 'Payée', 'Clôturée']
+
+/** États d'un traitement dont les bulletins sont validés (un mois payé ou clôturé reste un mois validé). */
+export const VALIDATED_STATUSES = ['Validée', 'Payée', 'Clôturée']
+export const isPayrollValidated = (status: string) => VALIDATED_STATUSES.includes(status)
