@@ -76,8 +76,10 @@ export default function LeavesPage() {
   return (
     <>
       <PageHeader
-        title="Congés"
-        description="Demandes, validations et soldes de congés. Les absences non payées et la maladie alimentent les variables de paie via les présences."
+        title={can('rh', 'paie') ? 'Congés et absences' : 'Mes congés'}
+        description={can('rh', 'paie')
+          ? 'Demandes, validations et soldes de congés. Les absences non payées et la maladie alimentent les variables de paie via les présences.'
+          : 'Vos demandes de congés, leur état de validation et vos soldes.'}
         actions={<>
           {isHr && <Button onClick={() => setOpen('alloc')}>Attribuer des jours</Button>}
           <Button variant="primary" icon={<Plus className="h-4 w-4" />} onClick={() => setOpen('request')}>Nouvelle demande</Button>

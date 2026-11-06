@@ -193,7 +193,7 @@ export default function ReportsPage() {
   return (
     <>
       <PageHeader
-        title="États et déclarations"
+        title="États légaux et cotisations"
         description="Livre de paie, cotisations sociales et fiscales, charges patronales et écritures comptables du mois. Chaque état s'imprime et s'exporte en CSV pour Excel."
         actions={
           <SelectField label="Traitement" value={entryId} onChange={(e) => setEntryId(e.target.value)} className="min-w-[13rem]">

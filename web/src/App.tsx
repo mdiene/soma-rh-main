@@ -1,5 +1,6 @@
 import { lazy, Suspense, type ReactNode } from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
+import { rolesFor } from './lib/nav'
 import { Layout } from './components/Layout'
 import { Spinner } from './components/ui'
 import { useAuth, type Role } from './lib/auth'
@@ -9,6 +10,7 @@ import LoginPage from './pages/LoginPage'
 const DashboardPage = lazy(() => import('./pages/DashboardPage'))
 const EmployeesPage = lazy(() => import('./pages/EmployeesPage'))
 const EmployeeDetailPage = lazy(() => import('./pages/EmployeeDetailPage'))
+const ModulesPage = lazy(() => import('./pages/ModulesPage'))
 const LeavesPage = lazy(() => import('./pages/LeavesPage'))
 const AttendancePage = lazy(() => import('./pages/AttendancePage'))
 const PayrollInputsPage = lazy(() => import('./pages/PayrollInputsPage'))
@@ -41,9 +43,9 @@ const EmployeeDocumentsPage = lazy(() => import('./pages/EmployeeDocumentsPage')
  * Un salarié sans ces rôles est renvoyé vers ses propres bulletins ; la RLS protège les données
  * dans tous les cas, ce garde évite d'afficher des écrans vides ou trompeurs.
  */
-function RoleGuard({ roles, children }: { roles: Role[]; children: ReactNode }) {
+function RoleGuard({ roles, to, children }: { roles?: Role[]; to?: string; children: ReactNode }) {
   const { can } = useAuth()
-  return can(...roles) ? <>{children}</> : <Navigate to="/" replace />
+  return can(...(roles ?? rolesFor(to!))) ? <>{children}</> : <Navigate to="/" replace />
 }
 
 /** Accueil : tableau de bord pour la gestion, bulletins personnels pour un salarié. */
@@ -71,17 +73,17 @@ export default function App() {
     <Routes>
       <Route element={<Layout />}>
         <Route index element={<Home />} />
-        <Route path="salaries" element={<RoleGuard roles={staff}><EmployeesPage /></RoleGuard>} />
+        <Route path="salaries" element={<RoleGuard to="/salaries"><EmployeesPage /></RoleGuard>} />
         <Route path="salaries/:id" element={<RoleGuard roles={staff}><EmployeeDetailPage /></RoleGuard>} />
-        <Route path="dossiers-salaries" element={<RoleGuard roles={['rh']}><EmployeeDocumentsPage /></RoleGuard>} />
+        <Route path="dossiers-salaries" element={<RoleGuard to="/dossiers-salaries"><EmployeeDocumentsPage /></RoleGuard>} />
         <Route path="conges" element={<LeavesPage />} />
-        <Route path="presences" element={<RoleGuard roles={staff}><AttendancePage /></RoleGuard>} />
-        <Route path="pilotage" element={<RoleGuard roles={staff}><PilotagePage /></RoleGuard>} />
-        <Route path="paie" element={<RoleGuard roles={staff}><PayrollEntriesPage /></RoleGuard>} />
-        <Route path="paie/gouvernance" element={<RoleGuard roles={staff}><PayrollGovernancePage /></RoleGuard>} />
-        <Route path="paie/variables" element={<RoleGuard roles={staff}><PayrollInputsPage /></RoleGuard>} />
-        <Route path="paie/ajustements" element={<RoleGuard roles={['paie', 'rh']}><PayrollAdjustmentsPage /></RoleGuard>} />
-        <Route path="paie/simulateur" element={<RoleGuard roles={['paie', 'rh']}><SimulatorPage /></RoleGuard>} />
+        <Route path="presences" element={<RoleGuard to="/presences"><AttendancePage /></RoleGuard>} />
+        <Route path="pilotage" element={<RoleGuard to="/pilotage"><PilotagePage /></RoleGuard>} />
+        <Route path="paie" element={<RoleGuard to="/paie"><PayrollEntriesPage /></RoleGuard>} />
+        <Route path="paie/gouvernance" element={<RoleGuard to="/paie/gouvernance"><PayrollGovernancePage /></RoleGuard>} />
+        <Route path="paie/variables" element={<RoleGuard to="/paie/variables"><PayrollInputsPage /></RoleGuard>} />
+        <Route path="paie/ajustements" element={<RoleGuard to="/paie/ajustements"><PayrollAdjustmentsPage /></RoleGuard>} />
+        <Route path="paie/simulateur" element={<RoleGuard to="/paie/simulateur"><SimulatorPage /></RoleGuard>} />
         <Route path="paie/:id" element={<RoleGuard roles={staff}><PayrollEntryPage /></RoleGuard>} />
         <Route path="paie/:id/imprimer" element={<RoleGuard roles={staff}><PrintSlipsPage /></RoleGuard>} />
         <Route path="paie/:id/paiements" element={<RoleGuard roles={staff}><PayrollPaymentsPage /></RoleGuard>} />
@@ -90,17 +92,18 @@ export default function App() {
         {/* bulletins : la RLS ne renvoie à un salarié que ses propres bulletins validés */}
         <Route path="bulletins/imprimer" element={<PrintSlipsPage />} />
         <Route path="bulletins/:id" element={<SalarySlipPage />} />
-        <Route path="etats" element={<RoleGuard roles={staff}><ReportsPage /></RoleGuard>} />
-        <Route path="conformite" element={<RoleGuard roles={['rh', 'paie']}><CompliancePage /></RoleGuard>} />
-        <Route path="journal" element={<RoleGuard roles={['rh']}><JournalPage /></RoleGuard>} />
+        <Route path="etats" element={<RoleGuard to="/etats"><ReportsPage /></RoleGuard>} />
+        <Route path="conformite" element={<RoleGuard to="/conformite"><CompliancePage /></RoleGuard>} />
+        <Route path="modules" element={<RoleGuard to="/modules"><ModulesPage /></RoleGuard>} />
+        <Route path="journal" element={<RoleGuard to="/journal"><JournalPage /></RoleGuard>} />
         <Route path="parametres" element={roles.length === 0 ? <SettingsPage /> : <RoleGuard roles={staff}><SettingsPage /></RoleGuard>} />
         <Route path="mon-espace" element={<MySpacePage />} />
-        <Route path="mon-equipe" element={<RoleGuard roles={['manager']}><ManagerPage /></RoleGuard>} />
-        <Route path="equipes" element={<RoleGuard roles={['rh']}><ManagerAssignmentsPage /></RoleGuard>} />
+        <Route path="mon-equipe" element={<RoleGuard to="/mon-equipe"><ManagerPage /></RoleGuard>} />
+        <Route path="equipes" element={<RoleGuard to="/equipes"><ManagerAssignmentsPage /></RoleGuard>} />
         {/* organigramme : visible par tout utilisateur connecté (la base limite le contenu selon le rôle) */}
         <Route path="equipes/organigramme" element={<OrganigrammePage />} />
-        <Route path="equipes/simulation" element={<RoleGuard roles={['rh']}><ReorgSimulationPage /></RoleGuard>} />
-        <Route path="demandes" element={<RoleGuard roles={['rh']}><RequestsPage /></RoleGuard>} />
+        <Route path="equipes/simulation" element={<RoleGuard to="/equipes/simulation"><ReorgSimulationPage /></RoleGuard>} />
+        <Route path="demandes" element={<RoleGuard to="/demandes"><RequestsPage /></RoleGuard>} />
         <Route path="mes-bulletins" element={<MySlipsPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
