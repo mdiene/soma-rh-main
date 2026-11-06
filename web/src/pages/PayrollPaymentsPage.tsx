@@ -48,7 +48,8 @@ export default function PayrollPaymentsPage() {
   const rows = (slips.data ?? []).map((s) => ({ ...s, mode: s.payment_mode || 'espèces', pay: payOf.get(s.id) }))
   const modes = [...new Set(rows.map((r) => r.mode))]
   const shown = rows.filter((r) => !mode || r.mode === mode)
-  const total = (l: typeof rows) => l.reduce((s, r) => s + Number(r.net_pay), 0)
+  // total = somme des virements réels (chaque net arrondi à l'unité, comme dans le fichier envoyé à la banque et dans les lignes affichées)
+  const total = (l: typeof rows) => l.reduce((s, r) => s + Math.round(Number(r.net_pay)), 0)
 
   const mark = useMutation({
     mutationFn: async (v: { ids: string[]; paid: boolean }) => {
