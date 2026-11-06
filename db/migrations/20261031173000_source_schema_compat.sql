@@ -81,20 +81,27 @@ alter table public.shift_types enable row level security;
 alter table public.work_posts enable row level security;
 alter table public.shift_assignments enable row level security;
 
+drop policy if exists employee_requests_access on public.employee_requests;
 create policy employee_requests_access on public.employee_requests for all to authenticated
   using ((select public.has_role(array['rh','paie'])) or employee_id = (select public.my_employee_id()))
   with check ((select public.has_role(array['rh','paie'])) or employee_id = (select public.my_employee_id()));
+drop policy if exists salary_payments_access on public.salary_payments;
 create policy salary_payments_access on public.salary_payments for all to authenticated
   using ((select public.has_role(array['paie'])))
   with check ((select public.has_role(array['paie'])));
+drop policy if exists shift_types_read on public.shift_types;
 create policy shift_types_read on public.shift_types for select to authenticated using (true);
+drop policy if exists shift_types_admin on public.shift_types;
 create policy shift_types_admin on public.shift_types for all to authenticated
   using ((select public.has_role(array['rh','paie'])))
   with check ((select public.has_role(array['rh','paie'])));
+drop policy if exists work_posts_read on public.work_posts;
 create policy work_posts_read on public.work_posts for select to authenticated using (true);
+drop policy if exists work_posts_admin on public.work_posts;
 create policy work_posts_admin on public.work_posts for all to authenticated
   using ((select public.has_role(array['rh'])))
   with check ((select public.has_role(array['rh'])));
+drop policy if exists shift_assignments_access on public.shift_assignments;
 create policy shift_assignments_access on public.shift_assignments for all to authenticated
   using ((select public.has_role(array['rh'])) or employee_id = (select public.my_employee_id()))
   with check ((select public.has_role(array['rh'])) or employee_id = (select public.my_employee_id()));
