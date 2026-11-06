@@ -1170,6 +1170,63 @@ export type Database = {
           },
         ]
       }
+      employee_module_data: {
+        Row: {
+          data: NonNullable<Json>
+          employee_id: string
+          id: string
+          module_id: string
+          valid_from: string | null
+          valid_to: string | null
+        }
+        ComputedFields: never
+        Insert: {
+          data?: NonNullable<Json>
+          employee_id: string
+          id?: string
+          module_id: string
+          valid_from?: string | null
+          valid_to?: string | null
+        }
+        Update: {
+          data?: NonNullable<Json>
+          employee_id?: string
+          id?: string
+          module_id?: string
+          valid_from?: string | null
+          valid_to?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_module_data_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_module_data_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "v_conformite_embauche"
+            referencedColumns: ["employee_id"]
+          },
+          {
+            foreignKeyName: "employee_module_data_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "v_leave_balances"
+            referencedColumns: ["employee_id"]
+          },
+          {
+            foreignKeyName: "employee_module_data_module_id_fkey"
+            columns: ["module_id"]
+            isOneToOne: false
+            referencedRelation: "module_manifest"
+            referencedColumns: ["module_id"]
+          },
+        ]
+      }
       employee_notifications: {
         Row: {
           created_at: string
@@ -2204,6 +2261,127 @@ export type Database = {
           },
         ]
       }
+      module_activation: {
+        Row: {
+          disabled_at: string | null
+          enabled: boolean
+          enabled_at: string | null
+          enabled_by: string | null
+          id: string
+          manifest_hash: string | null
+          manifest_version: string | null
+          module_id: string
+        }
+        ComputedFields: never
+        Insert: {
+          disabled_at?: string | null
+          enabled?: boolean
+          enabled_at?: string | null
+          enabled_by?: string | null
+          id?: string
+          manifest_hash?: string | null
+          manifest_version?: string | null
+          module_id: string
+        }
+        Update: {
+          disabled_at?: string | null
+          enabled?: boolean
+          enabled_at?: string | null
+          enabled_by?: string | null
+          id?: string
+          manifest_hash?: string | null
+          manifest_version?: string | null
+          module_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "module_activation_module_id_fkey"
+            columns: ["module_id"]
+            isOneToOne: true
+            referencedRelation: "module_manifest"
+            referencedColumns: ["module_id"]
+          },
+        ]
+      }
+      module_manifest: {
+        Row: {
+          hash: string
+          loaded_at: string
+          manifest: NonNullable<Json>
+          module_id: string
+          name: string
+          status: string
+          version: string
+        }
+        ComputedFields: never
+        Insert: {
+          hash: string
+          loaded_at?: string
+          manifest: NonNullable<Json>
+          module_id: string
+          name: string
+          status?: string
+          version: string
+        }
+        Update: {
+          hash?: string
+          loaded_at?: string
+          manifest?: NonNullable<Json>
+          module_id?: string
+          name?: string
+          status?: string
+          version?: string
+        }
+        Relationships: []
+      }
+      module_parameter_value: {
+        Row: {
+          entered_at: string
+          entered_by: string | null
+          id: string
+          legal_status: string
+          module_id: string
+          param_key: string
+          source: string | null
+          valid_from: string | null
+          valid_to: string | null
+          value: NonNullable<Json>
+        }
+        ComputedFields: never
+        Insert: {
+          entered_at?: string
+          entered_by?: string | null
+          id?: string
+          legal_status: string
+          module_id: string
+          param_key: string
+          source?: string | null
+          valid_from?: string | null
+          valid_to?: string | null
+          value: NonNullable<Json>
+        }
+        Update: {
+          entered_at?: string
+          entered_by?: string | null
+          id?: string
+          legal_status?: string
+          module_id?: string
+          param_key?: string
+          source?: string | null
+          valid_from?: string | null
+          valid_to?: string | null
+          value?: NonNullable<Json>
+        }
+        Relationships: [
+          {
+            foreignKeyName: "module_parameter_value_module_id_fkey"
+            columns: ["module_id"]
+            isOneToOne: false
+            referencedRelation: "module_manifest"
+            referencedColumns: ["module_id"]
+          },
+        ]
+      }
       notice_scales: {
         Row: {
           agreement_code: string | null
@@ -2437,6 +2615,8 @@ export type Database = {
           hours_from: number | null
           hours_to: number | null
           label: string
+          legal_min_source: string | null
+          legal_min_uplift: number
           rate_uplift: number
           source_code: string | null
         }
@@ -2446,6 +2626,8 @@ export type Database = {
           hours_from?: number | null
           hours_to?: number | null
           label: string
+          legal_min_source?: string | null
+          legal_min_uplift?: number
           rate_uplift: number
           source_code?: string | null
         }
@@ -2454,10 +2636,19 @@ export type Database = {
           hours_from?: number | null
           hours_to?: number | null
           label?: string
+          legal_min_source?: string | null
+          legal_min_uplift?: number
           rate_uplift?: number
           source_code?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "overtime_rates_legal_min_source_fkey"
+            columns: ["legal_min_source"]
+            isOneToOne: false
+            referencedRelation: "legal_sources"
+            referencedColumns: ["code"]
+          },
           {
             foreignKeyName: "overtime_rates_source_code_fkey"
             columns: ["source_code"]
@@ -2921,6 +3112,7 @@ export type Database = {
           effective_from: string
           hourly_rate_divisor: number
           id: string
+          interim_ifc_rate: number
           ipm_ceiling: number
           ipm_employee_share: number
           ipm_on_contractors: boolean
@@ -2956,6 +3148,7 @@ export type Database = {
           effective_from: string
           hourly_rate_divisor?: number
           id?: string
+          interim_ifc_rate?: number
           ipm_ceiling?: number
           ipm_employee_share?: number
           ipm_on_contractors?: boolean
@@ -2990,6 +3183,7 @@ export type Database = {
           effective_from?: string
           hourly_rate_divisor?: number
           id?: string
+          interim_ifc_rate?: number
           ipm_ceiling?: number
           ipm_employee_share?: number
           ipm_on_contractors?: boolean
@@ -3799,6 +3993,39 @@ export type Database = {
           start_time?: string | null
         }
         Relationships: []
+      }
+      statutory_notice: {
+        Row: {
+          amount: number
+          code: string
+          label: string
+          source_code: string | null
+          unit: string
+        }
+        ComputedFields: never
+        Insert: {
+          amount: number
+          code: string
+          label: string
+          source_code?: string | null
+          unit: string
+        }
+        Update: {
+          amount?: number
+          code?: string
+          label?: string
+          source_code?: string | null
+          unit?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "statutory_notice_source_code_fkey"
+            columns: ["source_code"]
+            isOneToOne: false
+            referencedRelation: "legal_sources"
+            referencedColumns: ["code"]
+          },
+        ]
       }
       tax_slab_brackets: {
         Row: {
@@ -4797,6 +5024,10 @@ export type Database = {
           severity: string
         }[]
       }
+      load_module_manifest: {
+        Args: { p_hash: string; p_manifest: Json }
+        Returns: Json
+      }
       log_employee_document_access: {
         Args: { p_document_id: string }
         Returns: {
@@ -5049,6 +5280,7 @@ export type Database = {
           effective_from: string
           hourly_rate_divisor: number
           id: string
+          interim_ifc_rate: number
           ipm_ceiling: number
           ipm_employee_share: number
           ipm_on_contractors: boolean
