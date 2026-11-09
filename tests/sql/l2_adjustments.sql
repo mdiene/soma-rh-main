@@ -87,7 +87,16 @@ begin
   select count(*) into a1 from public.audit_log where table_name = 'additional_salaries';
   if n2 <> n1 then raise exception 'T-I19 : le recalcul change le net (% -> %)', n1, n2; end if;
   if a1 <> a0 then raise exception 'T-I19 : un recalcul à l''identique écrit % ligne(s) d''audit', a1 - a0; end if;
--- dernière échéance d'un prêt : appliquée au premier calcul, toujours retenue au recalcul (prêt « Soldé »)  perform public.create_loan(c.emp, 'Prêt en une échéance', 5000, 1, '2026-12-01');  perform public.run_payroll_entry(e_dec);  n1 := pg_temp.slip(e_dec, c.emp, 'net_pay');  perform public.run_payroll_entry(e_dec);  n2 := pg_temp.slip(e_dec, c.emp, 'net_pay');  if n1 <> n2 then raise exception 'T-I19 : le recalcul perd la dernière échéance (% -> %)', n1, n2; end if;  if (select amount from public.additional_salaries where employee_id = c.emp and period = '2026-12-01' and component_code = 'RET_PRET') <> 15000 then    raise exception 'T-I19 : retenue attendue 15000 (10000 + 5000), trouvée autre';  end if;
+  -- dernière échéance d'un prêt : appliquée au premier calcul, toujours retenue au recalcul (prêt « Soldé »)
+  perform public.create_loan(c.emp, 'Prêt en une échéance', 5000, 1, p1);
+  perform public.run_payroll_entry(e_dec);
+  n1 := pg_temp.slip(e_dec, c.emp, 'net_pay');
+  perform public.run_payroll_entry(e_dec);
+  n2 := pg_temp.slip(e_dec, c.emp, 'net_pay');
+  if n1 <> n2 then raise exception 'T-I19 : le recalcul perd la dernière échéance (% -> %)', n1, n2; end if;
+  if (select amount from public.additional_salaries where employee_id = c.emp and period = p1 and component_code = 'RET_PRET') <> 15000 then
+    raise exception 'T-I19 : retenue attendue 15000 (10000 + 5000), trouvée autre';
+  end if;
 
   -- T-I6 : une correction sur un mois validé n'altère pas ce mois et s'applique à la période ouverte
   select sum(s.net_pay) into aug_before from public.salary_slips s join public.payroll_entries p on p.id = s.payroll_entry_id
@@ -126,7 +135,8 @@ begin
   perform set_config('request.jwt.claim.sub', c.user_paie::text, true);
   perform public.run_payroll_entry(e_jan);
   select amount into n0 from public.additional_salaries where employee_id = c.emp and period = p2 and component_code = 'RET_PRET';
-  if n0 is distinct from 20000 then raise exception 'report : janvier devait retenir 2 échéances (20000), obtenu %', n0; end if;
+  -- reprises de décembre (10000 du prêt en 3 fois + 5000 du prêt en une échéance) + échéance propre de janvier (10000)
+  if n0 is distinct from 25000 then raise exception 'report : janvier devait retenir 25000 (10000 + 5000 repris, 10000 propre), obtenu %', n0; end if;
   if not exists (select 1 from public.payroll_corrections where employee_id = c.emp and status = 'Appliquée' and applied_period = p2) then
     raise exception 'report : la régularisation n''a pas été reprise en janvier';
   end if;
