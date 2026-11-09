@@ -92,6 +92,26 @@
       "legal_status": "to_provide",
       "client_input_allowed": true,
       "note": "Traitement du service et des pourboires (fiscal, social, allocation de congés) : référence du texte appliqué, à fournir"
+    },
+    "housing_deduction_smig_fraction": {
+      "value": 0.5,
+      "unit": "hours_of_smig",
+      "legal_status": "secondary",
+      "source": "Résumé fourni par le propriétaire le 09/11/2026 (arrêté 5040/ITLS/SM du 17/07/1956 et article L.106 de l'ancien Code, textes non lus)",
+      "note": "Plafond de retenue pour logement = fraction d'heure de SMIG x nombre de jours. Calculé sur le SMIG paramétré de la société, jamais en dur"
+    },
+    "housing_deduction_days": {
+      "value": 30,
+      "unit": "days",
+      "legal_status": "secondary",
+      "source": "Résumé fourni par le propriétaire le 09/11/2026 (arrêté 5040/ITLS/SM du 17/07/1956 et article L.106 de l'ancien Code, textes non lus)",
+      "note": "Nombre de jours du plafond mensuel"
+    },
+    "housing_tax_offset_rule": {
+      "value": null,
+      "legal_status": "to_provide",
+      "client_input_allowed": true,
+      "note": "Imputation de la retenue effective sur le forfait fiscal (arrêté 012914, art. 2) avant ajout à la base de l'IR : règle indiquée par un résumé, arrêté non lu ; non branchée dans le calcul de l'IR"
     }
   },
   "payroll_rules": [
@@ -134,6 +154,12 @@
       "description": "Logement fourni sans zone ou sans nombre de pièces : évaluation de l'avantage impossible",
       "emit_to": "module_findings",
       "severity": "warning"
+    },
+    {
+      "check_id": "HOR_RETENUE_LOGEMENT",
+      "description": "Retenue pour logement (rubrique RET_LOGEMENT) supérieure au plafond",
+      "emit_to": "legal_alerts",
+      "severity": "high"
     }
   ],
   "tests": [
@@ -151,11 +177,20 @@
       "expected": {
         "payslip_line": true
       }
+    },
+    {
+      "case_id": "HOR-T03",
+      "description": "Retenue logement au-dessus du plafond : alerte retenue_logement_plafond ; en dessous : rien",
+      "expected": {
+        "alert": "retenue_logement_plafond"
+      }
     }
   ],
   "notes": [
-    "Avantage logement : valeurs 33 500 / 20 000 / 13 500 F conservées en statut secondaire (texte de l'arrêté non lu). La retenue de l'avantage sur le net n'est pas encore branchée dans le moteur : les paramètres sont stockés pour le lot qui l'ajoutera.",
-    "Avantage nourriture : aucun texte lu, aucune valeur."
+    "Avantage nourriture : aucun texte lu, aucune valeur.",
+    "Avantage logement fiscal : 33 500 / 20 000 / 13 500 F par pièce, statut secondaire (arrêté 012914 relayé, texte non lu).",
+    "Retenue pour logement : rubrique RET_LOGEMENT (déduction du net) saisie en salaire additionnel ; plafond = 0,5 h de SMIG x 30 jours calculé sur le SMIG de la société. Le résumé reçu cite 333,807 F/h donc 5 007 F ; la valeur paramétrée dans l'application est 370,526 F/h (D-003, à confirmer) donc un plafond différent : la valeur 5 007 n'est pas codée.",
+    "Imputation de la retenue sur le forfait fiscal avant l'IR : non branchée tant que l'arrêté n'est pas lu."
   ],
   "planning_rules": {
     "shift_templates": [

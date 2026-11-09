@@ -88,6 +88,19 @@ begin
   s := public.compute_salary_slip(v_emp, v_p0, v_p1);
   g := (select (l->>'gain')::numeric from jsonb_array_elements(s->'lines') l where l->>'code' = 'HOR_SERVICE');
   assert g is not null and abs(g - 40000) < 0.01, 'HOR-T02 : ' || coalesce(g::text, 'rien');
+  -- HOR-T03 : retenue logement au-dessus du plafond (0,5 h de SMIG x 30 j) => erreur ; au plafond => rien
+  insert into public.additional_salaries(employee_id, period, component_code, amount)
+    values (v_emp, date_trunc('month', current_date)::date, 'RET_LOGEMENT', 100000);
+  execute 'set local role authenticated';
+  select code into c from public.legal_alerts() where employee_id = v_emp and code = 'retenue_logement_plafond';
+  execute 'reset role';
+  assert c = 'retenue_logement_plafond', 'HOR-T03 dépassement : ' || coalesce(c, 'rien');
+  update public.additional_salaries set amount = (select smig_hourly from public.payroll_settings_at(current_date)) * 0.5 * 30
+    where employee_id = v_emp and component_code = 'RET_LOGEMENT';
+  execute 'set local role authenticated';
+  select count(*) into n from public.legal_alerts() where employee_id = v_emp and code = 'retenue_logement_plafond';
+  execute 'reset role';
+  assert n = 0, 'HOR-T03 au plafond : rien (' || n || ')';
   raise notice 'OK m7_transport_nettoyage_horeca';
 end $$;
 rollback;
