@@ -15,18 +15,28 @@ test.describe('administrateur', () => {
   })
 
   test('Tableau de bord est épinglé en tête du menu', async ({ page }) => {
-    await expect(nav(page).getByRole('link').first()).toHaveText('Tableau de bord')
+    await expect(nav(page).getByRole('link').first()).toHaveAccessibleName('Tableau de bord') // icône du rail
   })
 
-  test('accordéon à ouverture unique : ouvrir un espace referme le précédent', async ({ page }) => {
+  test('rail + volet : choisir un espace affiche ses pages et masque celles des autres', async ({ page }) => {
     const n = nav(page)
-    const paie = page.locator('#space-paie')
-    const rh = page.locator('#space-rh')
     await n.getByRole('button', { name: /^Paie et rémunération/ }).click()
-    await expect(paie).not.toHaveAttribute('inert')
+    await expect(n.getByRole('link', { name: 'Variables du mois' })).toBeVisible()
+    await expect(n.getByRole('link', { name: 'Salariés', exact: true })).toHaveCount(0)
     await n.getByRole('button', { name: /^Administration du personnel/ }).click()
-    await expect(rh).not.toHaveAttribute('inert')
-    await expect(paie).toHaveAttribute('inert', '') // refermé : ses liens sortent de la navigation au clavier
+    await expect(n.getByRole('link', { name: 'Salariés', exact: true })).toBeVisible()
+    await expect(n.getByRole('link', { name: 'Variables du mois' })).toHaveCount(0)
+  })
+
+  test('volet réduit : le rail reste, un clic ouvre le panneau flottant', async ({ page }) => {
+    const n = nav(page)
+    await n.getByRole('button', { name: 'Réduire le menu' }).click()
+    await expect(n.getByRole('button', { name: 'Développer le menu' })).toBeVisible()
+    await n.getByRole('button', { name: /^Paie et rémunération/ }).click()
+    await expect(page.getByRole('group', { name: 'Paie et rémunération' }).getByRole('link', { name: 'Variables du mois' })).toBeVisible()
+    await page.keyboard.press('Escape')
+    await expect(page.getByRole('group', { name: 'Paie et rémunération' })).toHaveCount(0)
+    await n.getByRole('button', { name: 'Développer le menu' }).click() // remet l'état mémorisé par défaut
   })
 
   test('Ctrl+K : « ipres » mène aux états légaux', async ({ page }) => {

@@ -1,7 +1,8 @@
 import clsx from 'clsx'
-import { ChevronDown, ChevronsLeft, ChevronsRight, LogOut, Menu, Search, Star } from 'lucide-react'
+import { AnimatePresence, LayoutGroup, MotionConfig, motion } from 'framer-motion'
+import { ChevronsLeft, ChevronsRight, LogOut, Menu, Search, Star } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
-import { Suspense, useEffect, useState } from 'react'
+import { Suspense, useEffect, useState, useSyncExternalStore } from 'react'
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import { useAuth } from '../lib/auth'
 import { dataApi, unwrap, type ApiClient } from '../lib/api'
@@ -13,10 +14,22 @@ import { Spinner } from './ui'
 
 type Counts = Partial<Record<NonNullable<NavItem['badge']>, number>>
 
-function Badge({ n, className }: { n?: number; className?: string }) {
+const EASE = [0.16, 1, 0.3, 1] as const
+const PANEL_W = 220 // volet de second niveau (px) ; le rail fait 4,5 rem (72 px)
+
+/** Largeur d'écran « bureau » (lg de Tailwind) : le repli du volet n'existe que là. */
+function useDesktop() {
+  return useSyncExternalStore(
+    (cb) => { const m = window.matchMedia('(min-width: 1024px)'); m.addEventListener('change', cb); return () => m.removeEventListener('change', cb) },
+    () => window.matchMedia('(min-width: 1024px)').matches,
+    () => true,
+  )
+}
+
+function Badge({ n, warning, className }: { n?: number; warning?: boolean; className?: string }) {
   if (!n) return null
   return (
-    <span className={clsx('rounded-full bg-signal px-1.5 text-[11px] font-semibold leading-5 text-white', className)} aria-label={`${n} en attente`}>
+    <span className={clsx('rounded-full px-1.5 text-[11px] font-semibold leading-5', warning ? 'bg-[#E0B000] text-ink' : 'bg-signal text-white', className)} aria-label={`${n} en attente`}>
       {n >= 100 ? '99+' : n}
     </span>
   )
@@ -24,23 +37,22 @@ function Badge({ n, className }: { n?: number; className?: string }) {
 
 type Fav = { on: boolean; disabled: boolean; toggle: () => void }
 
-function ItemLink({ item, counts, rail, fav, onNavigate }: { item: NavItem; counts: Counts; rail?: boolean; fav?: Fav; onNavigate: () => void }) {
+function ItemLink({ item, counts, fav, onNavigate }: { item: NavItem; counts: Counts; fav?: Fav; onNavigate: () => void }) {
   return (
-    <div className="group relative">
+    <motion.div className="group relative" whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
       <NavLink
         to={item.to}
         end={item.to === '/' || item.to === '/paie'}
-        title={rail ? item.label : undefined}
         onClick={onNavigate}
         className={({ isActive }) => clsx(
           'relative flex items-center gap-2.5 rounded px-2 py-1.5 text-sm transition-colors',
-          fav && !rail && 'pr-8',
+          fav && 'pr-8',
           isActive ? 'bg-white/10 text-white' : 'text-white/70 hover:bg-white/5 hover:text-white',
         )}
       >
         <item.icon className="h-4 w-4 shrink-0" aria-hidden />
-        <span className={rail ? 'lg:hidden' : ''}>{item.label}</span>
-        <Badge n={item.badge ? counts[item.badge] : undefined} className={clsx('ml-auto', rail && 'lg:absolute lg:right-1 lg:top-0 lg:ml-0')} />
+        <span>{item.label}</span>
+        <Badge n={item.badge ? counts[item.badge] : undefined} warning={item.badge === 'validations'} className="ml-auto" />
       </NavLink>
       {fav && (
         <button
@@ -50,30 +62,39 @@ function ItemLink({ item, counts, rail, fav, onNavigate }: { item: NavItem; coun
           title={fav.on ? 'Retirer des favoris' : fav.disabled ? `${MAX_FAVORITES} favoris au maximum` : 'Ajouter aux favoris'}
           className={clsx(
             'absolute right-1.5 top-1/2 hidden -translate-y-1/2 rounded p-0.5 text-white/60 hover:text-white focus-visible:opacity-100 disabled:cursor-not-allowed disabled:opacity-30 lg:group-hover:block',
-            rail ? 'lg:hidden lg:group-hover:hidden' : fav.on ? 'block' : 'focus-visible:block',
+            fav.on ? 'block' : 'focus-visible:block',
           )}
         >
           <Star className={clsx('h-3.5 w-3.5', fav.on && 'fill-[#E0B000] text-[#E0B000]')} aria-hidden />
         </button>
       )}
-    </div>
+    </motion.div>
+  )
+}
+
+/** Infobulle du rail : au survol et au focus clavier (le nom accessible vient de aria-label). */
+function Tip({ children }: { children: string }) {
+  return (
+    <span aria-hidden className="pointer-events-none absolute left-full top-1/2 z-50 ml-2 -translate-y-1/2 whitespace-nowrap rounded bg-ink px-2 py-1 text-xs text-white opacity-0 shadow-lg ring-1 ring-white/10 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100">
+      {children}
+    </span>
   )
 }
 
 export function Layout() {
   const { session, can, roles, signOut } = useAuth()
   const { pathname } = useLocation()
+  const desktop = useDesktop()
   const [open, setOpen] = useState(false)
   const [palette, setPalette] = useState(false)
   const { favorites, toggleFavorite, canAddFavorite } = usePreferences()
-  // accordéon à ouverture unique : un choix explicite ne vaut que pour la page où il a été fait
-  const [picked, setPicked] = useState<{ id: string | null; path: string }>()
-  // flyout (sidebar réduite) : panneau flottant à côté de l'icône cliquée
+  // espace affiché dans le volet : un choix explicite ne vaut que pour la page où il a été fait
+  const [picked, setPicked] = useState<{ id: string; path: string }>()
+  // panneau flottant (volet replié) : à côté de l'icône cliquée
   const [fly, setFly] = useState<{ id: string; top: number }>()
-  // sidebar réduite aux icônes (bureau seulement), mémorisée par navigateur
+  // volet replié (bureau seulement), mémorisé par navigateur
   const [rail, setRail] = useState(() => { try { return localStorage.getItem('nav-rail') === '1' } catch { return false } })
   const toggleRail = () => { setFly(undefined); setRail((v) => { try { localStorage.setItem('nav-rail', v ? '0' : '1') } catch { /* stockage indisponible */ } return !v }) }
-  const hide = rail ? 'lg:hidden' : ''
 
   // Ctrl+K / Cmd+K : recherche rapide
   useEffect(() => {
@@ -107,13 +128,16 @@ export function Layout() {
   const counts: Counts = { demandes: pending, validations }
 
   const allSpaces = SPACES.map((s) => ({ ...s, items: visibleItems(s, can, roles) })).filter((s) => s.items.length)
-  // palette et épinglés voient toutes les pages ; l'accordéon n'affiche pas les entrées déjà épinglées en tête
+  // palette et épinglés voient toutes les pages ; le volet n'affiche pas les entrées déjà épinglées
   const entries: PaletteEntry[] = allSpaces.flatMap((s) => s.items.map((i) => ({ ...i, space: s.label })))
   const spaces = allSpaces.map((s) => ({ ...s, items: s.items.filter((i) => !i.pinned) })).filter((s) => s.items.length)
   const inPath = (s: (typeof spaces)[number]) => s.items.some((i) => matches(i, pathname))
-  // ouvert : le choix fait sur cette page, sinon l'espace qui contient la page
-  const openId = picked && picked.path === pathname ? picked.id : spaces.find(inPath)?.id ?? null
+  const activeId = (picked && picked.path === pathname ? picked.id : null) ?? spaces.find(inPath)?.id ?? spaces[0]?.id ?? null
+  const active = spaces.find((s) => s.id === activeId)
   const total = (s: (typeof spaces)[number]) => s.items.reduce((n, i) => n + (i.badge ? counts[i.badge] ?? 0 : 0), 0)
+  // un seul espace (salarié) : pas de rail, le volet affiche directement les pages
+  const hasRail = spaces.length > 1
+  const collapsed = hasRail && rail && desktop
   // épinglés imposés par le menu (non retirables, sans étoile), puis favoris choisis par l'utilisateur
   const pinnedItems = entries.filter((e, k) => e.pinned && entries.findIndex((x) => x.to === e.to) === k)
   const isPinned = (to: string) => pinnedItems.some((e) => e.to === to)
@@ -121,132 +145,184 @@ export function Layout() {
   // favoris : seulement les pages encore accessibles au rôle courant
   const favItems = favorites.filter((to) => !isPinned(to)).map((to) => entries.find((e) => e.to === to)).filter((e): e is PaletteEntry => !!e)
   const done = () => { setOpen(false); setFly(undefined) }
-
-  const nav = (
-    <nav className="flex flex-1 flex-col gap-1 overflow-y-auto px-3 py-4" aria-label="Navigation principale">
-      {(pinnedItems.length > 0 || favItems.length > 0) && (
-        <div className="mb-2 border-b border-white/10 pb-2">
-          <ul className="space-y-0.5">
-            {pinnedItems.map((i) => <li key={i.to}><ItemLink item={i} counts={counts} rail={rail} onNavigate={done} /></li>)}
-          </ul>
-          {favItems.length > 0 && <p className={clsx('px-2 pb-1 pt-2 text-xs text-white/45', hide)}>Favoris</p>}
-          <ul className="space-y-0.5">
-            {favItems.map((i) => <li key={i.to}><ItemLink item={i} counts={counts} rail={rail} fav={favOf(i.to)} onNavigate={done} /></li>)}
-          </ul>
-        </div>
-      )}
-      {spaces.length === 1 ? (
-        <ul className="space-y-0.5">
-          {spaces[0].items.map((i) => <li key={i.to}><ItemLink item={i} counts={counts} rail={rail} fav={favOf(i.to)} onNavigate={done} /></li>)}
-        </ul>
-      ) : spaces.map((s) => {
-        const isOpen = openId === s.id && !rail
-        const active = inPath(s)
-        return (
-          <div key={s.id}>
-            <button
-              onClick={(e) => {
-                if (rail) {
-                  const r = e.currentTarget.getBoundingClientRect()
-                  setFly((f) => (f?.id === s.id ? undefined : { id: s.id, top: r.top }))
-                } else setPicked({ id: isOpen ? null : s.id, path: pathname })
-              }}
-              title={rail ? s.label : undefined}
-              aria-label={total(s) ? `${s.label}, ${total(s)} en attente` : s.label}
-              aria-expanded={rail ? fly?.id === s.id : isOpen}
-              aria-controls={`space-${s.id}`}
-              className={clsx(
-                'relative flex w-full items-center gap-2.5 rounded px-2 py-1.5 text-left text-sm font-medium transition-colors hover:text-white',
-                active || isOpen || fly?.id === s.id ? 'text-white' : 'text-white/60',
-              )}
-            >
-              <s.icon className="h-4 w-4 shrink-0" aria-hidden />
-              <span className={clsx('flex-1', hide)}>{s.label}</span>
-              {/* compteur d'un espace refermé : on voit où intervenir sans l'ouvrir */}
-              {!isOpen && <Badge n={total(s)} className={clsx(rail && 'lg:absolute lg:right-1 lg:top-0')} />}
-              <ChevronDown className={clsx('h-4 w-4 shrink-0 transition-transform duration-200 motion-reduce:transition-none', isOpen && 'rotate-180', hide)} aria-hidden />
-            </button>
-            {/* glissement : la hauteur passe de 0 à auto via grid-rows ; inert retire les liens cachés du clavier */}
-            <div
-              id={`space-${s.id}`}
-              className={clsx('grid transition-[grid-template-rows] duration-200 ease-out motion-reduce:transition-none', isOpen ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]')}
-              {...(isOpen ? {} : ({ inert: '' } as object))}
-            >
-              <ul className="ml-4 space-y-0.5 overflow-hidden border-l border-white/10 pl-2">
-                {s.items.map((i) => <li key={i.to}><ItemLink item={i} counts={counts} fav={favOf(i.to)} onNavigate={done} /></li>)}
-              </ul>
-            </div>
-          </div>
-        )
-      })}
-    </nav>
-  )
   const flySpace = spaces.find((s) => s.id === fly?.id)
+  const initials = (session?.user.email ?? '?').slice(0, 2).toUpperCase()
+
+  const railButtonCls = 'relative flex h-11 w-11 items-center justify-center rounded-lg text-white/70 transition-colors hover:text-white'
 
   return (
-    <div className={clsx('min-h-screen lg:grid print:block print:bg-none print:bg-white',
-      rail ? 'lg:grid-cols-[4rem_1fr] lg:bg-[linear-gradient(to_right,#1D2A33_4rem,#F6F7F5_4rem)]' : 'lg:grid-cols-[15rem_1fr] lg:bg-[linear-gradient(to_right,#1D2A33_15rem,#F6F7F5_15rem)]')}>
-      {/* barre mobile */}
-      <div className="no-print flex items-center justify-between bg-ink px-4 py-3 text-white lg:hidden">
-        <Brand />
-        <button onClick={() => setOpen((o) => !o)} className="rounded p-1.5 hover:bg-white/10" aria-label="Ouvrir le menu" aria-expanded={open}>
-          <Menu className="h-5 w-5" />
-        </button>
-      </div>
-
-      <aside className={clsx(
-        'no-print flex-col bg-ink text-white lg:sticky lg:top-0 lg:flex lg:h-screen',
-        open ? 'flex' : 'hidden',
-      )}>
-        <div className={clsx('hidden pb-2 pt-5 lg:block', rail ? 'px-3' : 'px-5')}><Brand compact={rail} /></div>
-        <button
-          onClick={() => { setPalette(true); setOpen(false) }}
-          title="Rechercher (Ctrl+K)" aria-label="Rechercher une page (Ctrl+K)"
-          className={clsx('mx-3 mt-3 flex items-center gap-2.5 rounded border border-white/15 px-2 py-1.5 text-sm text-white/60 transition-colors hover:border-white/30 hover:text-white', rail && 'lg:justify-center')}
-        >
-          <Search className="h-4 w-4 shrink-0" aria-hidden />
-          <span className={clsx('flex-1 text-left', hide)}>Rechercher</span>
-          <kbd className={clsx('rounded bg-white/10 px-1 text-[11px]', hide)}>Ctrl K</kbd>
-        </button>
-        {nav}
-        {rail && fly && flySpace && (
-          <>
-            <div className="fixed inset-0 z-40 hidden lg:block" onClick={() => setFly(undefined)} aria-hidden />
-            <div
-              role="group" aria-label={flySpace.label}
-              className="fixed z-50 hidden w-64 rounded-md border border-white/10 bg-ink p-2 text-white shadow-xl lg:block"
-              style={{ left: '4.25rem', top: Math.max(8, Math.min(fly.top, window.innerHeight - 48 - flySpace.items.length * 34)) }}
-            >
-              <p className="px-2 pb-1 pt-0.5 text-xs font-medium text-white/50">{flySpace.label}</p>
-              <ul className="space-y-0.5">
-                {flySpace.items.map((i) => <li key={i.to}><ItemLink item={i} counts={counts} fav={favOf(i.to)} onNavigate={done} /></li>)}
-              </ul>
-            </div>
-          </>
-        )}
-        <div className="border-t border-white/10 px-4 py-3 text-xs text-white/60">
-          <div className={hide}>
-            <p className="truncate text-white/85">{session?.user.email}</p>
-            <p className="mt-0.5">{roles.length ? roles.join(', ') : 'aucun rôle attribué'}</p>
-          </div>
-          <button onClick={signOut} title="Se déconnecter" aria-label="Se déconnecter" className="mt-2 inline-flex items-center gap-1.5 text-white/70 hover:text-white">
-            <LogOut className="h-3.5 w-3.5" aria-hidden /> <span className={hide}>Se déconnecter</span>
-          </button>
-          <button onClick={toggleRail} aria-pressed={rail} aria-label={rail ? 'Développer le menu' : 'Réduire le menu'} title={rail ? 'Développer le menu' : 'Réduire le menu'}
-            className="mt-2 hidden items-center gap-1.5 text-white/70 hover:text-white lg:inline-flex">
-            {rail ? <ChevronsRight className="h-3.5 w-3.5" aria-hidden /> : <><ChevronsLeft className="h-3.5 w-3.5" aria-hidden /> Réduire</>}
+    <MotionConfig reducedMotion="user">
+      <div className="min-h-screen lg:flex print:block">
+        {/* barre mobile */}
+        <div className="no-print flex items-center justify-between bg-ink px-4 py-3 text-white lg:hidden">
+          <Brand />
+          <button onClick={() => setOpen((o) => !o)} className="rounded p-1.5 hover:bg-white/10" aria-label="Ouvrir le menu" aria-expanded={open}>
+            <Menu className="h-5 w-5" />
           </button>
         </div>
-      </aside>
 
-      <CommandPalette open={palette} onClose={() => setPalette(false)} entries={entries} />
-      <main className="min-w-0 px-4 py-6 sm:px-6 lg:px-10 lg:py-8">
-        <Suspense fallback={<Spinner />}>
-          <QueryErrorBanner />
-          <Outlet />
-        </Suspense>
-      </main>
-    </div>
+        <aside className={clsx('no-print max-h-[calc(100vh-3.25rem)] bg-ink text-white lg:sticky lg:top-0 lg:flex lg:h-screen lg:max-h-none lg:shrink-0', open ? 'flex' : 'hidden')}>
+          <nav className="flex min-h-0 flex-1" aria-label="Navigation principale">
+            {/* colonne 1 : rail d'ancrage */}
+            {hasRail && (
+              <div className="flex w-[4.5rem] shrink-0 flex-col items-center gap-1 overflow-y-auto bg-[#16212A] py-4">
+                <div className="mb-2 hidden lg:block"><Brand compact /></div>
+                {pinnedItems.map((i) => (
+                  <div key={i.to} className="group relative">
+                    <NavLink to={i.to} end={i.to === '/'} onClick={done} aria-label={i.label}
+                      className={({ isActive }) => clsx(railButtonCls, isActive && 'bg-white/10 text-white')}>
+                      <i.icon className="h-5 w-5" aria-hidden />
+                    </NavLink>
+                    <Tip>{i.label}</Tip>
+                  </div>
+                ))}
+                {pinnedItems.length > 0 && <div className="my-1 h-px w-8 bg-white/10" aria-hidden />}
+                <LayoutGroup>
+                  {spaces.map((s) => {
+                    const isActive = s.id === activeId
+                    const n = total(s)
+                    return (
+                      <div key={s.id} className="group relative">
+                        <motion.button
+                          whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
+                          onClick={(e) => {
+                            if (collapsed) {
+                              const r = e.currentTarget.getBoundingClientRect()
+                              setFly((f) => (f?.id === s.id ? undefined : { id: s.id, top: r.top }))
+                            } else { setPicked({ id: s.id, path: pathname }); setFly(undefined) }
+                          }}
+                          aria-label={n ? `${s.label}, ${n} en attente` : s.label}
+                          aria-expanded={collapsed ? fly?.id === s.id : isActive}
+                          aria-controls={!collapsed && isActive ? `space-${s.id}` : undefined}
+                          className={clsx(railButtonCls, (isActive || fly?.id === s.id) && 'text-white')}
+                        >
+                          {isActive && (
+                            <motion.span layoutId="activePillarIndicator" className="absolute inset-0 rounded-lg bg-white/10" transition={{ duration: 0.25, ease: EASE }}>
+                              <span className="absolute -left-3 top-2 h-7 w-1 rounded-r bg-[#E0B000]" />
+                            </motion.span>
+                          )}
+                          <s.icon className="relative h-5 w-5" aria-hidden />
+                          <Badge n={n} className="absolute -right-0.5 -top-0.5 min-w-[1.25rem] text-center" />
+                        </motion.button>
+                        <Tip>{s.label}</Tip>
+                      </div>
+                    )
+                  })}
+                </LayoutGroup>
+                <div className="mt-auto flex flex-col items-center gap-2 pt-3">
+                  {collapsed && (
+                    <>
+                      <button onClick={() => setPalette(true)} title="Rechercher (Ctrl+K)" aria-label="Rechercher une page (Ctrl+K)" className={railButtonCls}>
+                        <Search className="h-5 w-5" aria-hidden />
+                      </button>
+                      <button onClick={toggleRail} aria-pressed={rail} aria-label="Développer le menu" title="Développer le menu" className={railButtonCls}>
+                        <ChevronsRight className="h-5 w-5" aria-hidden />
+                      </button>
+                    </>
+                  )}
+                  <span title={roles.length ? roles.join(', ') : 'aucun rôle attribué'} aria-hidden className="flex h-9 w-9 items-center justify-center rounded-full bg-river text-xs font-semibold text-white">{initials}</span>
+                  <button onClick={signOut} title="Se déconnecter" aria-label="Se déconnecter" className="rounded p-1.5 text-white/60 hover:text-white">
+                    <LogOut className="h-4 w-4" aria-hidden />
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* colonne 2 : volet de second niveau, repliable */}
+            <motion.div
+              className="overflow-hidden"
+              initial={false}
+              animate={{ width: collapsed ? 0 : PANEL_W }}
+              transition={{ duration: 0.28, ease: EASE }}
+              {...(collapsed ? ({ inert: '' } as object) : {})}
+            >
+              <div className="flex h-full flex-col" style={{ width: PANEL_W }}>
+                <div className="flex items-center gap-2 px-3 pb-2 pt-4">
+                  {hasRail
+                    ? <h2 className="min-w-0 flex-1 truncate text-sm font-semibold">{active?.label ?? ''}</h2>
+                    : <div className="flex-1"><Brand /></div>}
+                  {hasRail && desktop && (
+                    <button onClick={toggleRail} aria-pressed={rail} aria-label="Réduire le menu" title="Réduire le menu" className="rounded p-1 text-white/60 hover:bg-white/10 hover:text-white">
+                      <ChevronsLeft className="h-4 w-4" aria-hidden />
+                    </button>
+                  )}
+                </div>
+                <button
+                  onClick={() => { setPalette(true); setOpen(false) }}
+                  title="Rechercher (Ctrl+K)" aria-label="Rechercher une page (Ctrl+K)"
+                  className="mx-3 mb-2 flex items-center gap-2.5 rounded border border-white/15 px-2 py-1.5 text-sm text-white/60 transition-colors hover:border-white/30 hover:text-white"
+                >
+                  <Search className="h-4 w-4 shrink-0" aria-hidden />
+                  <span className="flex-1 text-left">Rechercher</span>
+                  <kbd className="rounded bg-white/10 px-1 text-[11px]">Ctrl K</kbd>
+                </button>
+                <div className="min-h-0 flex-1 overflow-y-auto px-3 pb-3">
+                  {(pinnedItems.length > 0 || favItems.length > 0) && (
+                    <div className="mb-2 border-b border-white/10 pb-2">
+                      <ul className="space-y-0.5">
+                        {pinnedItems.map((i) => <li key={i.to}><ItemLink item={i} counts={counts} onNavigate={done} /></li>)}
+                      </ul>
+                      {favItems.length > 0 && <p className="px-2 pb-1 pt-2 text-xs text-white/45">Favoris</p>}
+                      <ul className="space-y-0.5">
+                        {favItems.map((i) => <li key={i.to}><ItemLink item={i} counts={counts} fav={favOf(i.to)} onNavigate={done} /></li>)}
+                      </ul>
+                    </div>
+                  )}
+                  <AnimatePresence mode="wait" initial={false}>
+                    {active && (
+                      <motion.ul
+                        key={active.id} id={`space-${active.id}`} className="space-y-0.5"
+                        initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -8 }} transition={{ duration: 0.16 }}
+                      >
+                        {active.items.map((i) => <li key={i.to}><ItemLink item={i} counts={counts} fav={favOf(i.to)} onNavigate={done} /></li>)}
+                      </motion.ul>
+                    )}
+                  </AnimatePresence>
+                </div>
+                <div className="border-t border-white/10 px-4 py-3 text-xs text-white/60">
+                  <p className="truncate text-white/85">{session?.user.email}</p>
+                  <p className="mt-0.5">{roles.length ? roles.join(', ') : 'aucun rôle attribué'}</p>
+                  {!hasRail && (
+                    <button onClick={signOut} title="Se déconnecter" aria-label="Se déconnecter" className="mt-2 inline-flex items-center gap-1.5 text-white/70 hover:text-white">
+                      <LogOut className="h-3.5 w-3.5" aria-hidden /> Se déconnecter
+                    </button>
+                  )}
+                </div>
+              </div>
+            </motion.div>
+          </nav>
+
+          {/* panneau flottant du volet replié */}
+          <AnimatePresence>
+            {collapsed && fly && flySpace && (
+              <>
+                <div className="fixed inset-0 z-40 hidden lg:block" onClick={() => setFly(undefined)} aria-hidden />
+                <motion.div
+                  role="group" aria-label={flySpace.label}
+                  initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
+                  transition={{ type: 'spring', stiffness: 420, damping: 32 }}
+                  className="fixed z-50 hidden w-64 origin-top-left rounded-md border border-white/10 bg-ink p-2 text-white shadow-xl lg:block"
+                  style={{ left: '4.75rem', top: Math.max(8, Math.min(fly.top, window.innerHeight - 48 - flySpace.items.length * 34)) }}
+                >
+                  <p className="px-2 pb-1 pt-0.5 text-xs font-medium text-white/50">{flySpace.label}</p>
+                  <ul className="space-y-0.5">
+                    {flySpace.items.map((i) => <li key={i.to}><ItemLink item={i} counts={counts} fav={favOf(i.to)} onNavigate={done} /></li>)}
+                  </ul>
+                </motion.div>
+              </>
+            )}
+          </AnimatePresence>
+        </aside>
+
+        <CommandPalette open={palette} onClose={() => setPalette(false)} entries={entries} />
+        <main className="min-w-0 flex-1 px-4 py-6 sm:px-6 lg:px-10 lg:py-8">
+          <Suspense fallback={<Spinner />}>
+            <QueryErrorBanner />
+            <Outlet />
+          </Suspense>
+        </main>
+      </div>
+    </MotionConfig>
   )
 }
 
