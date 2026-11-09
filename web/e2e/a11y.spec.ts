@@ -30,7 +30,7 @@ test('recherche rapide Ctrl+K : aucune violation', async ({ page }) => {
   expect(resume(violations)).toEqual([])
 })
 
-for (const [role, route] of [['admin', '/'], ['admin', '/modules'], ['salarie', '/mon-espace']] as const) {
+for (const [role, route] of [['admin', '/'], ['admin', '/modules'], ['admin', '/centre-conformite'], ['salarie', '/mon-espace']] as const) {
   test.describe(`${role} ${route}`, () => {
     test.use({ storageState: stateFile(role) })
     test('aucune violation critique', async ({ page }) => {

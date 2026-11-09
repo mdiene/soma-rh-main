@@ -29,7 +29,10 @@ begin
   perform pg_temp.as_user(c.user_rh);
   r := pg_temp.try(format('select public.create_loan(%L, ''test'', 50000000, 1, date_trunc(''month'', current_date + interval ''1 year'')::date)', c.emp));
   if r not like '%Retenue mensuelle trop élevée%' then raise exception 'prêt excessif accepté ou autre erreur : %', r; end if;
-  -- 3. plafond paramétrable par rh, refusé au salarié
+  -- 3. plafond modifiable par l'administrateur seul (le rh passe par une demande validée, cf. L2b / L3), refusé au salarié
+  r := pg_temp.try('select public.set_loan_max_rate(0.25)');
+  if r not like '%Droits insuffisants%' then raise exception 'rh a modifié le plafond sans validation : %', r; end if;
+  perform pg_temp.as_user(c.user_admin);
   v := public.set_loan_max_rate(0.25);
   if public.get_loan_max_rate() <> 0.25 then raise exception 'plafond non enregistré'; end if;
   r := pg_temp.try('select public.set_loan_max_rate(1.5)');

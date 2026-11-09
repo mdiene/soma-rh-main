@@ -52,7 +52,7 @@ function ItemLink({ item, counts, fav, onNavigate }: { item: NavItem; counts: Co
       >
         <item.icon className="h-4 w-4 shrink-0" aria-hidden />
         <span>{item.label}</span>
-        <Badge n={item.badge ? counts[item.badge] : undefined} warning={item.badge === 'validations'} className="ml-auto" />
+        <Badge n={item.badge ? counts[item.badge] : undefined} warning={item.badge === 'validations' || item.badge === 'approbations'} className="ml-auto" />
       </NavLink>
       {fav && (
         <button
@@ -125,7 +125,14 @@ export function Layout() {
     queryFn: async () => unwrap(await (dataApi as unknown as ApiClient).rpc('my_leave_approvals')) as unknown as unknown[],
     select: (rows) => rows.length,
   }).data
-  const counts: Counts = { demandes: pending, validations }
+  // demandes de dérogation / de modification de constantes en attente de l'administrateur (les siennes pour rh et paie)
+  const approbations = useQuery({
+    queryKey: ['approval_pending'],
+    enabled: can('rh', 'paie'),
+    refetchInterval: 120_000,
+    queryFn: async () => unwrap(await (dataApi as unknown as ApiClient).rpc('approval_pending_count')) as unknown as number,
+  }).data
+  const counts: Counts = { demandes: pending, validations, approbations }
 
   const allSpaces = SPACES.map((s) => ({ ...s, items: visibleItems(s, can, roles) })).filter((s) => s.items.length)
   // palette et épinglés voient toutes les pages ; le volet n'affiche pas les entrées déjà épinglées

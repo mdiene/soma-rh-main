@@ -15,7 +15,7 @@ export type NavItem = {
   withoutRole?: boolean   // visible même sans rôle (déclarer le premier administrateur)
   pinned?: boolean        // épinglé en tête du menu pour tous les rôles qui y ont accès, non retirable
   keywords?: string       // mots de recherche supplémentaires (palette Ctrl+K)
-  badge?: 'demandes' | 'validations'      // compteur dynamique affiché à droite
+  badge?: 'demandes' | 'validations' | 'approbations'      // compteur dynamique affiché à droite
 }
 export type NavSpace = { id: string; label: string; icon: LucideIcon; items: NavItem[] }
 
@@ -55,6 +55,8 @@ export const SPACES: NavSpace[] = [
   ] },
   { id: 'config', label: 'Configuration', icon: Cog, items: [
     { to: '/parametres', label: 'Paramètres et comptes', icon: Settings, roles: ['rh', 'paie'], withoutRole: true },
+    { to: '/centre-conformite', label: 'Centre de conformité', icon: ShieldCheck, roles: ['rh', 'paie'], badge: 'approbations',
+      keywords: 'constantes taux plafonds smig ipres css barèmes impôt heures supplémentaires dérogation validation texte de loi réinitialiser' },
     { to: '/modules', label: 'Modules métiers', icon: Blocks, roles: ['rh', 'paie'] },
     { to: '/journal', label: 'Journal des modifications', icon: History, roles: ['rh'] },
   ] },

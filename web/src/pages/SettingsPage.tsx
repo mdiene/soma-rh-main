@@ -3,6 +3,7 @@ import { createColumnHelper } from '@tanstack/react-table'
 import clsx from 'clsx'
 import { Plus, Save, ShieldCheck } from 'lucide-react'
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { dataApi, omit, unwrap, type Tables } from '../lib/api'
 import { checkRateSettings, settingsSaveMode, type RateSettings } from '../lib/payrollGuards'
 import { useAuth, type Role } from '../lib/auth'
@@ -191,10 +192,14 @@ function PayrollSettingsTab() {
   return (
     <Section
       title={`Paramètres en vigueur depuis le ${date(current?.effective_from)}`}
-      actions={can('paie') && <Button size="sm" variant="primary" icon={<Save className="h-3.5 w-3.5" />} loading={save.isPending} disabled={blocking || mode === 'refus'} onClick={() => save.mutate()}>{mode === 'nouvelle_version' ? 'Créer la nouvelle version' : 'Enregistrer la correction'}</Button>}
+      actions={can('admin') && <Button size="sm" variant="primary" icon={<Save className="h-3.5 w-3.5" />} loading={save.isPending} disabled={blocking || mode === 'refus'} onClick={() => save.mutate()}>{mode === 'nouvelle_version' ? 'Créer la nouvelle version' : 'Enregistrer la correction'}</Button>}
     >
+      <p className="mb-4 max-w-prose rounded border border-river/30 bg-river-light px-3 py-2 text-sm text-ink">
+        Pour modifier une constante ou un barème, utilisez le <Link to="/centre-conformite" className="font-medium underline">Centre de conformité</Link> : la modification y est versionnée, accompagnée du texte de loi, et validée par l’administrateur.
+        {!can('admin') && ' Cet écran est en lecture seule pour votre rôle.'}
+      </p>
       <p className="mb-4 max-w-prose text-sm text-ink-soft">Les taux s'expriment en fraction (0,056 = 5,6 %). Pour un changement de taux ou de plafond, choisissez la date d'application : une nouvelle version est créée et les périodes antérieures gardent leurs taux. Gardez la date actuelle pour corriger une erreur de saisie. Les bulletins déjà validés ne changent jamais.</p>
-      <fieldset disabled={!can('paie')} className="mb-4 max-w-xs">
+      <fieldset disabled={!can('admin')} className="mb-4 max-w-xs">
         <TextField label="Applicable à partir du" type="date" value={effective} onChange={(e) => setEffective(e.target.value)}
           hint={mode === 'nouvelle_version' ? 'Nouvelle version datée' : mode === 'refus' ? 'Date antérieure à la version en cours : refusée' : 'Correction de la version en cours'} />
       </fieldset>
@@ -207,7 +212,7 @@ function PayrollSettingsTab() {
           ))}
         </ul>
       )}
-      <fieldset disabled={!can('paie')} className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+      <fieldset disabled={!can('admin')} className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
         {SETTING_FIELDS.map((s) => (
           <TextField key={s.key} label={s.label} type="number" step="any" value={(f[s.key] as number) ?? ''}
             hint={s.kind === 'rate' ? pct(f[s.key] as number) : s.kind === 'amount' ? `${fcfa(f[s.key] as number)} F` : undefined}
@@ -216,7 +221,7 @@ function PayrollSettingsTab() {
       </fieldset>
       <h3 className="mb-1 mt-6 text-sm font-semibold">Règles de calcul</h3>
       <p className="mb-3 max-w-prose text-xs text-ink-muted">Arbitrages D10 (voir docs/ARBITRAGES_PAIE.md). La valeur « Excel » rétablit l'ancien calcul du classeur.</p>
-      <fieldset disabled={!can('paie')} className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+      <fieldset disabled={!can('admin')} className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
         <SelectField label="Transport et km en cas d'absence" value={f.allowance_absence_basis ?? 'hours'}
           hint="Heures : l'indemnité baisse au prorata des heures d'absence."
           onChange={(e) => setF({ ...f, allowance_absence_basis: e.target.value })}>
@@ -258,9 +263,9 @@ function LoanCapSetting() {
       <h3 className="mb-1 mt-6 text-sm font-semibold">Prêts et acomptes</h3>
       <p className="mb-3 max-w-prose text-xs text-ink-muted">La retenue mensuelle d'un prêt ne peut pas dépasser cette part du brut du salarié. Un bulletin ne peut jamais avoir un net négatif.</p>
       <div className="flex max-w-md items-end gap-3">
-        <TextField label="Plafond de retenue (part du brut)" type="number" step="0.01" value={v} disabled={!can('rh', 'paie')}
+        <TextField label="Plafond de retenue (part du brut)" type="number" step="0.01" value={v} disabled={!can('admin')}
           hint={pct(Number(v))} onChange={(e) => setV(e.target.value)} />
-        {can('rh', 'paie') && <Button size="sm" variant="primary" icon={<Save className="h-3.5 w-3.5" />} loading={save.isPending} onClick={() => save.mutate()}>Enregistrer</Button>}
+        {can('admin') && <Button size="sm" variant="primary" icon={<Save className="h-3.5 w-3.5" />} loading={save.isPending} onClick={() => save.mutate()}>Enregistrer</Button>}
       </div>
       <div className="mt-3"><ErrorNote error={q.error || save.error} /></div>
     </>
