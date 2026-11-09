@@ -431,6 +431,7 @@ export type Database = {
           currency: string
           email: string | null
           ett_agreement_number: string | null
+          social_regularity_cert_date: string | null
           id: string
           ipres_number: string | null
           is_ett: boolean
@@ -453,6 +454,7 @@ export type Database = {
           currency?: string
           email?: string | null
           ett_agreement_number?: string | null
+          social_regularity_cert_date?: string | null
           id?: string
           ipres_number?: string | null
           is_ett?: boolean
@@ -474,6 +476,7 @@ export type Database = {
           currency?: string
           email?: string | null
           ett_agreement_number?: string | null
+          social_regularity_cert_date?: string | null
           id?: string
           ipres_number?: string | null
           is_ett?: boolean

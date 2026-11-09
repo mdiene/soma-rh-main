@@ -511,6 +511,9 @@ function CompanyTab() {
             value={f.ett_agreement_number ?? ''} onChange={t('ett_agreement_number')}
             hint="Requis pour ouvrir une entreprise de travail temporaire (Code du travail 2026, art. 292). Sans numéro, une alerte s'affiche tant que le module Intérim est actif." />
         )}
+        <TextField label="Attestation de régularité sociale (date de délivrance)" type="date"
+          value={f.social_regularity_cert_date ?? ''} onChange={(e) => setF({ ...f, social_regularity_cert_date: e.target.value || null })}
+          hint="Valable 6 mois (Code du travail 2026, art. 291). Une alerte s'affiche à J-30 tant que le module Gardiennage est actif." />
       </fieldset>
       <div className="mt-3"><ErrorNote error={company.error || save.error} /></div>
     </Section>
