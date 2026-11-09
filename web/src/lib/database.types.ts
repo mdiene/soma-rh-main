@@ -503,6 +503,7 @@ export type Database = {
         Row: {
           created_at: string
           detected_on: string
+          employee_id: string | null
           entity: string
           entity_id: string | null
           id: string
@@ -517,6 +518,7 @@ export type Database = {
         Insert: {
           created_at?: string
           detected_on?: string
+          employee_id?: string | null
           entity: string
           entity_id?: string | null
           id?: string
@@ -530,6 +532,7 @@ export type Database = {
         Update: {
           created_at?: string
           detected_on?: string
+          employee_id?: string | null
           entity?: string
           entity_id?: string | null
           id?: string
@@ -540,7 +543,165 @@ export type Database = {
           waived_by?: string | null
           waiver_reason?: string | null
         }
+        Relationships: [
+          {
+            foreignKeyName: "compliance_findings_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "compliance_findings_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "v_conformite_embauche"
+            referencedColumns: ["employee_id"]
+          },
+          {
+            foreignKeyName: "compliance_findings_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "v_leave_balances"
+            referencedColumns: ["employee_id"]
+          },
+        ]
+      }
+      compliance_rules: {
+        Row: {
+          domain: string
+          fix_target: string
+          label: string
+          legal_ref: string | null
+          rule_id: string
+          suggested_action: string
+        }
+        ComputedFields: never
+        Insert: {
+          domain: string
+          fix_target?: string
+          label: string
+          legal_ref?: string | null
+          rule_id: string
+          suggested_action: string
+        }
+        Update: {
+          domain?: string
+          fix_target?: string
+          label?: string
+          legal_ref?: string | null
+          rule_id?: string
+          suggested_action?: string
+        }
         Relationships: []
+      }
+      compliance_scans: {
+        Row: {
+          id: string
+          nb_alertes: number
+          nb_bloquants: number
+          nb_derogations: number
+          nb_salaries: number
+          scanned_at: string
+          scanned_by: string | null
+          status: string
+          summary: NonNullable<Json>
+        }
+        ComputedFields: never
+        Insert: {
+          id?: string
+          nb_alertes: number
+          nb_bloquants: number
+          nb_derogations: number
+          nb_salaries: number
+          scanned_at?: string
+          scanned_by?: string | null
+          status: string
+          summary?: NonNullable<Json>
+        }
+        Update: {
+          id?: string
+          nb_alertes?: number
+          nb_bloquants?: number
+          nb_derogations?: number
+          nb_salaries?: number
+          scanned_at?: string
+          scanned_by?: string | null
+          status?: string
+          summary?: NonNullable<Json>
+        }
+        Relationships: []
+      }
+      compliance_waivers: {
+        Row: {
+          employee_id: string | null
+          ended_at: string | null
+          ended_by: string | null
+          ended_reason: string | null
+          entity_id: string
+          granted_at: string
+          granted_by: string | null
+          id: string
+          parameter_code: string | null
+          parameter_value: number | null
+          reason: string
+          rule_id: string
+          status: string
+        }
+        ComputedFields: never
+        Insert: {
+          employee_id?: string | null
+          ended_at?: string | null
+          ended_by?: string | null
+          ended_reason?: string | null
+          entity_id: string
+          granted_at?: string
+          granted_by?: string | null
+          id?: string
+          parameter_code?: string | null
+          parameter_value?: number | null
+          reason: string
+          rule_id: string
+          status?: string
+        }
+        Update: {
+          employee_id?: string | null
+          ended_at?: string | null
+          ended_by?: string | null
+          ended_reason?: string | null
+          entity_id?: string
+          granted_at?: string
+          granted_by?: string | null
+          id?: string
+          parameter_code?: string | null
+          parameter_value?: number | null
+          reason?: string
+          rule_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "compliance_waivers_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "compliance_waivers_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "v_conformite_embauche"
+            referencedColumns: ["employee_id"]
+          },
+          {
+            foreignKeyName: "compliance_waivers_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "v_leave_balances"
+            referencedColumns: ["employee_id"]
+          },
+        ]
       }
       contract_types: {
         Row: {
@@ -2113,6 +2274,85 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "leave_applications"
             referencedColumns: ["id"]
+          },
+        ]
+      }
+      leave_ledger: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          days: number
+          effective_date: string
+          employee_id: string
+          id: string
+          kind: string
+          leave_type: string
+          note: string | null
+          source_id: string | null
+          source_table: string
+        }
+        ComputedFields: never
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          days: number
+          effective_date: string
+          employee_id: string
+          id?: string
+          kind: string
+          leave_type: string
+          note?: string | null
+          source_id?: string | null
+          source_table: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          days?: number
+          effective_date?: string
+          employee_id?: string
+          id?: string
+          kind?: string
+          leave_type?: string
+          note?: string | null
+          source_id?: string | null
+          source_table?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leave_ledger_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leave_ledger_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "v_conformite_embauche"
+            referencedColumns: ["employee_id"]
+          },
+          {
+            foreignKeyName: "leave_ledger_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "v_leave_balances"
+            referencedColumns: ["employee_id"]
+          },
+          {
+            foreignKeyName: "leave_ledger_leave_type_fkey"
+            columns: ["leave_type"]
+            isOneToOne: false
+            referencedRelation: "leave_types"
+            referencedColumns: ["code"]
+          },
+          {
+            foreignKeyName: "leave_ledger_leave_type_fkey"
+            columns: ["leave_type"]
+            isOneToOne: false
+            referencedRelation: "v_leave_balances"
+            referencedColumns: ["leave_type"]
           },
         ]
       }
@@ -5055,6 +5295,43 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      compliance_open_findings: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          detected_on: string
+          domain: string
+          employee_id: string
+          employee_name: string
+          employee_number: string
+          entity: string
+          entity_id: string
+          finding_id: string
+          fix_target: string
+          legal_ref: string
+          message: string
+          rule_id: string
+          rule_label: string
+          severity: string
+          suggested_action: string
+          waived: boolean
+          waiver_at: string
+          waiver_by: string
+          waiver_id: string
+          waiver_reason: string
+        }[]
+      }
+      compliance_status: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          nb_alertes: number
+          nb_bloquants: number
+          nb_derogations: number
+          nb_salaries: number
+          scanned_at: string
+          stale: boolean
+          status: string
+        }[]
+      }
       compute_income_tax: {
         Args: { p_date: string; p_monthly_gross: number; p_parts: number }
         Returns: Json
@@ -5175,6 +5452,15 @@ export type Database = {
       gen_random_uuid: { Args: Record<PropertyKey, never>; Returns: string }
       gen_salt: { Args: { "": string }; Returns: string }
       get_loan_max_rate: { Args: Record<PropertyKey, never>; Returns: number }
+      grant_waiver: {
+        Args: {
+          p_entity_id: string
+          p_parameter_code?: string
+          p_reason: string
+          p_rule_id: string
+        }
+        Returns: string
+      }
       has_role: { Args: { p_roles: string[] }; Returns: boolean }
       hr_analytics: { Args: { p_months?: number }; Returns: Json }
       hr_dashboard: { Args: { p_period?: string }; Returns: Json }
@@ -5200,6 +5486,7 @@ export type Database = {
           severity: string
         }[]
       }
+      lift_waivers: { Args: { p_code: string }; Returns: number }
       load_module_manifest: {
         Args: { p_hash: string; p_manifest: Json }
         Returns: Json
@@ -5624,6 +5911,30 @@ export type Database = {
       revoke_delegation: {
         Args: { p_delegation_id: string }
         Returns: undefined
+      }
+      revoke_waiver: {
+        Args: { p_id: string; p_reason: string }
+        Returns: undefined
+      }
+      run_compliance_scan: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          id: string
+          nb_alertes: number
+          nb_bloquants: number
+          nb_derogations: number
+          nb_salaries: number
+          scanned_at: string
+          scanned_by: string | null
+          status: string
+          summary: NonNullable<Json>
+        }
+        SetofOptions: {
+          from: "*"
+          to: "compliance_scans"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
       run_payroll_batch: {
         Args: {
