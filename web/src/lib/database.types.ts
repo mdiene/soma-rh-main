@@ -137,6 +137,49 @@ export type Database = {
         }
         Relationships: []
       }
+      approval_requests: {
+        Row: {
+          decided_at: string | null
+          decided_by: string | null
+          decision_note: string | null
+          id: string
+          kind: string
+          payload: NonNullable<Json>
+          requested_at: string
+          requested_by: string | null
+          status: string
+          summary: string
+          target: string
+        }
+        ComputedFields: never
+        Insert: {
+          decided_at?: string | null
+          decided_by?: string | null
+          decision_note?: string | null
+          id?: string
+          kind: string
+          payload: NonNullable<Json>
+          requested_at?: string
+          requested_by?: string | null
+          status?: string
+          summary: string
+          target: string
+        }
+        Update: {
+          decided_at?: string | null
+          decided_by?: string | null
+          decision_note?: string | null
+          id?: string
+          kind?: string
+          payload?: NonNullable<Json>
+          requested_at?: string
+          requested_by?: string | null
+          status?: string
+          summary?: string
+          target?: string
+        }
+        Relationships: []
+      }
       attendance: {
         Row: {
           absence_hours: number
@@ -645,6 +688,7 @@ export type Database = {
           parameter_code: string | null
           parameter_value: number | null
           reason: string
+          requested_by: string | null
           rule_id: string
           status: string
         }
@@ -661,6 +705,7 @@ export type Database = {
           parameter_code?: string | null
           parameter_value?: number | null
           reason: string
+          requested_by?: string | null
           rule_id: string
           status?: string
         }
@@ -676,6 +721,7 @@ export type Database = {
           parameter_code?: string | null
           parameter_value?: number | null
           reason?: string
+          requested_by?: string | null
           rule_id?: string
           status?: string
         }
@@ -5161,6 +5207,29 @@ export type Database = {
         Returns: undefined
       }
       apply_planning: { Args: { p_period: string }; Returns: Json }
+      apply_request: { Args: { p_id: string }; Returns: undefined }
+      approval_pending_count: {
+        Args: Record<PropertyKey, never>
+        Returns: number
+      }
+      approval_requests_overview: {
+        Args: { p_status?: string }
+        Returns: {
+          decided_at: string
+          decided_by: string
+          decided_by_email: string
+          decision_note: string
+          id: string
+          kind: string
+          payload: Json
+          requested_at: string
+          requested_by: string
+          requested_by_email: string
+          status: string
+          summary: string
+          target: string
+        }[]
+      }
       archive_employee_document: {
         Args: { p_document_id: string }
         Returns: {
@@ -5265,6 +5334,7 @@ export type Database = {
         Args: { p_payroll_entry_id: string }
         Returns: undefined
       }
+      cancel_request: { Args: { p_id: string }; Returns: undefined }
       cash_breakdown: { Args: { p_payroll_entry_id: string }; Returns: Json }
       certificat_travail: { Args: { p_employee_id: string }; Returns: string }
       check_journal_imputation: {
@@ -5374,6 +5444,15 @@ export type Database = {
         Args: { p_payroll_entry_id: string }
         Returns: string
       }
+      create_request: {
+        Args: {
+          p_kind: string
+          p_payload: Json
+          p_summary: string
+          p_target: string
+        }
+        Returns: string
+      }
       css_at_rate_effective: { Args: { p_default: number }; Returns: number }
       dearmor: { Args: { "": string }; Returns: string }
       decide_employee_request: {
@@ -5406,6 +5485,10 @@ export type Database = {
           p_step?: number
         }
         Returns: Json
+      }
+      decide_request: {
+        Args: { p_approve: boolean; p_id: string; p_note?: string }
+        Returns: undefined
       }
       delegate_approvals: {
         Args: {
@@ -5696,6 +5779,10 @@ export type Database = {
         Args: { p_employee: string; p_unit: string }
         Returns: undefined
       }
+      parameter_check: {
+        Args: { p_code: string; p_eff: string; p_value: number }
+        Returns: undefined
+      }
       parameter_overview: {
         Args: { p_as_of?: string }
         Returns: {
@@ -5863,6 +5950,31 @@ export type Database = {
         Args: { p_payroll_entry_id: string; p_reason: string }
         Returns: undefined
       }
+      request_parameter_change: {
+        Args: { p_code: string; p_effective_from?: string; p_value: number }
+        Returns: string
+      }
+      request_parameter_reset: {
+        Args: { p_code: string; p_effective_from?: string }
+        Returns: string
+      }
+      request_scale_change: {
+        Args: { p_code: string; p_effective_from: string; p_lines: Json }
+        Returns: string
+      }
+      request_scale_reset: {
+        Args: { p_code: string; p_effective_from: string }
+        Returns: string
+      }
+      request_waiver: {
+        Args: {
+          p_entity_id: string
+          p_parameter_code?: string
+          p_reason: string
+          p_rule_id: string
+        }
+        Returns: string
+      }
       reset_parameter: {
         Args: { p_code: string; p_effective_from?: string }
         Returns: string
@@ -5948,6 +6060,10 @@ export type Database = {
       salary_slip_explained: { Args: { p_slip_id: string }; Returns: Json }
       scale_check_ranges: {
         Args: { p_hi: string; p_label: string; p_lines: Json; p_lo: string }
+        Returns: undefined
+      }
+      scale_check_request: {
+        Args: { p_code: string; p_effective_from: string }
         Returns: undefined
       }
       scale_get: { Args: { p_code: string; p_on?: string }; Returns: Json }
