@@ -100,7 +100,12 @@ export default function MySpacePage() {
   const completion = expectedDocuments ? Math.round((documentsProvided / expectedDocuments) * 100) : 0
 
   if (me.isLoading) return <Spinner />
-  if (!meId) return <p className="panel px-4 py-6 text-sm text-ink-soft">Votre compte n’est pas encore relié à une fiche salarié. Demandez au service RH de le rattacher.</p>
+  if (!meId) return (
+    <>
+      <PageHeader title="Mon espace" />
+      <p className="panel px-4 py-6 text-sm text-ink-soft">Votre compte n’est pas encore relié à une fiche salarié. Demandez au service RH de le rattacher.</p>
+    </>
+  )
 
   return (
     <>

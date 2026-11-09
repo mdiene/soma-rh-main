@@ -23,6 +23,29 @@ Application RH et paie de la Société Minière Africaine (Sénégal). Interface
 - `graphify` : carte du code (`/graphify .`, résultat dans `graphify-out/`).
 - `xlsx` : lecture des classeurs Excel de paie.
 
+## Contrôles qualité (ECC)
+
+Avant de commiter, selon ce qui a changé (depuis `web/` sauf mention) :
+
+| Quoi | Commande | Agent / skill ECC |
+|---|---|---|
+| Types + lint | `npm run check` (le build fait `tsc -b`, `tsc -p .` seul ne vérifie rien) | `ecc:build-fix` si échec ; `ecc:react-build-resolver` |
+| Build | `npm run build` | |
+| Tests unitaires | `node --test ../tests/unit/*.test.mjs` | `ecc:tdd-guide` |
+| Tests SQL | `scripts/test-sql.ps1` (tout) ou `scripts/test-sql.ps1 audit_*` | `ecc:database-reviewer` avant de commiter une migration |
+| Non-régression paie | `scripts/verify-payroll.ps1` | |
+| Interface (menu par rôle, pages sans plantage) | `npm run e2e` ou `npx playwright test e2e/menu.spec.ts` | `ecc:e2e-runner` |
+| Accessibilité (WCAG A/AA) | `npx playwright test e2e/a11y.spec.ts` | `ecc:a11y-architect`, `ecc:accessibility` |
+| Revue du diff | `/ecc:code-review` | `ecc:react-reviewer`, `ecc:typescript-reviewer`, `ecc:security-reviewer` (API, auth), `ecc:silent-failure-hunter` |
+| Planifier une évolution | `/ecc:plan` | `ecc:architect`, `ecc:code-explorer` |
+
+Les tests e2e (`web/e2e`) :
+- demandent l'application lancée sur `http://localhost:5173` et les comptes de `tests/.env.qa` (hors Git) ; ils ne modifient aucune donnée ;
+- se connectent **une fois par rôle** (`auth.setup.ts`, session réutilisée) : l'API limite `POST /auth/v1/token` à 30 par 15 minutes et par IP, ne pas contourner cette limite ;
+- s'ouvrent en deux lots si la mémoire manque (Chromium + Docker) : un fichier à la fois.
+
+Toute modification du menu (`web/src/lib/nav.ts`, `Layout.tsx`) ou d'une page doit garder `menu.spec.ts` et `a11y.spec.ts` au vert.
+
 ## graphify
 
 This project has a knowledge graph at graphify-out/ with god nodes, community structure, and cross-file relationships.

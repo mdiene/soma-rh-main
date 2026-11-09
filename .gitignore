@@ -24,3 +24,8 @@ tests/.env.qa
 
 # Textes légaux (PDF volumineux, non versionnés)
 docs/sources-legales/
+
+# Playwright
+web/test-results/
+web/playwright-report/
+web/e2e/.auth/
