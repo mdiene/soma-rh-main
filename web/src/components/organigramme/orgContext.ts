@@ -16,6 +16,8 @@ export type OrgCtx = {
   canEdit: boolean                  // RH : poignées de liaison visibles
   onMenu: (id: string, anchor: DOMRect) => void   // menu « + » d'une carte (rattacher, détacher, équipe, direction…)
 }
+/** Type de donnée du glisser-déposer d'une carte salarié vers la fenêtre « Assignation rapide ». */
+export const EMPLOYEE_MIME = 'application/x-soma-employee'
 export const OrgContext = createContext<OrgCtx | null>(null)
 export const useOrg = () => useContext(OrgContext)!
 

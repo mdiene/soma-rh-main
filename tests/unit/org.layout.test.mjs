@@ -81,3 +81,38 @@ test('performance : 500 salariés (construction, disposition, dépliage de 100 n
   console.log(`  mesures : construction ${tBuild.toFixed(1)} ms · disposition de 501 nœuds ${tLayout.toFixed(1)} ms · dépliage de 100 nœuds ${tExpand.toFixed(1)} ms`)
   assert.ok(tLayout < 1500, `disposition trop lente : ${tLayout} ms`)
 })
+
+// --- disposition hybride : feuilles rangées en colonnes verticales sous leur parent ---
+const rect = (pos, id) => ({ x: pos.get(id).x, y: pos.get(id).y, w: org.CARD_W, h: org.CARD_H })
+const overlap = (a, b) => a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h
+
+test('grille : 12 feuilles sous un manager = 3 colonnes sans chevauchement, sous le parent', () => {
+  const { nodes } = org.buildTree(dataset(13, 12))
+  const { pos, grid } = org.layoutFull(nodes, org.visibleIds(nodes, new Set()))
+  const leaves = [...grid]
+  assert.equal(leaves.length, 12)
+  assert.equal(new Set(leaves.map((id) => pos.get(id).x)).size, 3)
+  const rs = leaves.map((id) => rect(pos, id))
+  for (let i = 0; i < rs.length; i++) for (let j = i + 1; j < rs.length; j++) assert.ok(!overlap(rs[i], rs[j]), `${leaves[i]} chevauche ${leaves[j]}`)
+  assert.ok(Math.min(...rs.map((r) => r.y)) > pos.get('p0').y + org.CARD_H, 'la grille est sous le parent')
+})
+
+test('grille : 4 à 8 feuilles = 2 colonnes ; 3 feuilles ou moins = pas de grille', () => {
+  const two = org.buildTree(dataset(9, 8)), a = org.layoutFull(two.nodes, org.visibleIds(two.nodes, new Set()))
+  assert.equal(new Set([...a.grid].map((id) => a.pos.get(id).x)).size, 2)
+  const few = org.buildTree(dataset(4, 3)), b = org.layoutFull(few.nodes, org.visibleIds(few.nodes, new Set()))
+  assert.equal(b.grid.size, 0)
+})
+
+test('50 salariés sous un manager : le dessin reste étroit (3 colonnes) au lieu de 50 cartes en ligne', () => {
+  const { nodes } = org.buildTree(dataset(51, 50))
+  const { pos } = org.layoutFull(nodes, org.visibleIds(nodes, new Set()))
+  const xs = [...pos.values()].map((p) => p.x)
+  const width = Math.max(...xs) + org.CARD_W - Math.min(...xs)
+  assert.ok(width < 4 * (org.CARD_W + org.GRID_GAP_X), `largeur ${width}`)
+})
+
+test('layout() reste compatible : mêmes positions que layoutFull', () => {
+  const { nodes } = org.buildTree(dataset(13, 12)), vis = org.visibleIds(nodes, new Set())
+  assert.deepEqual([...org.layout(nodes, vis)], [...org.layoutFull(nodes, vis).pos])
+})

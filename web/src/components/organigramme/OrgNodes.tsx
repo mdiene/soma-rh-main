@@ -2,7 +2,7 @@ import { memo } from 'react'
 import { BaseEdge, EdgeLabelRenderer, Handle, Position, getBezierPath, getSmoothStepPath, type EdgeProps, type Node, type NodeProps } from '@xyflow/react'
 import { Building2, CheckCircle2, UserPlus, ChevronDown, ChevronRight, Cog, Landmark, Layers, LayoutGrid, Plane, Plus, Repeat, UserCog, Users } from 'lucide-react'
 import { STATUS_LABEL, UNIT_LABEL, fullName, initials, isManager, type UnitKind } from '../../lib/org'
-import { useOrg, type CardData, type EdgeData } from './orgContext'
+import { EMPLOYEE_MIME, useOrg, type CardData, type EdgeData } from './orgContext'
 
 /** Cartes de l'organigramme (salarié, société, groupe « non rattachés ») et arêtes (direct, pointillé, intérim, fonctionnel). */
 
@@ -60,8 +60,10 @@ export const PersonNode = memo(function PersonNode({ data, id }: NodeProps<CardN
   const Icon = STATUS_ICON[p.statut]
   const label = `${fullName(p)}${p.poste ? `, ${p.poste}` : ''}${p.departement ? `, ${p.departement}` : ''}, ${STATUS_LABEL[p.statut]}, ${p.subordonnes} subordonné${p.subordonnes > 1 ? 's' : ''}`
   return (
-    <div className="org-card" data-status={p.statut} data-selected={o.selectedId === id} data-dim={dim ? 'true' : 'false'}
+    <div className={o.canEdit ? 'org-card nopan' : 'org-card'} data-status={p.statut} data-selected={o.selectedId === id} data-dim={dim ? 'true' : 'false'}
       role="button" tabIndex={0} aria-label={label} aria-pressed={o.selectedId === id}
+      draggable={o.canEdit}
+      onDragStart={o.canEdit ? (e) => { e.dataTransfer.setData(EMPLOYEE_MIME, id); e.dataTransfer.setData('text/plain', fullName(p)); e.dataTransfer.effectAllowed = 'move' } : undefined}
       onClick={() => o.onSelect(id)} onMouseEnter={() => o.onHover(id)} onMouseLeave={() => o.onHover(null)}
       onKeyDown={(e) => o.onKey(id, e)}>
       <Handles />
@@ -111,7 +113,15 @@ export const GroupNode = memo(function GroupNode({ data, id }: NodeProps<CardNod
 export const OrgEdge = memo(function OrgEdge(props: EdgeProps) {
   const d = (props.data ?? { kind: 'tree' }) as EdgeData
   const { sourceX, sourceY, targetX, targetY, sourcePosition, targetPosition } = props
-  const [path, lx, ly] = d.kind === 'tree'
+  // carte rangée en grille : descente par le côté gauche de sa colonne (bus horizontal au-dessus de la grille), sans traverser les autres cartes
+  const gridPath = () => {
+    const bus = sourceY + 42, spine = targetX - 20, r = 8
+    const dir = Math.sign(spine - sourceX) || 1
+    return `M ${sourceX} ${sourceY} V ${bus - r} Q ${sourceX} ${bus} ${sourceX + dir * r} ${bus} H ${spine - dir * r} Q ${spine} ${bus} ${spine} ${bus + r} V ${targetY - r} Q ${spine} ${targetY} ${spine + r} ${targetY} H ${targetX}`
+  }
+  const [path, lx, ly] = d.kind === 'tree' && d.grid === true
+    ? ([gridPath(), targetX, targetY] as const)
+    : d.kind === 'tree'
     ? getSmoothStepPath({ sourceX, sourceY, targetX, targetY, sourcePosition, targetPosition, borderRadius: 16 })
     : getBezierPath({ sourceX, sourceY, targetX, targetY, sourcePosition, targetPosition, curvature: 0.35 })
   return (

@@ -3,7 +3,7 @@ import { Background, BackgroundVariant, Controls, MiniMap, ReactFlow, ReactFlowP
 import '@xyflow/react/dist/style.css'
 import './organigramme.css'
 import './organigramme-actions.css'
-import { CARD_H, CARD_W, GROUP_ID, LINK_LABEL, ROOT_ID, unitNodeId, chainOf, descendantsCount, layout, visibleIds, type LinkType, type OrgData, type ViewNode } from '../../lib/org'
+import { CARD_H, CARD_W, GROUP_ID, LINK_LABEL, ROOT_ID, unitNodeId, chainOf, descendantsCount, layoutFull, visibleIds, type LinkType, type OrgData, type ViewNode } from '../../lib/org'
 import { GroupNode, OrgEdge, PersonNode, RootNode, UnitNode, VacantNode } from './OrgNodes'
 import { OrgContext, type CardData, type EdgeData, type OrgCtx } from './orgContext'
 
@@ -38,7 +38,7 @@ function Inner({ data, tree, collapsed, onToggle, selectedId, onSelect, matches,
   const lastSignal = useRef(fitSignal)
   const [hover, setHover] = useState<string | null>(null)
   const visible = useMemo(() => visibleIds(tree, collapsed), [tree, collapsed])
-  const pos = useMemo(() => layout(tree, visible), [tree, visible])
+  const { pos, grid } = useMemo(() => layoutFull(tree, visible), [tree, visible])
   const chain = useMemo(() => (hover ? chainOf(tree, hover) : null), [tree, hover])
 
   const nodes = useMemo<Node[]>(() => [...visible].map((id) => {
@@ -52,8 +52,9 @@ function Inner({ data, tree, collapsed, onToggle, selectedId, onSelect, matches,
       const parent = tree.get(id)?.parent
       if (!parent || !visible.has(parent)) continue
       const on = !!chain && chain.has(id) && chain.has(parent)
-      const d: EdgeData = { kind: 'tree', source: parent, target: id, hot: on, dim: !!chain && !on }
-      out.push({ id: `t-${parent}-${id}`, source: parent, target: id, sourceHandle: 'b', targetHandle: 't', type: 'org', data: d, focusable: false })
+      const inGrid = grid.has(id)
+      const d: EdgeData = { kind: 'tree', source: parent, target: id, hot: on, dim: !!chain && !on, grid: inGrid }
+      out.push({ id: `t-${parent}-${id}`, source: parent, target: id, sourceHandle: 'b', targetHandle: inGrid ? 'l-t' : 't', type: 'org', data: d, focusable: false })
     }
     for (const l of data.liens) {
       if (mode === 'structure' || l.type === 'direct' || !showLinks[l.type]) continue
@@ -64,7 +65,7 @@ function Inner({ data, tree, collapsed, onToggle, selectedId, onSelect, matches,
       out.push({ id: `x-${l.id}`, source: l.source, target: l.target, sourceHandle: left ? 'r-s' : 'l-s', targetHandle: left ? 'l-t' : 'r-t', type: 'org', data: d, focusable: false })
     }
     return out
-  }, [visible, tree, data.liens, showLinks, chain, pos, mode])
+  }, [visible, tree, data.liens, showLinks, chain, pos, grid, mode])
 
   const goTo = useCallback((id: string, then?: () => void) => {
     rf.fitView({ nodes: [{ id }], duration: 380, maxZoom: 1, padding: 0.8 })

@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { AlertTriangle, ChevronsDownUp, ChevronsUpDown, Download, Image as ImageIcon, Landmark, List, Maximize2, Moon, Network, Plus, Search, Sun, UserCog, Users } from 'lucide-react'
+import { AlertTriangle, ArrowRightLeft, ChevronsDownUp, ChevronsUpDown, Download, Image as ImageIcon, Landmark, List, Maximize2, Moon, Network, Plus, Search, Sun, UserCog, Users } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { dataApi, unwrap, type ApiClient } from '../lib/api'
@@ -13,6 +13,8 @@ import type { EdgeData } from '../components/organigramme/orgContext'
 import { OrgMenu, type MenuItem } from '../components/organigramme/OrgMenu'
 import { OrgListView } from '../components/organigramme/OrgListView'
 import { TeamsView } from '../components/organigramme/TeamsView'
+import { QuickAssignDock } from '../components/organigramme/QuickAssignDock'
+import { AnimatePresence } from 'framer-motion'
 
 /** Équipes et managers › Organigramme : hiérarchie directe + liens hors hiérarchie (pointillé, intérim, fonctionnel) et équipes. */
 
@@ -48,6 +50,8 @@ export default function OrganigrammePage() {
   const [busy, setBusy] = useState<string | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
   const [edgeMenu, setEdgeMenu] = useState<{ items: MenuItem[]; anchor: DOMRect } | null>(null)
+  const [dockOpen, setDockOpen] = useState<boolean>(() => store.get('soma.org.dock', false))
+  useEffect(() => { store.set('soma.org.dock', dockOpen) }, [dockOpen])
 
   // message de confirmation (ex. notification de rattachement) : disparaît seul
   useEffect(() => { if (!notice) return; const t = window.setTimeout(() => setNotice(null), 12000); return () => window.clearTimeout(t) }, [notice])
@@ -157,6 +161,23 @@ export default function OrganigrammePage() {
     ] : [open]
   }
   const unitOf = (nodeId: string) => data?.unites.find((x) => unitNodeId(x.id) === nodeId)
+
+  /** Carte salarié déposée sur une unité de la fenêtre « Assignation rapide » : rattachement direct, sans toucher à son manager. */
+  const assign = async (employeeId: string, unitId: string) => {
+    const emp = byId.get(employeeId); const unit = data?.unites.find((u) => u.id === unitId)
+    if (!canEdit || !emp || !unit) return
+    if (emp.unite === unitId) { setNotice(`${fullName(emp)} est déjà rattaché(e) à ${unit.nom}.`); return }
+    const before = data?.unites.find((u) => u.id === emp.unite)?.nom
+    setBusy(`Rattachement de ${fullName(emp)} à ${unit.nom}…`); setNotice(null)
+    try {
+      const r = unwrap(await db.rpc('org_attach_to_unit', { p_employee: employeeId, p_unit: unitId, p_link_head: false })) as { message?: string } | null
+      setNotice(r?.message ?? `${fullName(emp)} : ${before ? `${before} → ` : ''}${unit.nom}.`)
+      setMode('structure'); setFitSignal((n) => n + 1)
+      await chart.refetch()
+    } catch (e) {
+      setNotice(`Rattachement impossible : ${e instanceof Error ? e.message : 'erreur inconnue'}`)
+    } finally { setBusy(null) }
+  }
 
   /** Liaison tirée à la souris depuis une poignée vers une autre carte : ouvre la fenêtre correspondante, déjà remplie. */
   const onLink = (from: string, handle: 'dn' | 't' | 'side', to: string) => {
@@ -275,6 +296,7 @@ export default function OrganigrammePage() {
                   stroke={t === 'dotted' ? 'var(--o-violet)' : t === 'interim' ? 'var(--o-amber)' : 'var(--o-green)'} strokeDasharray={t === 'dotted' ? '6 4' : t === 'interim' ? '1 5' : '10 3 2 3'} /></svg>{LINK_LABEL[t]}
               </button>
             ))}
+            {canEdit && <button type="button" className="org-btn" style={{ minHeight: 28, fontSize: 12 }} aria-pressed={dockOpen} onClick={() => setDockOpen((v) => !v)}><ArrowRightLeft className="h-3.5 w-3.5" aria-hidden />Assignation rapide</button>}
             <button type="button" className="org-btn" style={{ minHeight: 28, fontSize: 12 }} onClick={expandAll}><ChevronsUpDown className="h-3.5 w-3.5" aria-hidden />Tout développer</button>
             <button type="button" className="org-btn" style={{ minHeight: 28, fontSize: 12 }} onClick={collapseAll}><ChevronsDownUp className="h-3.5 w-3.5" aria-hidden />Tout réduire</button>
             {anomalies.length > 0 && (
@@ -328,6 +350,11 @@ export default function OrganigrammePage() {
               {view === 'teams' && <TeamsView data={data} canEdit={canEdit} onSelect={pick} />}
               {view === 'list' && <OrgListView tree={tree.nodes} data={data} matches={matches} onSelect={pick} />}
             </div>
+            <AnimatePresence>
+              {canEdit && view === 'graph' && dockOpen && (
+                <QuickAssignDock units={data.unites} shifted={!!(selected || selectedUnit)} busy={!!busy} onClose={() => setDockOpen(false)} onAssign={(e, u) => void assign(e, u)} />
+              )}
+            </AnimatePresence>
             {selected && view !== 'teams' && (
               <DetailPanel person={selected} data={data} canEdit={canEdit} onClose={() => setSelectedId(null)} onSelect={pick} onAction={setDialog} />
             )}

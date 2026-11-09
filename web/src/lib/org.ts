@@ -87,17 +87,53 @@ export function ancestorsOf(nodes: Map<string, ViewNode>, id: string): string[] 
   return out
 }
 
-/** Disposition calculée UNIQUEMENT sur la hiérarchie : les liens hors hiérarchie ne déplacent rien. */
-export function layout(nodes: Map<string, ViewNode>, visible: Set<string>): Map<string, { x: number; y: number }> {
+/** Grille des feuilles : au-delà de GRID_MIN salariés (ou postes ouverts) sans subordonnés sous un même parent, on les range en colonnes
+ *  verticales (2, ou 3 à partir de 9) au lieu d'une ligne horizontale qui s'allonge avec l'effectif. Les niveaux hauts restent horizontaux. */
+export const GRID_MIN = 4
+export const GRID_GAP_X = 44        // entre deux colonnes : laisse passer la ligne de raccordement de la colonne
+export const GRID_GAP_Y = 22
+const GRID_PAD_LEFT = 26            // place de la ligne de raccordement à gauche de la première colonne
+const GRID_PAD_TOP = 30             // place du bus horizontal au-dessus de la grille
+export const gridColumns = (n: number) => (n >= 9 ? 3 : 2)
+
+/** Disposition calculée UNIQUEMENT sur la hiérarchie : les liens hors hiérarchie ne déplacent rien.
+ *  `grid` = nœuds rangés en grille : leurs lignes de raccordement passent par le côté gauche de la carte. */
+export function layoutFull(nodes: Map<string, ViewNode>, visible: Set<string>): { pos: Map<string, { x: number; y: number }>; grid: Set<string> } {
+  const isLeaf = (id: string) => { const v = nodes.get(id); return !!v && (v.kind === 'person' || v.kind === 'vacant') && !v.children.some((c) => visible.has(c)) }
+  const blocks = new Map<string, { parent: string; leaves: string[]; cols: number; rows: number; w: number; h: number }>()
+  const gridded = new Set<string>()
+  for (const pid of visible) {
+    const leaves = (nodes.get(pid)?.children ?? []).filter((c) => visible.has(c) && isLeaf(c))
+    if (leaves.length < GRID_MIN) continue
+    const cols = gridColumns(leaves.length)
+    const rows = Math.ceil(leaves.length / cols)
+    blocks.set(`~grid:${pid}`, {
+      parent: pid, leaves, cols, rows,
+      w: GRID_PAD_LEFT + cols * CARD_W + (cols - 1) * GRID_GAP_X,
+      h: GRID_PAD_TOP + rows * CARD_H + (rows - 1) * GRID_GAP_Y,
+    })
+    for (const l of leaves) gridded.add(l)
+  }
   const g = new dagre.graphlib.Graph()
   g.setDefaultEdgeLabel(() => ({}))
   g.setGraph({ rankdir: 'TB', nodesep: 36, ranksep: 84, marginx: 24, marginy: 24 })
-  for (const id of visible) g.setNode(id, { width: CARD_W, height: CARD_H })
-  for (const id of visible) { const p = nodes.get(id)?.parent; if (p && visible.has(p)) g.setEdge(p, id) }
+  for (const id of visible) if (!gridded.has(id)) g.setNode(id, { width: CARD_W, height: CARD_H })
+  for (const [bid, b] of blocks) { g.setNode(bid, { width: b.w, height: b.h }); g.setEdge(b.parent, bid) }
+  for (const id of visible) { const p = nodes.get(id)?.parent; if (p && visible.has(p) && !gridded.has(id)) g.setEdge(p, id) }
   dagre.layout(g)
   const pos = new Map<string, { x: number; y: number }>()
-  for (const id of visible) { const n = g.node(id); pos.set(id, { x: n.x - CARD_W / 2, y: n.y - CARD_H / 2 }) }
-  return pos
+  for (const id of visible) if (!gridded.has(id)) { const n = g.node(id); pos.set(id, { x: n.x - CARD_W / 2, y: n.y - CARD_H / 2 }) }
+  for (const [bid, b] of blocks) {
+    const n = g.node(bid)
+    const x0 = n.x - b.w / 2 + GRID_PAD_LEFT, y0 = n.y - b.h / 2 + GRID_PAD_TOP
+    // remplissage colonne par colonne : on lit chaque colonne de haut en bas
+    b.leaves.forEach((id, i) => pos.set(id, { x: x0 + Math.floor(i / b.rows) * (CARD_W + GRID_GAP_X), y: y0 + (i % b.rows) * (CARD_H + GRID_GAP_Y) }))
+  }
+  return { pos, grid: gridded }
+}
+
+export function layout(nodes: Map<string, ViewNode>, visible: Set<string>): Map<string, { x: number; y: number }> {
+  return layoutFull(nodes, visible).pos
 }
 
 /** Chaîne hiérarchique d'un nœud (ancêtres + descendants) : sert à la mise en évidence au survol. */
