@@ -44,7 +44,7 @@ Décision préalable : langage des formules (spike CP-11, à valider par l'utili
 ### M4 — Services / Intérim (livré 09/11/2026 : agrément, IFC 7 %, durée 2 ans, cumul, motif art. 293 ; INT-T02 sans objet tant que la facturation n'existe pas)
 Contrôles art. 291 à 294, agrément (J-30), durée maximale 2 ans (◐), indemnité de fin de mission 7 % (✖ provisoire, saisie obligatoire). Tests INT-T01, INT-T02 et nouveaux. Dépend de M3 et de la décision utilisateur sur l'IFC.
 
-### M5 — Gardiennage puis Industrie et mines (gardiennage : alertes art. 291, seuils d'équivalence et heures sup. d'équivalence livrés 09/11/2026 ; reste industrie/mines, bloqué par la confirmation du manifeste)
+### M5 — Gardiennage puis Industrie et mines (gardiennage : alertes art. 291, seuils d'équivalence et heures sup. d'équivalence livrés 09/11/2026  ; industrie/mines : manifeste v0.1.0-draft, habilitations et primes livrés 09/11/2026 — aucune priorité de secteur, module comme les autres)
 Gardiennage : seuils d'équivalence saisis par le client (✖), nuit 22 h–5 h (✔ art. 245), majorations 15/40/60/100 (◐). Industrie et mines : module absent de la spécification v2 ; manifeste à rédiger et à confirmer (prérequis §10-1) ; primes par convention ou accord, à saisir. Cas dorés signés par le comptable.
 
 ### M6 — Terrain
@@ -56,7 +56,6 @@ Transport (CCNI art. 61), Nettoyage/BTP, HORECA (logement ◐ 33 500 / 20 000 / 
 ## Prérequis humains
 | Décision / pièce | Bloque |
 |---|---|
-| Confirmer Industrie et mines en priorité 1 | manifeste (CP-12), M5 |
 | Valider le langage de formules (CEL ou JSONLogic) | M3 |
 | IFC intérim définitif, plafond AT de la CSS | M4 |
 | JO n° 4091 (décrets 70-182/183/184) | M5 (sinon seuils saisis par le client) |

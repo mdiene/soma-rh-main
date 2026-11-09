@@ -1,0 +1,289 @@
+{
+  "manifest_version": "2.0",
+  "module_id": "soma-mod-industrie-mines-sn",
+  "module_name": "Module vertical Industrie et mines (Sénégal)",
+  "version": "0.1.0-draft",
+  "status": "draft",
+  "jurisdiction": "SN",
+  "requires_core": ">=1.0",
+  "target_sector": "INDUSTRIE_MINES",
+  "custom_fields": [
+    {
+      "field_key": "ind_site",
+      "target_entity": "Contract",
+      "label": "Site d'affectation",
+      "data_type": "string",
+      "required": false
+    },
+    {
+      "field_key": "ind_poste",
+      "target_entity": "Contract",
+      "label": "Poste",
+      "data_type": "string",
+      "required": false
+    },
+    {
+      "field_key": "ind_equipe_rotation",
+      "target_entity": "Contract",
+      "label": "Équipe de rotation",
+      "data_type": "string",
+      "required": false
+    },
+    {
+      "field_key": "ind_zone_risque",
+      "target_entity": "Contract",
+      "label": "Affecté en zone à risque",
+      "data_type": "boolean",
+      "required": false,
+      "default_value": false
+    },
+    {
+      "field_key": "ind_habilitations",
+      "target_entity": "Employee",
+      "label": "Habilitations (liste libre)",
+      "data_type": "string",
+      "required": false
+    },
+    {
+      "field_key": "ind_habilitation_expiry",
+      "target_entity": "Employee",
+      "label": "Échéance de l'habilitation la plus proche",
+      "data_type": "date",
+      "required": false,
+      "validation": {
+        "note": "Une habilitation échue ou proche de l'échéance déclenche une alerte (conditionne l'affectation)"
+      }
+    }
+  ],
+  "parameters": {
+    "weekly_legal_hours": {
+      "value": 40,
+      "unit": "hours_per_week",
+      "source": "Code du travail 2026 (loi 2026-18), art. 241",
+      "legal_status": "verified"
+    },
+    "night_window": {
+      "value": {
+        "start": "22:00",
+        "end": "05:00"
+      },
+      "source": "Code du travail 2026, art. 245 ; décret 70-182 (lu)",
+      "legal_status": "verified"
+    },
+    "weekly_rest_hours": {
+      "value": 24,
+      "source": "Code du travail 2026, art. 246",
+      "legal_status": "verified"
+    },
+    "night_bonus_rate": {
+      "value": null,
+      "legal_status": "to_provide",
+      "client_input_allowed": true,
+      "note": "Taux de la prime de nuit (multiple du taux horaire légal TH_40) fixé par la convention ou l'accord du client. Aucune valeur par défaut"
+    },
+    "continuous_shift_rate": {
+      "value": null,
+      "legal_status": "to_provide",
+      "client_input_allowed": true,
+      "note": "Prime de poste continu (multiple du taux horaire) : convention ou accord du client"
+    },
+    "risk_premium_rate": {
+      "value": null,
+      "legal_status": "to_provide",
+      "client_input_allowed": true,
+      "note": "Prime de risque / de fond (multiple du taux horaire) : convention ou accord du client"
+    },
+    "on_call_rate": {
+      "value": null,
+      "legal_status": "to_provide",
+      "client_input_allowed": true,
+      "note": "Indemnité d'astreinte (multiple du taux horaire) : convention ou accord du client"
+    },
+    "habilitation_alert_days": {
+      "value": 30,
+      "unit": "days",
+      "legal_status": "secondary",
+      "source": "Délai d'alerte interne, aucune obligation légale lue"
+    }
+  },
+  "payroll_rules": [
+    {
+      "rule_id": "IND_NIGHT_BONUS",
+      "label": "Prime de nuit (industrie, mines)",
+      "inputs": [
+        "INP_NIGHT_HOURS"
+      ],
+      "params": [
+        "night_bonus_rate"
+      ],
+      "taxable": true,
+      "logic": {
+        "*": [
+          {
+            "var": "INP_NIGHT_HOURS"
+          },
+          {
+            "var": "hourly_rate"
+          },
+          {
+            "var": "night_bonus_rate"
+          }
+        ]
+      },
+      "note": "Calculée sur le taux horaire légal TH_40. Cotisable : à confirmer avec le comptable"
+    },
+    {
+      "rule_id": "IND_CONTINUOUS_SHIFT",
+      "label": "Prime de poste continu",
+      "inputs": [
+        "INP_CONTINUOUS_SHIFT_HOURS"
+      ],
+      "params": [
+        "continuous_shift_rate"
+      ],
+      "taxable": true,
+      "logic": {
+        "*": [
+          {
+            "var": "INP_CONTINUOUS_SHIFT_HOURS"
+          },
+          {
+            "var": "hourly_rate"
+          },
+          {
+            "var": "continuous_shift_rate"
+          }
+        ]
+      },
+      "note": "Taux saisi par le client (convention ou accord)"
+    },
+    {
+      "rule_id": "IND_RISK_PREMIUM",
+      "label": "Prime de risque / de fond",
+      "inputs": [
+        "INP_RISK_HOURS"
+      ],
+      "params": [
+        "risk_premium_rate"
+      ],
+      "taxable": true,
+      "logic": {
+        "*": [
+          {
+            "var": "INP_RISK_HOURS"
+          },
+          {
+            "var": "hourly_rate"
+          },
+          {
+            "var": "risk_premium_rate"
+          }
+        ]
+      },
+      "note": "Taux saisi par le client (convention ou accord)"
+    },
+    {
+      "rule_id": "IND_ON_CALL",
+      "label": "Indemnité d'astreinte",
+      "inputs": [
+        "INP_ONCALL_HOURS"
+      ],
+      "params": [
+        "on_call_rate"
+      ],
+      "taxable": true,
+      "logic": {
+        "*": [
+          {
+            "var": "INP_ONCALL_HOURS"
+          },
+          {
+            "var": "hourly_rate"
+          },
+          {
+            "var": "on_call_rate"
+          }
+        ]
+      },
+      "note": "Taux saisi par le client ; nature salariale de l'astreinte à confirmer"
+    }
+  ],
+  "payroll_inputs": [
+    {
+      "input_code": "INP_NIGHT_HOURS",
+      "label": "Heures de nuit (22 h – 5 h)",
+      "input_type": "quantity",
+      "unit": "hours",
+      "is_taxable": true,
+      "is_cotisable": true
+    },
+    {
+      "input_code": "INP_CONTINUOUS_SHIFT_HOURS",
+      "label": "Heures en poste continu",
+      "input_type": "quantity",
+      "unit": "hours",
+      "is_taxable": null,
+      "is_cotisable": null,
+      "legal_status": "to_provide"
+    },
+    {
+      "input_code": "INP_RISK_HOURS",
+      "label": "Heures en zone à risque",
+      "input_type": "quantity",
+      "unit": "hours",
+      "is_taxable": null,
+      "is_cotisable": null,
+      "legal_status": "to_provide"
+    },
+    {
+      "input_code": "INP_ONCALL_HOURS",
+      "label": "Heures d'astreinte",
+      "input_type": "quantity",
+      "unit": "hours",
+      "is_taxable": null,
+      "is_cotisable": null,
+      "legal_status": "to_provide"
+    }
+  ],
+  "compliance_checks": [
+    {
+      "check_id": "IND_HABILITATION",
+      "description": "Habilitation échue ou arrivant à échéance pour un salarié affecté",
+      "emit_to": "legal_alerts",
+      "severity": "high"
+    },
+    {
+      "check_id": "IND_MISSING_RATE",
+      "description": "Saisie de période avec un taux de prime non renseigné : constat, aucun montant inventé",
+      "emit_to": "module_findings",
+      "severity": "warning"
+    },
+    {
+      "check_id": "IND_AT_RATE",
+      "description": "Taux AT/MP de la société à renseigner (classement du risque par la CSS)",
+      "legal_ref": "Code de la sécurité sociale 2026, art. 74-75",
+      "severity": "medium"
+    }
+  ],
+  "tests": [
+    {
+      "case_id": "IND-T01",
+      "description": "Prime de nuit saisie sans taux paramétré : constat missing_parameter:night_bonus_rate, aucune ligne de paie",
+      "expected": {
+        "finding": "missing_parameter:night_bonus_rate",
+        "payslip_line": false
+      }
+    },
+    {
+      "case_id": "IND-T02",
+      "description": "Habilitation échue : alerte habilitation_echue",
+      "expected": {
+        "alert": "habilitation_echue"
+      }
+    }
+  ],
+  "notes": [
+    "Module absent de la spécification v2 : manifeste rédigé à partir de PROJET_MODULES_METIERS_MISE_EN_PLACE §5. Aucune convention collective minière ni code minier n'a été lu : toutes les primes sont à saisir par le client.",
+    "Heures supplémentaires : planchers du décret 70-184 via le cœur (saisie d'heures sup. de la grille de présences)."
+  ]
+}
