@@ -371,13 +371,24 @@
   "planning_rules": {
     "shift_templates": [
       {
-        "code": "V12",
-        "label": "Vacation 12 h",
+        "code": "V12J",
+        "label": "Vacation jour 12 h (06 h-18 h)",
+        "start": "06:00",
+        "end": "18:00",
+        "duration_hours": 12
+      },
+      {
+        "code": "V12N",
+        "label": "Vacation nuit 12 h (18 h-06 h)",
+        "start": "18:00",
+        "end": "06:00",
         "duration_hours": 12
       },
       {
         "code": "V24",
-        "label": "Vacation 24 h",
+        "label": "Vacation 24 h (06 h-06 h)",
+        "start": "06:00",
+        "end": "06:00",
         "duration_hours": 24
       }
     ],

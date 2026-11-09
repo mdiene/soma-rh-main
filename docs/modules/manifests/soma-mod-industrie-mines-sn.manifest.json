@@ -285,5 +285,31 @@
   "notes": [
     "Module absent de la spécification v2 : manifeste rédigé à partir de PROJET_MODULES_METIERS_MISE_EN_PLACE §5. Aucune convention collective minière ni code minier n'a été lu : toutes les primes sont à saisir par le client.",
     "Heures supplémentaires : planchers du décret 70-184 via le cœur (saisie d'heures sup. de la grille de présences)."
-  ]
+  ],
+  "planning_rules": {
+    "shift_templates": [
+      {
+        "code": "EQ-M",
+        "label": "Équipe du matin (06 h-14 h)",
+        "start": "06:00",
+        "end": "14:00",
+        "duration_hours": 8
+      },
+      {
+        "code": "EQ-A",
+        "label": "Équipe d'après-midi (14 h-22 h)",
+        "start": "14:00",
+        "end": "22:00",
+        "duration_hours": 8
+      },
+      {
+        "code": "EQ-N",
+        "label": "Équipe de nuit (22 h-06 h)",
+        "start": "22:00",
+        "end": "06:00",
+        "duration_hours": 8
+      }
+    ],
+    "note": "Horaires de départ modifiables dans le manifeste ; rotations et postes continus à confirmer avec le client"
+  }
 }

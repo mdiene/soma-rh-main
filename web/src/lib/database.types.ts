@@ -2392,6 +2392,58 @@ export type Database = {
           },
         ]
       }
+      module_shift: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          employee_id: string
+          hours: number
+          id: string
+          module_id: string
+          night_hours: number
+          shift_code: string
+          work_date: string
+        }
+        ComputedFields: never
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          employee_id: string
+          hours: number
+          id?: string
+          module_id: string
+          night_hours?: number
+          shift_code: string
+          work_date: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          employee_id?: string
+          hours?: number
+          id?: string
+          module_id?: string
+          night_hours?: number
+          shift_code?: string
+          work_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "module_shift_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "module_shift_module_id_fkey"
+            columns: ["module_id"]
+            isOneToOne: false
+            referencedRelation: "module_manifest"
+            referencedColumns: ["module_id"]
+          },
+        ]
+      }
       module_payroll_input: {
         Row: {
           employee_id: string
@@ -5021,6 +5073,41 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
+      }
+      apply_planning: {
+        Args: { p_period: string }
+        Returns: Json
+      }
+      plan_shifts: {
+        Args: { p_rows: Json }
+        Returns: number
+      }
+      planning_compliance: {
+        Args: { p_from: string; p_to: string }
+        Returns: {
+          code: string
+          employee_id: string
+          employee_name: string
+          message: string
+          severity: string
+          week_start: string
+        }[]
+      }
+      shift_night_hours: {
+        Args: { p_end: string; p_start: string }
+        Returns: number
+      }
+      shift_templates: {
+        Args: never
+        Returns: {
+          code: string
+          end_time: string
+          hours: number
+          label: string
+          module_id: string
+          night_hours: number
+          start_time: string
+        }[]
       }
       module_active_for: {
         Args: { p_employee_id: string; p_module_id: string; p_period: string }

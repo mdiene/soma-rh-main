@@ -1,5 +1,5 @@
 import {
-  Banknote, CalendarCheck2, CalendarDays, Calculator, FileSpreadsheet, FileText, History, Inbox, LayoutDashboard,
+  Banknote, CalendarCheck2, CalendarRange, CalendarDays, Calculator, FileSpreadsheet, FileText, History, Inbox, LayoutDashboard,
   LockKeyhole, Network, PieChart, Settings, ShieldCheck, SlidersHorizontal, UserCircle, Users, Wallet, Receipt,
   Blocks, Briefcase, Cog, UsersRound, type LucideIcon,
 } from 'lucide-react'
@@ -35,6 +35,7 @@ export const SPACES: NavSpace[] = [
     { to: '/demandes', label: 'Demandes des salariés', icon: Inbox, roles: ['rh'], badge: 'demandes' },
     { to: '/conges', label: 'Congés et absences', icon: CalendarDays, roles: ['rh', 'paie'], badge: 'validations', keywords: 'conge solde rtt maladie' },
     { to: '/presences', label: 'Présences', icon: CalendarCheck2, roles: ['rh', 'paie'] },
+    { to: '/planning', label: 'Planning métier', icon: CalendarRange, roles: ['rh', 'paie'], keywords: 'poste vacation equipe rotation nuit gardiennage' },
     { to: '/equipes', label: 'Équipes et managers', icon: UsersRound, roles: ['rh'] },
     { to: '/conformite', label: 'Conformité', icon: ShieldCheck, roles: ['rh', 'paie'] },
   ] },

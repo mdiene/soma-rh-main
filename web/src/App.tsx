@@ -13,6 +13,7 @@ const EmployeeDetailPage = lazy(() => import('./pages/EmployeeDetailPage'))
 const ModulesPage = lazy(() => import('./pages/ModulesPage'))
 const LeavesPage = lazy(() => import('./pages/LeavesPage'))
 const AttendancePage = lazy(() => import('./pages/AttendancePage'))
+const PlanningPage = lazy(() => import('./pages/PlanningPage'))
 const PayrollInputsPage = lazy(() => import('./pages/PayrollInputsPage'))
 const PayrollEntriesPage = lazy(() => import('./pages/PayrollEntriesPage'))
 const PayrollGovernancePage = lazy(() => import('./pages/PayrollGovernancePage'))
@@ -78,6 +79,7 @@ export default function App() {
         <Route path="dossiers-salaries" element={<RoleGuard to="/dossiers-salaries"><EmployeeDocumentsPage /></RoleGuard>} />
         <Route path="conges" element={<LeavesPage />} />
         <Route path="presences" element={<RoleGuard to="/presences"><AttendancePage /></RoleGuard>} />
+        <Route path="planning" element={<RoleGuard to="/planning"><PlanningPage /></RoleGuard>} />
         <Route path="pilotage" element={<RoleGuard to="/pilotage"><PilotagePage /></RoleGuard>} />
         <Route path="paie" element={<RoleGuard to="/paie"><PayrollEntriesPage /></RoleGuard>} />
         <Route path="paie/gouvernance" element={<RoleGuard to="/paie/gouvernance"><PayrollGovernancePage /></RoleGuard>} />

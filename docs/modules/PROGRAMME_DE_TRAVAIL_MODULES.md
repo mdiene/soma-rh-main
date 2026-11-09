@@ -47,7 +47,7 @@ Contrôles art. 291 à 294, agrément (J-30), durée maximale 2 ans (◐), indem
 ### M5 — Gardiennage puis Industrie et mines (gardiennage : alertes art. 291, seuils d'équivalence et heures sup. d'équivalence livrés 09/11/2026  ; industrie/mines : manifeste v0.1.0-draft, habilitations et primes livrés 09/11/2026 — aucune priorité de secteur, module comme les autres)
 Gardiennage : seuils d'équivalence saisis par le client (✖), nuit 22 h–5 h (✔ art. 245), majorations 15/40/60/100 (◐). Industrie et mines : module absent de la spécification v2 ; manifeste à rédiger et à confirmer (prérequis §10-1) ; primes par convention ou accord, à saisir. Cas dorés signés par le comptable.
 
-### M6 — Terrain
+### M6 — Terrain (livré 09/11/2026 : planning métier, grille semaine avec collage Excel, vue mobile, conformité hebdomadaire, report présences + heures de nuit ; reste : modèles de postes éditables en base, widgets sur le tableau de bord)
 Modèles de postes dans le planning, grille rapide de saisie (collage Excel), widgets de conformité par module, vue mobile une colonne. Dépend de M3 au minimum.
 
 ### M7 — Autres métiers
