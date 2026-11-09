@@ -128,6 +128,8 @@ Convention d'estimation : jours-personne, fourchette (basse = rien d'inattendu ;
 
 ### L7 — Congés par écritures et sortie (15-25 j)
 
+> **Avancement (09/11/2026)** : L7-01 et L7-02 faits — migration `20261206090000_leave_ledger.sql` : registre `leave_ledger` en ajout seul (écritures signées posées par déclencheurs sur `leave_allocations` et `leave_applications`, reprise de l'existant, RLS comme les congés, journal d'audit), `v_leave_balances` lue depuis le registre (même colonnes). Test `tests/sql/leave_ledger.sql` : équivalence avec l'ancien calcul sur les données réelles, cycle de vie, ajout seul. **Non fait** : L7-03 `employee_exits` et `exit_statement_lines`, L7-04 certificat de travail, L7-05 recoupement D10 (aucun taux sans confirmation du juriste), écriture manuelle d'ajustement (la source `manual` est prévue, sans écran).
+
 | | |
 |---|---|
 | **Tâches** | L7-01 `leave_ledger`. L7-02 `v_leave_balances` lue depuis le registre. L7-03 `employee_exits` et `exit_statement_lines`. L7-04 certificat de travail. L7-05 recoupement avec la règle D10 d'indemnité (moyenne sur 12 mois). |
