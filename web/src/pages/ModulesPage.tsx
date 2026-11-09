@@ -25,7 +25,11 @@ const STATUS: Record<LegalStatus, { mark: string; label: string; cls: string }> 
 const statusOf = (p: ManifestParam): LegalStatus => p.legal_status ?? 'to_provide'
 
 const show = (v: unknown) => (v === null || v === undefined ? '' : typeof v === 'object' ? JSON.stringify(v) : String(v))
-const parse = (s: string): unknown => (s.trim() !== '' && !Number.isNaN(Number(s.replace(',', '.'))) ? Number(s.replace(',', '.')) : s.trim())
+const parse = (s: string): unknown => {
+  const t = s.trim()
+  if (t.startsWith('{') || t.startsWith('[')) { try { return JSON.parse(t) } catch { /* texte brut */ } }
+  return t !== '' && !Number.isNaN(Number(t.replace(',', '.'))) ? Number(t.replace(',', '.')) : t
+}
 
 /** Jauge de statut légal : un segment par paramètre, plein si une valeur est saisie. */
 function Gauge({ m }: { m: Row }) {

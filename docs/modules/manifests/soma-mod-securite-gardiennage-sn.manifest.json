@@ -69,12 +69,25 @@
       "unit": "hours_per_week_by_post_category",
       "source": "Décret 70-183 (JO n° 4091 du 09/03/1970, art. 4 : régime d'équivalence ; art. 11 modifié par le décret 2006-1262) : existence confirmée, seuils par catégorie non lus. Les valeurs 56 h et 72 h du document de départ proviennent d'un décret du Niger (2017-682) et ne s'appliquent pas",
       "legal_status": "to_provide",
-      "client_input_allowed": true
+      "client_input_allowed": true,
+      "format": "objet JSON {\"CATEGORIE\": heures_par_semaine}, clés = valeurs de sec_categorie_poste",
+      "suggested_values": {
+        "value": { "GARDIENNAGE_JOUR_NON_CONTINU": 56, "GARDIENNAGE_NUIT_CONTINU": 48 },
+        "legal_status": "secondary",
+        "source": "Réponse reçue le 09/11/2026 (sans texte cité, attribuée à un « décret 70-917 » non vérifié ; le JO 4091 liste les décrets 70-183 et 70-184). Non appliqué automatiquement : à saisir par le client après confirmation par l'arrêté de branche"
+      }
     },
     "overtime_rates_table": {
       "value": "overtime_rates",
       "source": "Table du cœur ; classeur de référence : 115 / 140 / 160 / 200 %. Décret 70-184 (JO 4091 p. 259, non lu) : guides pratiques concordants +15 % (41e-48e h), +40 % (au-delà), +60 % nuit, +60 % repos/férié de jour, +100 % de nuit",
       "legal_status": "secondary"
+    },
+    "attestation_validity_months": {
+      "value": 6,
+      "unit": "months",
+      "source": "Code du travail 2026, art. 291 (tous les 6 mois) ; la durée réelle de l'attestation IPRES/CSS peut être trimestrielle : modifiable",
+      "legal_status": "verified",
+      "client_input_allowed": true
     },
     "max_shift_duration_hours": {
       "value": null,

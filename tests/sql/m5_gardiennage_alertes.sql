@@ -69,6 +69,21 @@ begin
   select count(*) into n from public.legal_alerts() where code = 'equivalence_manquante' and employee_id = v_emp;
   execute 'reset role';
   assert n = 0, 'seuil saisi : plus d''alerte (' || n || ')';
+  -- durée de validité paramétrable : attestation de 4 mois, validité réglée à 3 mois => échue
+  update public.companies set social_regularity_cert_date = current_date - interval '4 months';
+  execute 'set local role authenticated';
+  select count(*) into n from public.legal_alerts() where code = 'attestation_regularite_echue';
+  execute 'reset role';
+  assert n = 0, 'validité 6 mois : 4 mois non échue (' || n || ')';
+  insert into public.module_parameter_value(module_id, param_key, value, legal_status, source)
+    values ('soma-mod-securite-gardiennage-sn', 'attestation_validity_months', '3', 'verified', 'test')
+    on conflict on constraint module_parameter_value_module_id_param_key_daterange_excl do nothing;
+  update public.module_parameter_value set value = '3'
+   where module_id = 'soma-mod-securite-gardiennage-sn' and param_key = 'attestation_validity_months';
+  execute 'set local role authenticated';
+  select count(*) into n from public.legal_alerts() where code = 'attestation_regularite_echue';
+  execute 'reset role';
+  assert n = 1, 'validité 3 mois : échue (' || n || ')';
   raise notice 'OK m5_gardiennage_alertes';
 end $$;
 rollback;
