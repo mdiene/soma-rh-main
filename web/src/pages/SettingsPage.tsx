@@ -9,6 +9,7 @@ import { useAuth, type Role } from '../lib/auth'
 import { useAgreements, useCompany, useComponents, useEmployees, useGrades } from '../lib/queries'
 import { date, fcfa, num, pct } from '../lib/format'
 import { DataTable } from '../components/DataTable'
+import { DocumentTemplatesTab } from '../components/DocumentTemplatesTab'
 import { AuditLogView, ReferentialManager, type RefConfig, type RefTable } from '../components/ReferentialManager'
 import { Button, ErrorNote, Modal, PageHeader, Section, SelectField, Spinner, TextField } from '../components/ui'
 
@@ -21,6 +22,7 @@ const TABS = [
   { id: 'rubriques', label: 'Rubriques de paie' },
   { id: 'grilles', label: 'Grilles conventionnelles' },
   { id: 'societe', label: 'Société' },
+  { id: 'modeles', label: 'Modèles de documents' },
 ] as const
 type Tab = (typeof TABS)[number]['id']
 
@@ -45,6 +47,7 @@ export default function SettingsPage() {
       {tab === 'rubriques' && <ComponentsTab />}
       {tab === 'grilles' && <GradesTab />}
       {tab === 'societe' && <CompanyTab />}
+      {tab === 'modeles' && <DocumentTemplatesTab />}
     </>
   )
 }

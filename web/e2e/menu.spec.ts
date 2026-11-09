@@ -31,7 +31,7 @@ test.describe('administrateur', () => {
 
   test('Ctrl+K : « ipres » mène aux états légaux', async ({ page }) => {
     await page.keyboard.press('Control+k')
-    await page.getByRole('combobox').fill('ipres')
+    await page.getByPlaceholder(/Aller à/).fill('ipres')
     await page.keyboard.press('Enter')
     await expect(page).toHaveURL(/\/etats$/)
   })

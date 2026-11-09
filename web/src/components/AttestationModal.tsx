@@ -5,6 +5,7 @@ import { useCompany, useDesignations } from '../lib/queries'
 import { date, fcfa, monthLabel } from '../lib/format'
 import { Button, Modal, Spinner } from './ui'
 import { PrintPortal, printPortal } from './PrintPortal'
+import { DEFAULT_TEMPLATES, renderTemplate } from '../lib/documentTemplates'
 
 export type AttestationKind = 'attestation_travail' | 'attestation_salaire'
 
@@ -35,7 +36,11 @@ function AttestationDocument({ employeeId, kind }: { employeeId: string; kind: A
     enabled: kind === 'attestation_salaire',
     queryFn: async () => unwrap(await dataApi.from('salary_slips').select('period_start, gross_pay, net_pay').eq('employee_id', employeeId).eq('status', 'Validé').order('period_start', { ascending: false }).limit(1)),
   })
-  if (emp.isLoading || company.isLoading) return <div className="p-6"><Spinner /></div>
+  const tpl = useQuery({
+    queryKey: ['document_template', kind],
+    queryFn: async () => unwrap(await dataApi.from('document_templates').select('body').eq('code', kind).maybeSingle()),
+  })
+  if (emp.isLoading || company.isLoading || tpl.isLoading) return <div className="p-6"><Spinner /></div>
   const e = emp.data
   const c = company.data
   if (!e) return <p className="p-6 text-sm">Salarié introuvable.</p>
@@ -47,6 +52,18 @@ function AttestationDocument({ employeeId, kind }: { employeeId: string; kind: A
   const last = slip.data?.[0]
   const today = date(new Date().toISOString().slice(0, 10))
   const place = 'Dakar'
+  const f = e.gender === 'F' ? 'e' : ''
+  const paragraphs = renderTemplate(tpl.data?.body ?? DEFAULT_TEMPLATES[kind], {
+    societe: c?.name ?? '', civilite: civ, prenom: e.first_name, nom: e.last_name.toUpperCase(), matricule: e.employee_number,
+    naissance: e.date_of_birth ? `, né${f} le ${date(e.date_of_birth)}${e.place_of_birth ? ` à ${e.place_of_birth}` : ''}` : '',
+    etat: left ? 'a été' : 'est', employe: pron, fonction: designation ? ` en qualité de ${designation}` : '',
+    date_embauche: date(e.date_of_joining), fin: left ? ` jusqu’au ${date(e.relieving_date!)}` : '', e: f,
+    effectif: kind === 'attestation_travail' && !left ? `L’intéressé${f} fait toujours partie de notre effectif à la date de la présente.` : '',
+    salaire: kind !== 'attestation_salaire' ? '' : last
+      ? `À la date du bulletin de ${monthLabel(last.period_start)}, sa rémunération mensuelle s’établit à ${fcfa(last.gross_pay)} F CFA brut, soit ${fcfa(last.net_pay)} F CFA net à payer.`
+      : 'Aucun bulletin validé : renseignez le montant à la main avant impression.',
+    date_du_jour: today, lieu: place,
+  })
 
   return (
     <div className="sheet mx-auto min-h-[250mm] max-w-[190mm] p-8 text-[13px] leading-relaxed" style={{ fontFamily: 'Archivo, sans-serif' }}>
@@ -60,29 +77,9 @@ function AttestationDocument({ employeeId, kind }: { employeeId: string; kind: A
         {kind === 'attestation_travail' ? 'Attestation de travail' : 'Attestation de salaire'}
       </h1>
 
-      <p className="mb-4">
-        Nous soussignés, <strong>{c?.name}</strong>, attestons que {civ} <strong>{e.first_name} {e.last_name.toUpperCase()}</strong>
-        {e.date_of_birth ? <>, né{e.gender === 'F' ? 'e' : ''} le {date(e.date_of_birth)}{e.place_of_birth ? ` à ${e.place_of_birth}` : ''}</> : null},
-        matricule <strong>{e.employee_number}</strong>, {left ? 'a été' : 'est'} {pron} au sein de notre société
-        {designation ? <> en qualité de <strong>{designation}</strong></> : null}
-        {' '}depuis le <strong>{date(e.date_of_joining)}</strong>
-        {left ? <> jusqu’au <strong>{date(e.relieving_date!)}</strong></> : null}.
-      </p>
+      {paragraphs.map((p, i) => <p key={i} className="mb-4">{p}</p>)}
 
-      {kind === 'attestation_salaire' && (
-        <p className="mb-4">
-          {last
-            ? <>À la date du bulletin de {monthLabel(last.period_start)}, sa rémunération mensuelle s’établit à <strong className="tabular-nums">{fcfa(last.gross_pay)} F CFA</strong> brut,
-              soit <strong className="tabular-nums">{fcfa(last.net_pay)} F CFA</strong> net à payer.</>
-            : <em>Aucun bulletin validé : renseignez le montant à la main avant impression.</em>}
-        </p>
-      )}
-
-      {kind === 'attestation_travail' && !left && <p className="mb-4">L’intéressé{e.gender === 'F' ? 'e' : ''} fait toujours partie de notre effectif à la date de la présente.</p>}
-
-      <p className="mb-16">La présente attestation est délivrée à l’intéressé{e.gender === 'F' ? 'e' : ''}, sur sa demande, pour servir et valoir ce que de droit.</p>
-
-      <p className="mb-16 text-right">Fait à {place}, le {today}</p>
+      <p className="mb-16 mt-12 text-right">Fait à {place}, le {today}</p>
 
       <div className="ml-auto w-72 text-center">
         <p className="font-bold">La Direction</p>
