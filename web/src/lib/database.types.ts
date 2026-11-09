@@ -1778,6 +1778,7 @@ export type Database = {
       }
       garnishment_scale: {
         Row: {
+          effective_from: string
           id: string
           kind: string
           lower_bound: number
@@ -1787,6 +1788,7 @@ export type Database = {
         }
         ComputedFields: never
         Insert: {
+          effective_from?: string
           id?: string
           kind: string
           lower_bound: number
@@ -1795,6 +1797,7 @@ export type Database = {
           upper_bound?: number | null
         }
         Update: {
+          effective_from?: string
           id?: string
           kind?: string
           lower_bound?: number
@@ -2779,6 +2782,7 @@ export type Database = {
       overtime_rates: {
         Row: {
           code: string
+          effective_from: string
           hours_from: number | null
           hours_to: number | null
           label: string
@@ -2790,6 +2794,7 @@ export type Database = {
         ComputedFields: never
         Insert: {
           code: string
+          effective_from?: string
           hours_from?: number | null
           hours_to?: number | null
           label: string
@@ -2800,6 +2805,7 @@ export type Database = {
         }
         Update: {
           code?: string
+          effective_from?: string
           hours_from?: number | null
           hours_to?: number | null
           label?: string
@@ -4075,8 +4081,69 @@ export type Database = {
           },
         ]
       }
+      scale_catalog: {
+        Row: {
+          code: string
+          label: string
+          legal_text: string | null
+          sort: number
+          source_code: string | null
+          updated_at: string
+        }
+        ComputedFields: never
+        Insert: {
+          code: string
+          label: string
+          legal_text?: string | null
+          sort?: number
+          source_code?: string | null
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          label?: string
+          legal_text?: string | null
+          sort?: number
+          source_code?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scale_catalog_source_code_fkey"
+            columns: ["source_code"]
+            isOneToOne: false
+            referencedRelation: "legal_sources"
+            referencedColumns: ["code"]
+          },
+        ]
+      }
+      scale_defaults: {
+        Row: {
+          lines: NonNullable<Json>
+          scale_code: string
+        }
+        ComputedFields: never
+        Insert: {
+          lines: NonNullable<Json>
+          scale_code: string
+        }
+        Update: {
+          lines?: NonNullable<Json>
+          scale_code?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scale_defaults_scale_code_fkey"
+            columns: ["scale_code"]
+            isOneToOne: true
+            referencedRelation: "scale_catalog"
+            referencedColumns: ["code"]
+          },
+        ]
+      }
       severance_scales: {
         Row: {
+          effective_from: string
           id: string
           kind: string
           rate: number
@@ -4086,6 +4153,7 @@ export type Database = {
         }
         ComputedFields: never
         Insert: {
+          effective_from?: string
           id?: string
           kind: string
           rate: number
@@ -4094,6 +4162,7 @@ export type Database = {
           year_to?: number | null
         }
         Update: {
+          effective_from?: string
           id?: string
           kind?: string
           rate?: number
@@ -5110,10 +5179,12 @@ export type Database = {
       hr_analytics: { Args: { p_months?: number }; Returns: Json }
       hr_dashboard: { Args: { p_period?: string }; Returns: Json }
       hr_dashboard_year: { Args: { p_year: number }; Returns: Json }
-      hs_majoration: {
-        Args: { p_code: string; p_fallback: number }
-        Returns: number
-      }
+      hs_majoration:
+        | { Args: { p_code: string; p_fallback: number }; Returns: number }
+        | {
+            Args: { p_code: string; p_fallback: number; p_on: string }
+            Returns: number
+          }
       jl_eval: { Args: { p_rule: Json; p_vars: Json }; Returns: Json }
       jl_num: { Args: { p_rule: Json; p_vars: Json }; Returns: number }
       jl_truthy: { Args: { j: Json }; Returns: boolean }
@@ -5493,6 +5564,10 @@ export type Database = {
         Args: { p_assiette: number; p_kind?: string }
         Returns: number
       }
+      quotite_cessible_at: {
+        Args: { p_assiette: number; p_kind: string; p_on: string }
+        Returns: number
+      }
       reference_usage: {
         Args: { p_key: string; p_table: string }
         Returns: Json
@@ -5560,12 +5635,65 @@ export type Database = {
       }
       run_payroll_entry: { Args: { p_payroll_entry_id: string }; Returns: Json }
       salary_slip_explained: { Args: { p_slip_id: string }; Returns: Json }
+      scale_check_ranges: {
+        Args: { p_hi: string; p_label: string; p_lines: Json; p_lo: string }
+        Returns: undefined
+      }
+      scale_get: { Args: { p_code: string; p_on?: string }; Returns: Json }
+      scale_lines: { Args: { p_code: string; p_on: string }; Returns: Json }
+      scale_overview: {
+        Args: { p_as_of?: string }
+        Returns: {
+          code: string
+          effective_from: string
+          is_modified: boolean
+          label: string
+          legal_text: string
+          nb_versions: number
+          next_free_date: string
+          sort: number
+          source_article: string
+          source_code: string
+          source_document: string
+          source_label: string
+          source_status: string
+        }[]
+      }
+      scale_reset: {
+        Args: { p_code: string; p_effective_from: string }
+        Returns: string
+      }
+      scale_save: {
+        Args: { p_code: string; p_effective_from: string; p_lines: Json }
+        Returns: string
+      }
+      scale_validate: {
+        Args: { p_code: string; p_lines: Json }
+        Returns: undefined
+      }
+      scale_version_dates: { Args: { p_code: string }; Returns: string[] }
+      scale_version_locked: {
+        Args: { p_from: string; p_next: string }
+        Returns: boolean
+      }
+      scale_versions: {
+        Args: { p_code: string }
+        Returns: {
+          effective_from: string
+          locked: boolean
+          nb_lines: number
+        }[]
+      }
       set_loan_max_rate: { Args: { p_rate: number }; Returns: number }
       set_parameter: {
         Args: { p_code: string; p_effective_from?: string; p_value: number }
         Returns: string
       }
       set_parameter_reference: {
+        Args: { p_code: string; p_legal_text: string; p_source_code?: string }
+        Returns: undefined
+      }
+      set_scale_reference: {
         Args: { p_code: string; p_legal_text: string; p_source_code?: string }
         Returns: undefined
       }

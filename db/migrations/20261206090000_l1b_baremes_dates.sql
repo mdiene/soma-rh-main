@@ -106,6 +106,12 @@ begin
 end;
 $$;
 
+-- Droits : comme les autres fonctions du schéma, rien pour le rôle anonyme (test rpc_droits)
+revoke all on function public.hs_majoration(text, numeric, date) from public, anon;
+revoke all on function public.quotite_cessible_at(numeric, text, date) from public, anon;
+grant execute on function public.hs_majoration(text, numeric, date) to authenticated;
+grant execute on function public.quotite_cessible_at(numeric, text, date) to authenticated;
+
 -- ------------------------------------------------------------ verrou des jeux utilisés par une paie calculée
 create or replace function public.scale_version_locked(p_from date, p_next date)
 returns boolean

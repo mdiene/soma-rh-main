@@ -1,6 +1,9 @@
 -- Lot G : coefficients d'heures supplémentaires lus dans overtime_rates ; préavis lu dans notice_scales. Tout est annulé.
 -- Attendu : "OK lotg_hs_preavis"
 begin;
+-- Le jeu de majorations en vigueur est verrouillé par les paies calculées (L1b) : on lève le garde dans cette transaction annulée,
+-- ce test vérifie que le moteur lit le référentiel.
+alter table public.overtime_rates disable trigger overtime_rates_guard;
 do $$
 declare v_emp uuid; v_p date; v_before numeric; v_after numeric; v_th numeric; v_user uuid; v_cat text;
 begin

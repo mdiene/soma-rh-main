@@ -1,6 +1,8 @@
 -- T-I10 (paramétrage légal) : toute modification de barème, rubrique ou type de congé laisse une trace.
 -- Transaction annulée : aucune donnée n'est conservée.
 begin;
+-- Le barème en vigueur est verrouillé par les paies calculées (L1b) : on lève le garde dans cette transaction annulée, ce test vérifie la trace d'audit.
+alter table public.tax_slab_brackets disable trigger tax_slab_brackets_guard;
 do $$
 declare n0 int; n1 int; b record; manquantes text;
 begin
