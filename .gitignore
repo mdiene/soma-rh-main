@@ -29,3 +29,5 @@ docs/sources-legales/
 web/test-results/
 web/playwright-report/
 web/e2e/.auth/
+tests/.env.qa-sim
+web/playwright-report-sim/

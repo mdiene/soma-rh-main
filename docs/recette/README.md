@@ -8,3 +8,4 @@
 | [TESTS_RESTANTS_ET_RECOMMANDATIONS.md](TESTS_RESTANTS_ET_RECOMMANDATIONS.md) | Tests restants pour challenger la base et le SaaS (blocs H à M), recommandations et plan de campagne |
 
 Convention : un sous-dossier par campagne de recette si les résultats deviennent nombreux (`docs/recette/AAAA-MM-JJ/`) ; la batterie reste unique et versionnée.
+- `PROMPT_SIMULATION_200_SALARIES.md` : prompt de la simulation de 10 à 200 salariés (tous rôles, navigateur), qui produit le guide utilisateur, la matrice vert/rouge et le dossier de reprise.

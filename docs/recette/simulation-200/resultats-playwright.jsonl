@@ -1,0 +1,84 @@
+{"uc":"UC-ROLE-admin-/salaries","status":"VERT","note":"","at":"2026-11-09T15:35:13.596Z"}
+{"uc":"UC-ROLE-admin-/paie","status":"VERT","note":"","at":"2026-11-09T15:35:14.771Z"}
+{"uc":"UC-ROLE-admin-/paie/gouvernance","status":"VERT","note":"","at":"2026-11-09T15:35:16.041Z"}
+{"uc":"UC-ROLE-admin-/parametres","status":"VERT","note":"","at":"2026-11-09T15:35:17.196Z"}
+{"uc":"UC-ROLE-admin-/journal","status":"VERT","note":"","at":"2026-11-09T15:35:18.845Z"}
+{"uc":"UC-ROLE-admin-/conformite","status":"VERT","note":"","at":"2026-11-09T15:35:19.859Z"}
+{"uc":"UC-ROLE-rh-/salaries","status":"VERT","note":"","at":"2026-11-09T15:35:22.100Z"}
+{"uc":"UC-ROLE-rh-/conges","status":"VERT","note":"","at":"2026-11-09T15:35:23.875Z"}
+{"uc":"UC-ROLE-rh-/dossiers-salaries","status":"VERT","note":"","at":"2026-11-09T15:35:25.214Z"}
+{"uc":"UC-ROLE-rh-/equipes","status":"VERT","note":"","at":"2026-11-09T15:35:26.441Z"}
+{"uc":"UC-ROLE-paie-/paie","status":"VERT","note":"","at":"2026-11-09T15:35:28.762Z"}
+{"uc":"UC-ROLE-paie-/paie/variables","status":"VERT","note":"","at":"2026-11-09T15:35:29.961Z"}
+{"uc":"UC-ROLE-paie-/paie/gouvernance","status":"VERT","note":"","at":"2026-11-09T15:35:31.663Z"}
+{"uc":"UC-ROLE-paie-/etats","status":"VERT","note":"","at":"2026-11-09T15:35:33.542Z"}
+{"uc":"UC-ROLE-mgr_1-/mon-equipe","status":"VERT","note":"","at":"2026-11-09T15:35:36.060Z"}
+{"uc":"UC-ROLE-mgr_1-/demandes","status":"VERT","note":"","at":"2026-11-09T15:35:37.420Z"}
+{"uc":"UC-ROLE-mgr_1-/conges","status":"VERT","note":"","at":"2026-11-09T15:35:38.631Z"}
+{"uc":"UC-ROLE-sal_1-/mon-espace","status":"VERT","note":"","at":"2026-11-09T15:35:41.078Z"}
+{"uc":"UC-ROLE-sal_1-/mes-bulletins","status":"VERT","note":"","at":"2026-11-09T15:35:42.032Z"}
+{"uc":"UC-INTERDIT-mgr_1-/paie","status":"VERT","note":"","at":"2026-11-09T15:35:44.493Z"}
+{"uc":"UC-INTERDIT-mgr_1-/parametres","status":"VERT","note":"","at":"2026-11-09T15:35:45.566Z"}
+{"uc":"UC-INTERDIT-mgr_1-/journal","status":"VERT","note":"","at":"2026-11-09T15:35:46.569Z"}
+{"uc":"UC-INTERDIT-sal_1-/salaries","status":"VERT","note":"","at":"2026-11-09T15:35:48.838Z"}
+{"uc":"UC-INTERDIT-sal_1-/paie","status":"VERT","note":"","at":"2026-11-09T15:35:49.729Z"}
+{"uc":"UC-INTERDIT-sal_1-/parametres","status":"VERT","note":"","at":"2026-11-09T15:35:50.802Z"}
+{"uc":"UC-INTERDIT-sal_1-/journal","status":"VERT","note":"","at":"2026-11-09T15:35:51.756Z"}
+{"uc":"UC-INTERDIT-sal_1-/mon-equipe","status":"VERT","note":"","at":"2026-11-09T15:35:52.741Z"}
+{"uc":"UC-INTERDIT-rh-/paie/gouvernance","status":"ROUGE","note":"page affichée alors que le rôle ne devrait pas y accéder","at":"2026-11-09T15:35:56.224Z"}
+{"uc":"UC-ISOLATION-sal_1","status":"VERT","note":"4 bulletins visibles","at":"2026-11-09T15:35:57.519Z"}
+{"uc":"UC-EMB-P5","status":"VERT","note":"15 embauches créées par le compte RH","at":"2026-11-09T16:25:51.469Z"}
+{"uc":"UC-CALC-P5","status":"ROUGE","note":"99 bulletin(s) calculé(s), 1 salarié(s) non calculé(s).","at":"2026-11-09T16:26:02.458Z"}
+{"uc":"UC-WORKFLOW-P5","status":"ROUGE","note":"Envoyer en revue: bouton « Envoyer en revue » absent | Approuver la paie: bouton « Approuver la paie » absent | Valider la paie: bouton « Valider la paie » absent | Marquer comme payée: bouton « Marquer comme payée » absent | Clôturer la période: bouton « Clôturer la période » absent","at":"2026-11-09T16:26:07.312Z"}
+{"uc":"UC-EMB-P5","status":"VERT","note":"0 embauches créées par le compte RH","at":"2026-11-09T16:28:06.600Z"}
+{"uc":"UC-WORKFLOW-P5","status":"ROUGE","note":"Approuver la paie: bouton « Approuver la paie » absent | Valider la paie: bouton « Valider la paie » absent | Marquer comme payée: bouton « Marquer comme payée » absent | Clôturer la période: bouton « Clôturer la période » absent","at":"2026-11-09T16:28:58.613Z"}
+{"uc":"UC-EMB-P5","status":"VERT","note":"0 embauches créées par le compte RH","at":"2026-11-09T16:32:17.633Z"}
+{"uc":"UC-WORKFLOW-P5","status":"ROUGE","note":"Envoyer en revue: bouton « Envoyer en revue » absent | Valider la paie: bouton « Valider la paie » absent | Marquer comme payée: bouton « Marquer comme payée » absent | Clôturer la période: bouton « Clôturer la période » absent","at":"2026-11-09T16:33:07.156Z"}
+{"uc":"UC-EMB-P5","status":"VERT","note":"0 embauches créées par le compte RH","at":"2026-11-09T16:36:15.213Z"}
+{"uc":"UC-WORKFLOW-P5","status":"ROUGE","note":"Envoyer en revue: bouton « Envoyer en revue » absent | Approuver la paie: Validation impossible : 1 contrôle(s) bloquant(s) doit/doivent être résolu(s) | Valider la paie: bouton « Valider la paie » absent | Marquer comme payée: bouton « Marquer comme payée » absent | Clôturer la période: bouton « Clôturer la période » absent","at":"2026-11-09T16:37:03.534Z"}
+{"uc":"UC-EMB-P5","status":"VERT","note":"0 embauches créées par le compte RH","at":"2026-11-09T16:41:06.650Z"}
+{"uc":"UC-WORKFLOW-P5","status":"ROUGE","note":"Valider la paie: Période 05/2026 : le mois précédent (04/2026) n'est pas validé. Validez-le d'abord (ou demandez à un administrateur). | Marquer comme payée: bouton « Marquer comme payée » absent | Clôturer la période: bouton « Clôturer la période » absent","at":"2026-11-09T16:41:39.043Z"}
+{"uc":"UC-EMB-P5","status":"VERT","note":"0 embauches créées par le compte RH","at":"2026-11-09T16:42:50.668Z"}
+{"uc":"UC-WORKFLOW-P5","status":"ROUGE","note":"Envoyer en revue: bouton « Envoyer en revue » absent | Approuver la paie: bouton « Approuver la paie » absent | Valider la paie: Période 05/2026 : le mois précédent (04/2026) n'est pas validé. Validez-le d'abord (ou demandez à un administrateur). | Marquer comme payée: bouton « Marquer comme payée » absent | Clôturer la période: bouton « Clôturer la période » absent","at":"2026-11-09T16:43:40.285Z"}
+{"uc":"UC-EMB-P5","status":"VERT","note":"0 embauches créées par le compte RH","at":"2026-11-09T16:50:26.882Z"}
+{"uc":"UC-EMB-P5","status":"VERT","note":"0 embauches créées par le compte RH","at":"2026-11-09T16:50:56.144Z"}
+{"uc":"UC-WORKFLOW-P5","status":"VERT","note":"Envoyer en revue: bouton « Envoyer en revue » absent | Approuver la paie: bouton « Approuver la paie » absent","at":"2026-11-09T16:51:28.357Z"}
+{"uc":"UC-EMB-P6","status":"VERT","note":"25 embauches créées par le compte RH","at":"2026-11-09T16:53:14.821Z"}
+{"uc":"UC-CALC-P6","status":"VERT","note":"125 bulletin(s) calculé(s).","at":"2026-11-09T16:53:26.787Z"}
+{"uc":"UC-WORKFLOW-P6","status":"VERT","note":"état Clôturée","at":"2026-11-09T16:53:41.804Z"}
+{"uc":"UC-EMB-P5","status":"VERT","note":"0 embauches créées par le compte RH","at":"2026-11-09T17:01:49.984Z"}
+{"uc":"UC-WORKFLOW-P5","status":"VERT","note":"Envoyer en revue: bouton « Envoyer en revue » absent | Approuver la paie: bouton « Approuver la paie » absent | Valider la paie: bouton « Valider la paie » absent | Marquer comme payée: bouton « Marquer comme payée » absent | Clôturer la période: bouton « Clôturer la période » absent","at":"2026-11-09T17:02:45.955Z"}
+{"uc":"UC-EMB-P6","status":"VERT","note":"0 embauches créées par le compte RH","at":"2026-11-09T17:02:50.933Z"}
+{"uc":"UC-WORKFLOW-P6","status":"VERT","note":"Envoyer en revue: bouton « Envoyer en revue » absent | Approuver la paie: bouton « Approuver la paie » absent | Valider la paie: bouton « Valider la paie » absent | Marquer comme payée: bouton « Marquer comme payée » absent | Clôturer la période: bouton « Clôturer la période » absent","at":"2026-11-09T17:03:46.932Z"}
+{"uc":"UC-EMB-P7","status":"VERT","note":"4 embauches créées par le compte RH","at":"2026-11-09T17:04:06.996Z"}
+{"uc":"UC-CALC-P7","status":"VERT","note":"150 bulletin(s) calculé(s).","at":"2026-11-09T17:04:17.178Z"}
+{"uc":"UC-WORKFLOW-P7","status":"VERT","note":"état Clôturée","at":"2026-11-09T17:04:31.707Z"}
+{"uc":"UC-EMB-P8","status":"VERT","note":"25 embauches créées par le compte RH","at":"2026-11-09T17:06:35.690Z"}
+{"uc":"UC-EMB-P5","status":"VERT","note":"0 embauches créées par le compte RH","at":"2026-11-09T17:11:11.828Z"}
+{"uc":"UC-WORKFLOW-P5","status":"VERT","note":"Envoyer en revue: bouton « Envoyer en revue » absent | Approuver la paie: bouton « Approuver la paie » absent | Valider la paie: bouton « Valider la paie » absent | Marquer comme payée: bouton « Marquer comme payée » absent | Clôturer la période: bouton « Clôturer la période » absent","at":"2026-11-09T17:12:09.381Z"}
+{"uc":"UC-EMB-P6","status":"VERT","note":"0 embauches créées par le compte RH","at":"2026-11-09T17:12:16.344Z"}
+{"uc":"UC-WORKFLOW-P6","status":"VERT","note":"Envoyer en revue: bouton « Envoyer en revue » absent | Approuver la paie: bouton « Approuver la paie » absent | Valider la paie: bouton « Valider la paie » absent | Marquer comme payée: bouton « Marquer comme payée » absent | Clôturer la période: bouton « Clôturer la période » absent","at":"2026-11-09T17:13:13.801Z"}
+{"uc":"UC-EMB-P7","status":"VERT","note":"0 embauches créées par le compte RH","at":"2026-11-09T17:13:20.764Z"}
+{"uc":"UC-WORKFLOW-P7","status":"VERT","note":"Envoyer en revue: bouton « Envoyer en revue » absent | Approuver la paie: bouton « Approuver la paie » absent | Valider la paie: bouton « Valider la paie » absent | Marquer comme payée: bouton « Marquer comme payée » absent | Clôturer la période: bouton « Clôturer la période » absent","at":"2026-11-09T17:14:17.283Z"}
+{"uc":"UC-EMB-P8","status":"VERT","note":"0 embauches créées par le compte RH","at":"2026-11-09T17:14:24.154Z"}
+{"uc":"UC-EMB-P5","status":"VERT","note":"0 embauches créées par le compte RH","at":"2026-11-09T17:17:05.904Z"}
+{"uc":"UC-WORKFLOW-P5","status":"VERT","note":"Envoyer en revue: bouton « Envoyer en revue » absent | Approuver la paie: bouton « Approuver la paie » absent | Valider la paie: bouton « Valider la paie » absent | Marquer comme payée: bouton « Marquer comme payée » absent | Clôturer la période: bouton « Clôturer la période » absent","at":"2026-11-09T17:18:04.926Z"}
+{"uc":"UC-EMB-P6","status":"VERT","note":"0 embauches créées par le compte RH","at":"2026-11-09T17:18:11.240Z"}
+{"uc":"UC-WORKFLOW-P6","status":"VERT","note":"Envoyer en revue: bouton « Envoyer en revue » absent | Approuver la paie: bouton « Approuver la paie » absent | Valider la paie: bouton « Valider la paie » absent | Marquer comme payée: bouton « Marquer comme payée » absent | Clôturer la période: bouton « Clôturer la période » absent","at":"2026-11-09T17:19:07.987Z"}
+{"uc":"UC-EMB-P7","status":"VERT","note":"0 embauches créées par le compte RH","at":"2026-11-09T17:19:14.179Z"}
+{"uc":"UC-WORKFLOW-P7","status":"VERT","note":"Envoyer en revue: bouton « Envoyer en revue » absent | Approuver la paie: bouton « Approuver la paie » absent | Valider la paie: bouton « Valider la paie » absent | Marquer comme payée: bouton « Marquer comme payée » absent | Clôturer la période: bouton « Clôturer la période » absent","at":"2026-11-09T17:20:11.561Z"}
+{"uc":"UC-EMB-P8","status":"VERT","note":"0 embauches créées par le compte RH","at":"2026-11-09T17:20:18.428Z"}
+{"uc":"UC-CALC-P8","status":"VERT","note":"175 bulletin(s) calculé(s).","at":"2026-11-09T17:20:30.730Z"}
+{"uc":"UC-WORKFLOW-P8","status":"VERT","note":"état Clôturée","at":"2026-11-09T17:20:44.932Z"}
+{"uc":"UC-EMB-P9","status":"VERT","note":"25 embauches créées par le compte RH","at":"2026-11-09T17:22:37.107Z"}
+{"uc":"UC-EMB-P5","status":"VERT","note":"0 embauches créées par le compte RH","at":"2026-11-09T17:25:49.766Z"}
+{"uc":"UC-WORKFLOW-P5","status":"VERT","note":"Envoyer en revue: bouton « Envoyer en revue » absent | Approuver la paie: bouton « Approuver la paie » absent | Valider la paie: bouton « Valider la paie » absent | Marquer comme payée: bouton « Marquer comme payée » absent | Clôturer la période: bouton « Clôturer la période » absent","at":"2026-11-09T17:26:46.264Z"}
+{"uc":"UC-EMB-P6","status":"VERT","note":"0 embauches créées par le compte RH","at":"2026-11-09T17:26:56.132Z"}
+{"uc":"UC-WORKFLOW-P6","status":"VERT","note":"Envoyer en revue: bouton « Envoyer en revue » absent | Approuver la paie: bouton « Approuver la paie » absent | Valider la paie: bouton « Valider la paie » absent | Marquer comme payée: bouton « Marquer comme payée » absent | Clôturer la période: bouton « Clôturer la période » absent","at":"2026-11-09T17:27:52.941Z"}
+{"uc":"UC-EMB-P7","status":"VERT","note":"0 embauches créées par le compte RH","at":"2026-11-09T17:27:58.401Z"}
+{"uc":"UC-WORKFLOW-P7","status":"VERT","note":"Envoyer en revue: bouton « Envoyer en revue » absent | Approuver la paie: bouton « Approuver la paie » absent | Valider la paie: bouton « Valider la paie » absent | Marquer comme payée: bouton « Marquer comme payée » absent | Clôturer la période: bouton « Clôturer la période » absent","at":"2026-11-09T17:28:55.804Z"}
+{"uc":"UC-EMB-P8","status":"VERT","note":"0 embauches créées par le compte RH","at":"2026-11-09T17:29:02.903Z"}
+{"uc":"UC-WORKFLOW-P8","status":"VERT","note":"Envoyer en revue: bouton « Envoyer en revue » absent | Approuver la paie: bouton « Approuver la paie » absent | Valider la paie: bouton « Valider la paie » absent | Marquer comme payée: bouton « Marquer comme payée » absent | Clôturer la période: bouton « Clôturer la période » absent","at":"2026-11-09T17:29:58.938Z"}
+{"uc":"UC-EMB-P9","status":"VERT","note":"0 embauches créées par le compte RH","at":"2026-11-09T17:30:07.607Z"}
+{"uc":"UC-CALC-P9","status":"VERT","note":"200 bulletin(s) calculé(s).","at":"2026-11-09T17:30:24.634Z"}
+{"uc":"UC-WORKFLOW-P9","status":"VERT","note":"état Clôturée","at":"2026-11-09T17:30:39.531Z"}
