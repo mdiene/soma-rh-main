@@ -53,7 +53,7 @@ begin
   end;
 end $$;
 
-do $$ declare c t_ctx; r jsonb; n int; s text; begin
+do $$ declare c t_ctx; r jsonb; n int; s text; e0 int; l0 int; d0 int; begin
   select * into c from t_ctx;
   if c.entry_id is null or c.user_rh is null or c.user_admin is null or c.user_paie is null or c.user_s is null then
     raise exception 'jeu de données insuffisant (paie Validée, un rh, un admin, un paie, un salarié simple)';
@@ -61,23 +61,28 @@ do $$ declare c t_ctx; r jsonb; n int; s text; begin
 
   -- 1. rôle insuffisant : refus explicite et journalisé
   perform pg_temp.setup('En revue', c.user_admin);
+  -- la base garde les refus des sessions précédentes pour cette paie : on compte la variation, pas le total
+  select count(*) into e0 from public.audit_events where action = 'transition_refusee' and result = 'denied' and payroll_entry_id = c.entry_id;
+  select count(*) into l0 from public.audit_log where action = 'transition_refusee' and result = 'denied' and payroll_entry_id = c.entry_id;
   r := pg_temp.act(c.user_s, 'Approuvée', null);
   if (r->>'ok')::boolean or r->>'message' not like 'Droits insuffisants%' then raise exception '1 : attendu refus de rôle, obtenu %', r; end if;
   select count(*) into n from public.audit_events where action = 'transition_refusee' and result = 'denied' and payroll_entry_id = c.entry_id;
-  if n <> 1 then raise exception '1 : refus non journalisé (% ligne)', n; end if;
+  if n <> e0 + 1 then raise exception '1 : refus non journalisé (% ligne(s) de plus, attendu 1)', n - e0; end if;
   select count(*) into n from public.audit_log where action = 'transition_refusee' and result = 'denied' and payroll_entry_id = c.entry_id;
-  if n <> 1 then raise exception '1 : refus absent du journal unique'; end if;
+  if n <> l0 + 1 then raise exception '1 : refus absent du journal unique'; end if;
 
   -- 2. le préparateur (ici un admin) sans motif : refus avec invitation à déroger
   r := pg_temp.act(c.user_admin, 'Approuvée', null);
   if (r->>'ok')::boolean or r->>'code' <> 'SD403' or r->>'message' not like '%déroger%' then raise exception '2 : attendu refus de séparation, obtenu %', r; end if;
 
   -- 3. dérogation admin avec motif : acceptée et journalisée
+  select count(*) into d0 from public.audit_events where action = 'derogation_separation' and payroll_entry_id = c.entry_id
+     and reason = 'Absence du second responsable (test)' and actor_id = c.user_admin;
   r := pg_temp.act(c.user_admin, 'Approuvée', 'Absence du second responsable (test)');
   if not (r->>'ok')::boolean then raise exception '3 : dérogation refusée : %', r; end if;
   select count(*) into n from public.audit_events where action = 'derogation_separation' and payroll_entry_id = c.entry_id
      and reason = 'Absence du second responsable (test)' and actor_id = c.user_admin;
-  if n <> 1 then raise exception '3 : dérogation non journalisée'; end if;
+  if n <> d0 + 1 then raise exception '3 : dérogation non journalisée'; end if;
 
   -- 4. un autre responsable rh approuve sans dérogation
   perform pg_temp.setup('En revue', c.user_admin);
@@ -86,10 +91,12 @@ do $$ declare c t_ctx; r jsonb; n int; s text; begin
 
   -- 5. pas de contournement par la validation directe (rôle paie, préparateur = lui-même)
   perform pg_temp.setup('Calculée', c.user_paie);
+  -- depuis « Calculée », la validation directe est refusée : d'abord faute d'approbation (D-43, migration 20261107120000),
+  -- sinon par la séparation des tâches. Dans les deux cas elle ne doit jamais aboutir.
   s := pg_temp.submit_as(c.user_paie, null);
-  if s not like 'Séparation des tâches%' then raise exception '5 : submit_payroll_entry contourne I4 : %', s; end if;
+  if s not like 'Séparation des tâches%' and s not like 'La paie doit être approuvée%' then raise exception '5 : submit_payroll_entry contourne I4 : %', s; end if;
   s := pg_temp.submit_as(c.user_paie, 'motif sans être admin');
-  if s not like 'Séparation des tâches%' then raise exception '5 : un non-admin ne doit pas déroger : %', s; end if;
+  if s not like 'Séparation des tâches%' and s not like 'La paie doit être approuvée%' then raise exception '5 : un non-admin ne doit pas déroger : %', s; end if;
 
   -- 6. les contrôles de période sont appelables (fonction restaurée)
   execute 'set local role authenticated';
