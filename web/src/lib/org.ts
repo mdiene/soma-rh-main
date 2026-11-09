@@ -94,7 +94,8 @@ export const GRID_GAP_X = 44        // entre deux colonnes : laisse passer la li
 export const GRID_GAP_Y = 22
 const GRID_PAD_LEFT = 26            // place de la ligne de raccordement à gauche de la première colonne
 const GRID_PAD_TOP = 30             // place du bus horizontal au-dessus de la grille
-export const gridColumns = (n: number) => (n >= 9 ? 3 : 2)
+/** 2 colonnes de 4 à 8 feuilles ; ensuite le nombre de colonnes suit l'effectif (dessin à peu près carré, 3 à 8 colonnes) : 12 → 3, 50 → 4, 190 → 8. */
+export const gridColumns = (n: number) => (n < 9 ? 2 : Math.min(8, Math.max(3, Math.round(Math.sqrt(n * 0.4)))))
 
 /** Disposition calculée UNIQUEMENT sur la hiérarchie : les liens hors hiérarchie ne déplacent rien.
  *  `grid` = nœuds rangés en grille : leurs lignes de raccordement passent par le côté gauche de la carte. */

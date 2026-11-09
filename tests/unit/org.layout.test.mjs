@@ -104,12 +104,20 @@ test('grille : 4 à 8 feuilles = 2 colonnes ; 3 feuilles ou moins = pas de grill
   assert.equal(b.grid.size, 0)
 })
 
-test('50 salariés sous un manager : le dessin reste étroit (3 colonnes) au lieu de 50 cartes en ligne', () => {
+test('50 salariés sous un manager : 4 colonnes au lieu de 50 cartes en ligne', () => {
   const { nodes } = org.buildTree(dataset(51, 50))
   const { pos } = org.layoutFull(nodes, org.visibleIds(nodes, new Set()))
   const xs = [...pos.values()].map((p) => p.x)
   const width = Math.max(...xs) + org.CARD_W - Math.min(...xs)
-  assert.ok(width < 4 * (org.CARD_W + org.GRID_GAP_X), `largeur ${width}`)
+  assert.ok(width < 5 * (org.CARD_W + org.GRID_GAP_X), `largeur ${width}`)
+})
+
+test('190 salariés non rattachés : 8 colonnes au plus, dessin à peu près carré (pas une colonne de 6000 px)', () => {
+  assert.equal(org.gridColumns(190), 8)
+  const { nodes } = org.buildTree(dataset(191, 190))
+  const { pos } = org.layoutFull(nodes, org.visibleIds(nodes, new Set()))
+  const ys = [...pos.values()].map((p) => p.y)
+  assert.ok(Math.max(...ys) - Math.min(...ys) < 3500, `hauteur ${Math.max(...ys) - Math.min(...ys)}`)
 })
 
 test('layout() reste compatible : mêmes positions que layoutFull', () => {
