@@ -75,7 +75,7 @@ function ItemLink({ item, counts, fav, onNavigate }: { item: NavItem; counts: Co
 /** Infobulle du rail : au survol et au focus clavier (le nom accessible vient de aria-label). */
 function Tip({ children }: { children: string }) {
   return (
-    <span aria-hidden className="pointer-events-none absolute left-full top-1/2 z-50 ml-2 -translate-y-1/2 whitespace-nowrap rounded bg-ink px-2 py-1 text-xs text-white opacity-0 shadow-lg ring-1 ring-white/10 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100">
+    <span aria-hidden className="pointer-events-none absolute left-full top-1/2 z-50 ml-2 -translate-y-1/2 whitespace-nowrap rounded bg-white px-2.5 py-1.5 text-xs font-medium text-ink opacity-0 shadow-lg ring-1 ring-black/10 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100">
       {children}
     </span>
   )
@@ -165,7 +165,7 @@ export function Layout() {
           <nav className="flex min-h-0 flex-1" aria-label="Navigation principale">
             {/* colonne 1 : rail d'ancrage */}
             {hasRail && (
-              <div className="flex w-[4.5rem] shrink-0 flex-col items-center gap-1 overflow-y-auto bg-[#16212A] py-4">
+              <div className="flex w-[4.5rem] shrink-0 flex-col items-center gap-1 bg-[#16212A] py-4">
                 <div className="mb-2 hidden lg:block"><Brand compact /></div>
                 {pinnedItems.map((i) => (
                   <div key={i.to} className="group relative">
