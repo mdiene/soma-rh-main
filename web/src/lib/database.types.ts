@@ -5182,6 +5182,16 @@ export type Database = {
       }
     }
     Functions: {
+      adjust_leave_balance: {
+        Args: {
+          p_days: number
+          p_effective_date: string
+          p_employee_id: string
+          p_leave_type: string
+          p_reason: string
+        }
+        Returns: string
+      }
       admin_change_employee_number: {
         Args: { p_employee_id: string; p_new_number: string; p_reason: string }
         Returns: string

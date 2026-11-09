@@ -15,10 +15,17 @@ import { LeaveApprovals } from '../components/LeaveApprovals'
 type App = LeaveApp
 const col = createColumnHelper<App>()
 const bcol = createColumnHelper<Views<'v_leave_balances'>>()
+type LedgerRow = {
+  id: string; effective_date: string; days: number; kind: string; source_table: string; note: string | null; created_at: string
+  employee: { employee_number: string; first_name: string; last_name: string } | null; type: { name: string } | null
+}
+const lcol = createColumnHelper<LedgerRow>()
+const KIND_LABEL: Record<string, string> = { allocation: 'Attribution', taken: 'Congé pris', reversal: 'Annulation', adjustment: 'Ajustement' }
+const SOURCE_LABEL: Record<string, string> = { leave_allocations: 'Attribution de jours', leave_applications: 'Demande de congé', manual: 'Saisie manuelle (RH)' }
 
 export default function LeavesPage() {
-  const [tab, setTab] = useState<'demandes' | 'soldes'>('demandes')
-  const [open, setOpen] = useState<null | 'request' | 'alloc'>(null)
+  const [tab, setTab] = useState<'demandes' | 'soldes' | 'ecritures'>('demandes')
+  const [open, setOpen] = useState<null | 'request' | 'alloc' | 'adjust'>(null)
   const { can } = useAuth()
   const qc = useQueryClient()
   const isHr = can('rh')
@@ -34,6 +41,14 @@ export default function LeavesPage() {
     queryKey: ['leave_balances'],
     enabled: tab === 'soldes',
     queryFn: async () => unwrap(await dataApi.from('v_leave_balances').select('*').order('employee_number')),
+  })
+
+  const ledger = useQuery({
+    queryKey: ['leave_ledger'],
+    enabled: tab === 'ecritures',
+    queryFn: async () => unwrap(await dataApi.from('leave_ledger')
+      .select('id, effective_date, days, kind, source_table, note, created_at, employee:employees(employee_number, first_name, last_name), type:leave_types(name)')
+      .order('created_at', { ascending: false }).limit(300)) as unknown as LedgerRow[],
   })
 
   // la décision passe par le circuit à deux niveaux (manager puis RH) ; un rejet exige un motif
@@ -73,6 +88,16 @@ export default function LeavesPage() {
     bcol.accessor('balance', { header: 'Solde', meta: { align: 'right' }, cell: (c) => <strong>{num(c.getValue(), 1)}</strong> }),
   ]
 
+  const lcolumns = [
+    lcol.accessor('effective_date', { header: 'Date d’effet', cell: (c) => date(c.getValue()) }),
+    lcol.accessor((l) => l.employee ? `${l.employee.employee_number} — ${l.employee.first_name} ${l.employee.last_name}` : '', { id: 'emp', header: 'Salarié' }),
+    lcol.accessor((l) => l.type?.name ?? '', { id: 'type', header: 'Type' }),
+    lcol.accessor('days', { header: 'Jours', meta: { align: 'right' }, cell: (c) => <strong className={c.getValue() < 0 ? 'text-signal' : ''}>{c.getValue() > 0 ? '+' : ''}{num(c.getValue(), 1)}</strong> }),
+    lcol.accessor('kind', { header: 'Nature', cell: (c) => KIND_LABEL[c.getValue()] ?? c.getValue() }),
+    lcol.accessor('source_table', { header: 'Origine', cell: (c) => SOURCE_LABEL[c.getValue()] ?? c.getValue() }),
+    lcol.accessor('note', { header: 'Motif', cell: (c) => <span className="text-ink-soft">{c.getValue()}</span> }),
+  ]
+
   return (
     <>
       <PageHeader
@@ -81,25 +106,33 @@ export default function LeavesPage() {
           ? 'Demandes, validations et soldes de congés. Les absences non payées et la maladie alimentent les variables de paie via les présences.'
           : 'Vos demandes de congés, leur état de validation et vos soldes.'}
         actions={<>
+          {isHr && <Button onClick={() => setOpen('adjust')}>Ajuster un solde</Button>}
           {isHr && <Button onClick={() => setOpen('alloc')}>Attribuer des jours</Button>}
           <Button variant="primary" icon={<Plus className="h-4 w-4" />} onClick={() => setOpen('request')}>Nouvelle demande</Button>
         </>}
       />
       <LeaveApprovals />
       <div className="no-print mb-4 flex gap-1 border-b border-line" role="tablist">
-        {(['demandes', 'soldes'] as const).map((t) => (
+        {(['demandes', 'soldes', ...(can('rh', 'paie') ? ['ecritures' as const] : [])] as const).map((t) => (
           <button key={t} role="tab" aria-selected={tab === t} onClick={() => setTab(t)}
             className={clsx('-mb-px border-b-2 px-3 py-2 text-sm', tab === t ? 'border-river font-medium text-ink' : 'border-transparent text-ink-soft hover:text-ink')}>
-            {t === 'demandes' ? 'Demandes' : 'Soldes'}
+            {t === 'demandes' ? 'Demandes' : t === 'soldes' ? 'Soldes' : 'Écritures'}
           </button>
         ))}
       </div>
-      <ErrorNote error={apps.error || decide.error || balances.error} />
+      <ErrorNote error={apps.error || decide.error || balances.error || ledger.error} />
       {tab === 'demandes' ? (apps.isLoading ? <Spinner /> : <DataTable data={apps.data ?? []} columns={columns} exportName="conges" onRowClick={(a) => setSelectedId(a.id)} />)
-        : (balances.isLoading ? <Spinner /> : <DataTable data={balances.data ?? []} columns={bcolumns} exportName="soldes-conges" />)}
+        : tab === 'soldes' ? (balances.isLoading ? <Spinner /> : <DataTable data={balances.data ?? []} columns={bcolumns} exportName="soldes-conges" />)
+        : (ledger.isLoading ? <Spinner /> : (
+          <>
+            <p className="mb-2 text-xs text-ink-muted">Registre en ajout seul : une erreur se corrige par un ajustement inverse, jamais par une modification. 300 dernières écritures.</p>
+            <DataTable data={ledger.data ?? []} columns={lcolumns} exportName="ecritures-conges" />
+          </>
+        ))}
       <LeaveDetailModal app={(apps.data ?? []).find((a) => a.id === selectedId) ?? null} onClose={() => setSelectedId(null)} />
       <RequestModal open={open === 'request'} onClose={() => setOpen(null)} />
       <AllocationModal open={open === 'alloc'} onClose={() => setOpen(null)} />
+      <AdjustmentModal open={open === 'adjust'} onClose={() => setOpen(null)} />
     </>
   )
 }
@@ -132,6 +165,45 @@ function RequestModal({ open, onClose }: { open: boolean; onClose: () => void })
         <TextField label="Au (inclus)" type="date" value={f.to_date} onChange={(e) => setF({ ...f, to_date: e.target.value })} />
         <TextField label="Motif" className="sm:col-span-2" value={f.reason} onChange={(e) => setF({ ...f, reason: e.target.value })} />
       </div>
+      <div className="mt-3"><ErrorNote error={save.error} /></div>
+    </Modal>
+  )
+}
+
+function AdjustmentModal({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const qc = useQueryClient()
+  const employees = useEmployees()
+  const types = useLeaveTypes()
+  const today = new Date().toISOString().slice(0, 10)
+  const [f, setF] = useState({ employee_id: '', leave_type: 'CONGE_ANNUEL', days: '', effective_date: today, reason: '' })
+  const days = Number(f.days)
+  const valid = !!f.employee_id && f.days !== '' && days !== 0 && Math.abs(days) <= 365 && f.reason.trim().length >= 5
+  const save = useMutation({
+    mutationFn: async () => unwrap(await dataApi.rpc('adjust_leave_balance', {
+      p_employee_id: f.employee_id, p_leave_type: f.leave_type, p_days: days, p_effective_date: f.effective_date, p_reason: f.reason,
+    })),
+    onSuccess: () => {
+      for (const k of ['leave_balances', 'leave_ledger']) qc.invalidateQueries({ queryKey: [k] })
+      setF({ employee_id: '', leave_type: 'CONGE_ANNUEL', days: '', effective_date: today, reason: '' })
+      onClose()
+    },
+  })
+  return (
+    <Modal open={open} onClose={onClose} title="Ajuster un solde de congés"
+      footer={<><Button variant="ghost" onClick={onClose}>Annuler</Button><Button variant="primary" loading={save.isPending} disabled={!valid} onClick={() => save.mutate()}>Enregistrer l’ajustement</Button></>}>
+      <div className="grid gap-3 sm:grid-cols-2">
+        <SelectField label="Salarié" className="sm:col-span-2" value={f.employee_id} onChange={(e) => setF({ ...f, employee_id: e.target.value })}>
+          <option value="">Choisir…</option>
+          {(employees.data ?? []).map((e) => <option key={e.id} value={e.id}>{e.employee_number} — {e.first_name} {e.last_name}</option>)}
+        </SelectField>
+        <SelectField label="Type" value={f.leave_type} onChange={(e) => setF({ ...f, leave_type: e.target.value })}>
+          {(types.data ?? []).map((t) => <option key={t.code} value={t.code}>{t.name}</option>)}
+        </SelectField>
+        <TextField label="Jours (+ ajoute, − retire)" type="number" step="0.5" value={f.days} onChange={(e) => setF({ ...f, days: e.target.value })} hint="Au plus 365 en valeur absolue" />
+        <TextField label="Date d’effet" type="date" value={f.effective_date} onChange={(e) => setF({ ...f, effective_date: e.target.value })} hint="L’année de cette date détermine le solde concerné" />
+        <TextField label="Motif (obligatoire)" className="sm:col-span-2" value={f.reason} onChange={(e) => setF({ ...f, reason: e.target.value })} hint="Conservé dans le registre et le journal ; au moins 5 caractères" />
+      </div>
+      <p className="mt-3 text-xs text-ink-muted">L’ajustement est définitif : pour l’annuler, saisissez un ajustement de sens inverse.</p>
       <div className="mt-3"><ErrorNote error={save.error} /></div>
     </Modal>
   )
