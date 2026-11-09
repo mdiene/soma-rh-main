@@ -431,7 +431,6 @@ export type Database = {
           currency: string
           email: string | null
           ett_agreement_number: string | null
-          social_regularity_cert_date: string | null
           id: string
           ipres_number: string | null
           is_ett: boolean
@@ -442,6 +441,7 @@ export type Database = {
           phone: string | null
           rccm: string | null
           share_capital: number | null
+          social_regularity_cert_date: string | null
           updated_at: string
         }
         ComputedFields: never
@@ -454,7 +454,6 @@ export type Database = {
           currency?: string
           email?: string | null
           ett_agreement_number?: string | null
-          social_regularity_cert_date?: string | null
           id?: string
           ipres_number?: string | null
           is_ett?: boolean
@@ -465,6 +464,7 @@ export type Database = {
           phone?: string | null
           rccm?: string | null
           share_capital?: number | null
+          social_regularity_cert_date?: string | null
           updated_at?: string
         }
         Update: {
@@ -476,7 +476,6 @@ export type Database = {
           currency?: string
           email?: string | null
           ett_agreement_number?: string | null
-          social_regularity_cert_date?: string | null
           id?: string
           ipres_number?: string | null
           is_ett?: boolean
@@ -487,6 +486,7 @@ export type Database = {
           phone?: string | null
           rccm?: string | null
           share_capital?: number | null
+          social_regularity_cert_date?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -828,6 +828,34 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      document_templates: {
+        Row: {
+          body: string
+          code: string
+          title: string
+          updated_at: string
+          updated_by: string | null
+          version: number
+        }
+        ComputedFields: never
+        Insert: {
+          body: string
+          code: string
+          title: string
+          updated_at?: string
+          updated_by?: string | null
+          version?: number
+        }
+        Update: {
+          body?: string
+          code?: string
+          title?: string
+          updated_at?: string
+          updated_by?: string | null
+          version?: number
+        }
+        Relationships: []
       }
       document_versions: {
         Row: {
@@ -2392,58 +2420,6 @@ export type Database = {
           },
         ]
       }
-      module_shift: {
-        Row: {
-          created_at: string
-          created_by: string | null
-          employee_id: string
-          hours: number
-          id: string
-          module_id: string
-          night_hours: number
-          shift_code: string
-          work_date: string
-        }
-        ComputedFields: never
-        Insert: {
-          created_at?: string
-          created_by?: string | null
-          employee_id: string
-          hours: number
-          id?: string
-          module_id: string
-          night_hours?: number
-          shift_code: string
-          work_date: string
-        }
-        Update: {
-          created_at?: string
-          created_by?: string | null
-          employee_id?: string
-          hours?: number
-          id?: string
-          module_id?: string
-          night_hours?: number
-          shift_code?: string
-          work_date?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "module_shift_employee_id_fkey"
-            columns: ["employee_id"]
-            isOneToOne: false
-            referencedRelation: "employees"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "module_shift_module_id_fkey"
-            columns: ["module_id"]
-            isOneToOne: false
-            referencedRelation: "module_manifest"
-            referencedColumns: ["module_id"]
-          },
-        ]
-      }
       module_payroll_input: {
         Row: {
           employee_id: string
@@ -2500,6 +2476,72 @@ export type Database = {
           },
           {
             foreignKeyName: "module_payroll_input_module_id_fkey"
+            columns: ["module_id"]
+            isOneToOne: false
+            referencedRelation: "module_manifest"
+            referencedColumns: ["module_id"]
+          },
+        ]
+      }
+      module_shift: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          employee_id: string
+          hours: number
+          id: string
+          module_id: string
+          night_hours: number
+          shift_code: string
+          work_date: string
+        }
+        ComputedFields: never
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          employee_id: string
+          hours: number
+          id?: string
+          module_id: string
+          night_hours?: number
+          shift_code: string
+          work_date: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          employee_id?: string
+          hours?: number
+          id?: string
+          module_id?: string
+          night_hours?: number
+          shift_code?: string
+          work_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "module_shift_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "module_shift_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "v_conformite_embauche"
+            referencedColumns: ["employee_id"]
+          },
+          {
+            foreignKeyName: "module_shift_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "v_leave_balances"
+            referencedColumns: ["employee_id"]
+          },
+          {
+            foreignKeyName: "module_shift_module_id_fkey"
             columns: ["module_id"]
             isOneToOne: false
             referencedRelation: "module_manifest"
@@ -2776,6 +2818,63 @@ export type Database = {
           },
           {
             foreignKeyName: "overtime_rates_source_code_fkey"
+            columns: ["source_code"]
+            isOneToOne: false
+            referencedRelation: "legal_sources"
+            referencedColumns: ["code"]
+          },
+        ]
+      }
+      parameter_catalog: {
+        Row: {
+          code: string
+          column_name: string
+          default_value: number
+          domain: string
+          label: string
+          legal_text: string | null
+          max_value: number | null
+          min_value: number | null
+          sort: number
+          source_code: string | null
+          store: string
+          unit: string
+          updated_at: string
+        }
+        ComputedFields: never
+        Insert: {
+          code: string
+          column_name: string
+          default_value: number
+          domain: string
+          label: string
+          legal_text?: string | null
+          max_value?: number | null
+          min_value?: number | null
+          sort?: number
+          source_code?: string | null
+          store: string
+          unit: string
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          column_name?: string
+          default_value?: number
+          domain?: string
+          label?: string
+          legal_text?: string | null
+          max_value?: number | null
+          min_value?: number | null
+          sort?: number
+          source_code?: string | null
+          store?: string
+          unit?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "parameter_catalog_source_code_fkey"
             columns: ["source_code"]
             isOneToOne: false
             referencedRelation: "legal_sources"
@@ -4752,6 +4851,7 @@ export type Database = {
         Args: { p_payroll_entry_id: string }
         Returns: undefined
       }
+      apply_planning: { Args: { p_period: string }; Returns: Json }
       archive_employee_document: {
         Args: { p_document_id: string }
         Returns: {
@@ -5074,41 +5174,6 @@ export type Database = {
           isSetofReturn: false
         }
       }
-      apply_planning: {
-        Args: { p_period: string }
-        Returns: Json
-      }
-      plan_shifts: {
-        Args: { p_rows: Json }
-        Returns: number
-      }
-      planning_compliance: {
-        Args: { p_from: string; p_to: string }
-        Returns: {
-          code: string
-          employee_id: string
-          employee_name: string
-          message: string
-          severity: string
-          week_start: string
-        }[]
-      }
-      shift_night_hours: {
-        Args: { p_end: string; p_start: string }
-        Returns: number
-      }
-      shift_templates: {
-        Args: never
-        Returns: {
-          code: string
-          end_time: string
-          hours: number
-          label: string
-          module_id: string
-          night_hours: number
-          start_time: string
-        }[]
-      }
       module_active_for: {
         Args: { p_employee_id: string; p_module_id: string; p_period: string }
         Returns: boolean
@@ -5273,6 +5338,32 @@ export type Database = {
         Args: { p_employee: string; p_unit: string }
         Returns: undefined
       }
+      parameter_overview: {
+        Args: { p_as_of?: string }
+        Returns: {
+          code: string
+          current_value: number
+          default_value: number
+          domain: string
+          effective_from: string
+          is_modified: boolean
+          label: string
+          legal_text: string
+          max_value: number
+          min_value: number
+          sort: number
+          source_article: string
+          source_code: string
+          source_document: string
+          source_label: string
+          source_status: string
+          unit: string
+        }[]
+      }
+      parameters_min_effective_date: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       payment_export: {
         Args: { p_mode?: string; p_payroll_entry_id: string }
         Returns: Json
@@ -5313,6 +5404,10 @@ export type Database = {
       payroll_entry_comparison: {
         Args: { p_payroll_entry_id: string }
         Returns: Json
+      }
+      payroll_locked_until: {
+        Args: Record<PropertyKey, never>
+        Returns: string
       }
       payroll_settings_at: {
         Args: { p_date: string }
@@ -5374,6 +5469,18 @@ export type Database = {
         Args: { p_assiette: number; p_cap?: number }
         Returns: number
       }
+      plan_shifts: { Args: { p_rows: Json }; Returns: number }
+      planning_compliance: {
+        Args: { p_from: string; p_to: string }
+        Returns: {
+          code: string
+          employee_id: string
+          employee_name: string
+          message: string
+          severity: string
+          week_start: string
+        }[]
+      }
       preavis_mois: {
         Args: { p_employee_id: string; p_on?: string }
         Returns: number
@@ -5393,6 +5500,10 @@ export type Database = {
       reopen_payroll_entry: {
         Args: { p_payroll_entry_id: string; p_reason: string }
         Returns: undefined
+      }
+      reset_parameter: {
+        Args: { p_code: string; p_effective_from?: string }
+        Returns: string
       }
       revert_payroll_entry: {
         Args: {
@@ -5450,9 +5561,33 @@ export type Database = {
       run_payroll_entry: { Args: { p_payroll_entry_id: string }; Returns: Json }
       salary_slip_explained: { Args: { p_slip_id: string }; Returns: Json }
       set_loan_max_rate: { Args: { p_rate: number }; Returns: number }
+      set_parameter: {
+        Args: { p_code: string; p_effective_from?: string; p_value: number }
+        Returns: string
+      }
+      set_parameter_reference: {
+        Args: { p_code: string; p_legal_text: string; p_source_code?: string }
+        Returns: undefined
+      }
       severance_coefficient: {
         Args: { p_entry: string; p_exit: string; p_kind: string }
         Returns: number
+      }
+      shift_night_hours: {
+        Args: { p_end: string; p_start: string }
+        Returns: number
+      }
+      shift_templates: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          code: string
+          end_time: string
+          hours: number
+          label: string
+          module_id: string
+          night_hours: number
+          start_time: string
+        }[]
       }
       solde_tout_compte: { Args: { p_employee_id: string }; Returns: Json }
       solve_sursalaire_for_net: {
