@@ -50,7 +50,7 @@ Gardiennage : seuils d'équivalence saisis par le client (✖), nuit 22 h–5 h 
 ### M6 — Terrain (livré 09/11/2026 : planning métier, grille semaine avec collage Excel, vue mobile, conformité hebdomadaire, report présences + heures de nuit ; reste : modèles de postes éditables en base, widgets sur le tableau de bord)
 Modèles de postes dans le planning, grille rapide de saisie (collage Excel), widgets de conformité par module, vue mobile une colonne. Dépend de M3 au minimum.
 
-### M7 — Autres métiers
+### M7 — Autres métiers (livré 09/11/2026 : manifestes v0.1.0-draft Transport, Nettoyage/BTP, HORECA à taux saisis ; alertes permis de conduire, habilitation et art. 291 étendu au Nettoyage/BTP ; test `tests/sql/m7_transport_nettoyage_horeca.sql` ; reste : retenue de l'avantage logement sur le net, écrans de saisie propres, cas dorés à faire signer)
 Transport (CCNI art. 61), Nettoyage/BTP, HORECA (logement ◐ 33 500 / 20 000 / 13 500, nourriture ✖). Un cas doré chacun ; conventions de branche à fournir (✖).
 
 ## Prérequis humains

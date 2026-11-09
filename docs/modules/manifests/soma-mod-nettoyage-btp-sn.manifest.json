@@ -1,0 +1,336 @@
+{
+  "manifest_version": "2.0",
+  "module_id": "soma-mod-nettoyage-btp-sn",
+  "module_name": "Module vertical Nettoyage, voirie et BTP (Sénégal)",
+  "version": "0.1.0-draft",
+  "status": "draft",
+  "jurisdiction": "SN",
+  "requires_core": ">=1.0",
+  "target_sector": "NETTOYAGE_BTP",
+  "custom_fields": [
+    {
+      "field_key": "nbtp_site",
+      "target_entity": "Contract",
+      "label": "Chantier ou site client",
+      "data_type": "string",
+      "required": false
+    },
+    {
+      "field_key": "nbtp_poste_decale",
+      "target_entity": "Contract",
+      "label": "Horaires décalés ou postes continus",
+      "data_type": "boolean",
+      "required": false,
+      "default_value": false
+    },
+    {
+      "field_key": "nbtp_habilitation_expiry",
+      "target_entity": "Employee",
+      "label": "Échéance de l'habilitation ou de la dotation EPI la plus proche",
+      "data_type": "date",
+      "required": false
+    }
+  ],
+  "parameters": {
+    "weekly_legal_hours": {
+      "value": 40,
+      "unit": "hours_per_week",
+      "source": "Code du travail 2026 (loi 2026-18), art. 241",
+      "legal_status": "verified"
+    },
+    "attestation_validity_months": {
+      "value": 6,
+      "legal_status": "verified",
+      "unit": "months",
+      "source": "Code du travail 2026, art. 291",
+      "note": "Informatif : la validité utilisée par l'alerte est celle du module Sécurité et gardiennage (6 mois par défaut)"
+    },
+    "dirt_rate": {
+      "value": null,
+      "legal_status": "to_provide",
+      "client_input_allowed": true,
+      "unit": "multiple_of_hourly_rate",
+      "note": "Prime de salissure, multiple du taux horaire : convention ou accord du client"
+    },
+    "height_rate": {
+      "value": null,
+      "legal_status": "to_provide",
+      "client_input_allowed": true,
+      "unit": "multiple_of_hourly_rate",
+      "note": "Prime de travail en hauteur, multiple du taux horaire"
+    },
+    "tool_allowance": {
+      "value": null,
+      "legal_status": "to_provide",
+      "client_input_allowed": true,
+      "unit": "FCFA_per_month",
+      "note": "Indemnité d'outillage mensuelle (FCFA)"
+    },
+    "risk_rate": {
+      "value": null,
+      "legal_status": "to_provide",
+      "client_input_allowed": true,
+      "unit": "multiple_of_hourly_rate",
+      "note": "Prime de risque, multiple du taux horaire"
+    },
+    "sunday_holiday_rate": {
+      "value": null,
+      "legal_status": "to_provide",
+      "client_input_allowed": true,
+      "unit": "multiple_of_hourly_rate",
+      "note": "Majoration des heures de dimanche et fériés réguliers, multiple du taux horaire (hors planchers légaux déjà appliqués par le cœur)"
+    },
+    "habilitation_alert_days": {
+      "value": 30,
+      "legal_status": "secondary",
+      "unit": "days",
+      "source": "Délai interne, aucune obligation légale lue",
+      "note": "Délai d'alerte interne avant l'échéance d'une habilitation ou dotation EPI"
+    }
+  },
+  "payroll_rules": [
+    {
+      "rule_id": "NBTP_DIRT",
+      "label": "Prime de salissure",
+      "inputs": [
+        "INP_DIRT_HOURS"
+      ],
+      "params": [
+        "dirt_rate"
+      ],
+      "taxable": true,
+      "logic": {
+        "*": [
+          {
+            "var": "INP_DIRT_HOURS"
+          },
+          {
+            "var": "hourly_rate"
+          },
+          {
+            "var": "dirt_rate"
+          }
+        ]
+      },
+      "note": "Heures × taux horaire × multiple saisi"
+    },
+    {
+      "rule_id": "NBTP_HEIGHT",
+      "label": "Prime de hauteur",
+      "inputs": [
+        "INP_HEIGHT_HOURS"
+      ],
+      "params": [
+        "height_rate"
+      ],
+      "taxable": true,
+      "logic": {
+        "*": [
+          {
+            "var": "INP_HEIGHT_HOURS"
+          },
+          {
+            "var": "hourly_rate"
+          },
+          {
+            "var": "height_rate"
+          }
+        ]
+      },
+      "note": "Heures × taux horaire × multiple saisi"
+    },
+    {
+      "rule_id": "NBTP_TOOLS",
+      "label": "Indemnité d'outillage",
+      "inputs": [
+        "INP_TOOLS_MONTHS"
+      ],
+      "params": [
+        "tool_allowance"
+      ],
+      "taxable": true,
+      "logic": {
+        "*": [
+          {
+            "var": "INP_TOOLS_MONTHS"
+          },
+          {
+            "var": "tool_allowance"
+          }
+        ]
+      },
+      "note": "Mois (0 ou 1) × montant saisi. Nature fiscale et sociale à confirmer"
+    },
+    {
+      "rule_id": "NBTP_RISK",
+      "label": "Prime de risque",
+      "inputs": [
+        "INP_RISK_HOURS"
+      ],
+      "params": [
+        "risk_rate"
+      ],
+      "taxable": true,
+      "logic": {
+        "*": [
+          {
+            "var": "INP_RISK_HOURS"
+          },
+          {
+            "var": "hourly_rate"
+          },
+          {
+            "var": "risk_rate"
+          }
+        ]
+      },
+      "note": "Heures × taux horaire × multiple saisi"
+    },
+    {
+      "rule_id": "NBTP_SUNDAY",
+      "label": "Majoration dimanche et fériés réguliers",
+      "inputs": [
+        "INP_SUNDAY_HOURS"
+      ],
+      "params": [
+        "sunday_holiday_rate"
+      ],
+      "taxable": true,
+      "logic": {
+        "*": [
+          {
+            "var": "INP_SUNDAY_HOURS"
+          },
+          {
+            "var": "hourly_rate"
+          },
+          {
+            "var": "sunday_holiday_rate"
+          }
+        ]
+      },
+      "note": "Heures × taux horaire × multiple saisi"
+    }
+  ],
+  "payroll_inputs": [
+    {
+      "input_code": "INP_DIRT_HOURS",
+      "label": "Heures en travail salissant",
+      "input_type": "quantity",
+      "unit": "hours",
+      "is_taxable": null,
+      "is_cotisable": null,
+      "legal_status": "to_provide"
+    },
+    {
+      "input_code": "INP_HEIGHT_HOURS",
+      "label": "Heures en travail en hauteur",
+      "input_type": "quantity",
+      "unit": "hours",
+      "is_taxable": null,
+      "is_cotisable": null,
+      "legal_status": "to_provide"
+    },
+    {
+      "input_code": "INP_TOOLS_MONTHS",
+      "label": "Outillage fourni par le salarié (0 ou 1)",
+      "input_type": "quantity",
+      "unit": "months",
+      "is_taxable": null,
+      "is_cotisable": null,
+      "legal_status": "to_provide"
+    },
+    {
+      "input_code": "INP_RISK_HOURS",
+      "label": "Heures en zone à risque",
+      "input_type": "quantity",
+      "unit": "hours",
+      "is_taxable": null,
+      "is_cotisable": null,
+      "legal_status": "to_provide"
+    },
+    {
+      "input_code": "INP_SUNDAY_HOURS",
+      "label": "Heures de dimanche et fériés réguliers",
+      "input_type": "quantity",
+      "unit": "hours",
+      "is_taxable": null,
+      "is_cotisable": null,
+      "legal_status": "to_provide"
+    }
+  ],
+  "compliance_checks": [
+    {
+      "check_id": "NBTP_HABILITATION",
+      "description": "Habilitation ou dotation EPI échue ou proche de l'échéance",
+      "emit_to": "legal_alerts",
+      "severity": "high"
+    },
+    {
+      "check_id": "NBTP_ATTESTATION_291",
+      "description": "Attestation de régularité sociale absente ou échue (mêmes alertes que le gardiennage)",
+      "emit_to": "legal_alerts",
+      "severity": "high",
+      "legal_ref": "Code du travail 2026, art. 291"
+    },
+    {
+      "check_id": "NBTP_MISSING_RATE",
+      "description": "Saisie de période avec un multiple ou un montant non renseigné : constat, aucun montant inventé",
+      "emit_to": "module_findings",
+      "severity": "warning"
+    }
+  ],
+  "tests": [
+    {
+      "case_id": "NBTP-T01",
+      "description": "Heures de hauteur saisies sans multiple : constat missing_parameter:height_rate, aucune ligne",
+      "expected": {
+        "finding": "missing_parameter:height_rate",
+        "payslip_line": false
+      }
+    },
+    {
+      "case_id": "NBTP-T02",
+      "description": "15 h de hauteur avec multiple 0,3 : ligne = 15 × TH × 0,3",
+      "expected": {
+        "payslip_line": true
+      }
+    },
+    {
+      "case_id": "NBTP-T03",
+      "description": "Habilitation échue : alerte habilitation_echue ; module actif sans attestation de société : attestation_regularite_manquante",
+      "expected": {
+        "alert": "habilitation_echue"
+      }
+    }
+  ],
+  "notes": [
+    "Aucune convention collective du nettoyage ou du BTP lue : toutes les primes sont à saisir par le client. Les drapeaux fiscal et cotisable de chaque prime restent à confirmer avec le comptable."
+  ],
+  "planning_rules": {
+    "shift_templates": [
+      {
+        "code": "NB-J",
+        "label": "Journée chantier (07 h-16 h)",
+        "start": "07:00",
+        "end": "16:00",
+        "duration_hours": 8
+      },
+      {
+        "code": "NB-T",
+        "label": "Tôt le matin (05 h-13 h)",
+        "start": "05:00",
+        "end": "13:00",
+        "duration_hours": 8
+      },
+      {
+        "code": "NB-S",
+        "label": "Soir (17 h-01 h)",
+        "start": "17:00",
+        "end": "01:00",
+        "duration_hours": 8
+      }
+    ],
+    "note": "Horaires décalés et dimanche/fériés réguliers : à confirmer avec le client"
+  }
+}

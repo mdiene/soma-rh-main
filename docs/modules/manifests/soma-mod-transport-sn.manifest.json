@@ -1,0 +1,331 @@
+{
+  "manifest_version": "2.0",
+  "module_id": "soma-mod-transport-sn",
+  "module_name": "Module vertical Transport et chauffeurs (Sénégal)",
+  "version": "0.1.0-draft",
+  "status": "draft",
+  "jurisdiction": "SN",
+  "requires_core": ">=1.0",
+  "target_sector": "TRANSPORT",
+  "custom_fields": [
+    {
+      "field_key": "tr_permis_categorie",
+      "target_entity": "Employee",
+      "label": "Catégorie du permis de conduire",
+      "data_type": "string",
+      "required": false
+    },
+    {
+      "field_key": "tr_permis_expiry",
+      "target_entity": "Employee",
+      "label": "Échéance du permis de conduire",
+      "data_type": "date",
+      "required": false
+    },
+    {
+      "field_key": "tr_vehicule",
+      "target_entity": "Contract",
+      "label": "Véhicule affecté",
+      "data_type": "string",
+      "required": false
+    },
+    {
+      "field_key": "tr_longue_distance",
+      "target_entity": "Contract",
+      "label": "Conducteur longue distance",
+      "data_type": "boolean",
+      "required": false,
+      "default_value": false
+    }
+  ],
+  "parameters": {
+    "weekly_legal_hours": {
+      "value": 40,
+      "unit": "hours_per_week",
+      "source": "Code du travail 2026 (loi 2026-18), art. 241",
+      "legal_status": "verified"
+    },
+    "equivalence_thresholds": {
+      "value": null,
+      "legal_status": "to_provide",
+      "client_input_allowed": true,
+      "note": "Seuils d'équivalence des conducteurs par catégorie : à lire dans le décret sénégalais de dérogations (70-183) ; les valeurs 48/52/54 h du carnet viennent d'un texte nigérien et ne sont pas reprises"
+    },
+    "trip_rate": {
+      "value": null,
+      "legal_status": "to_provide",
+      "client_input_allowed": true,
+      "unit": "FCFA_per_trip",
+      "note": "Tarif par trajet (FCFA) : contrat ou convention de l'entreprise"
+    },
+    "km_rate": {
+      "value": null,
+      "legal_status": "to_provide",
+      "client_input_allowed": true,
+      "unit": "FCFA_per_km",
+      "note": "Tarif au kilomètre (FCFA) : contrat ou convention de l'entreprise"
+    },
+    "away_allowance_rate": {
+      "value": null,
+      "legal_status": "to_provide",
+      "client_input_allowed": true,
+      "unit": "multiple_of_hourly_rate",
+      "note": "Indemnité d'éloignement / de repas, multiple du taux horaire (CCNI art. 61 et convention de branche non lue)"
+    },
+    "overnight_allowance_rate": {
+      "value": null,
+      "legal_status": "to_provide",
+      "client_input_allowed": true,
+      "unit": "multiple_of_hourly_rate",
+      "note": "Indemnité de découché, multiple du taux horaire (CCNI art. 61 et convention de branche non lue)"
+    },
+    "safe_driving_bonus": {
+      "value": null,
+      "legal_status": "to_provide",
+      "client_input_allowed": true,
+      "unit": "FCFA_per_month",
+      "note": "Montant mensuel de la prime sans accident (FCFA) : décision de l'entreprise"
+    },
+    "licence_alert_days": {
+      "value": 30,
+      "legal_status": "secondary",
+      "unit": "days",
+      "source": "Délai interne, aucune obligation légale lue",
+      "note": "Délai d'alerte interne avant l'échéance du permis de conduire"
+    }
+  },
+  "payroll_rules": [
+    {
+      "rule_id": "TR_TRIP",
+      "label": "Rémunération au trajet",
+      "inputs": [
+        "INP_TRIPS"
+      ],
+      "params": [
+        "trip_rate"
+      ],
+      "taxable": true,
+      "logic": {
+        "*": [
+          {
+            "var": "INP_TRIPS"
+          },
+          {
+            "var": "trip_rate"
+          }
+        ]
+      },
+      "note": "Quantité × tarif saisi"
+    },
+    {
+      "rule_id": "TR_KM",
+      "label": "Rémunération au kilomètre",
+      "inputs": [
+        "INP_KM"
+      ],
+      "params": [
+        "km_rate"
+      ],
+      "taxable": true,
+      "logic": {
+        "*": [
+          {
+            "var": "INP_KM"
+          },
+          {
+            "var": "km_rate"
+          }
+        ]
+      },
+      "note": "Quantité × tarif saisi"
+    },
+    {
+      "rule_id": "TR_AWAY",
+      "label": "Indemnité d'éloignement / de repas",
+      "inputs": [
+        "INP_AWAY_DAYS"
+      ],
+      "params": [
+        "away_allowance_rate"
+      ],
+      "taxable": true,
+      "logic": {
+        "*": [
+          {
+            "var": "INP_AWAY_DAYS"
+          },
+          {
+            "var": "hourly_rate"
+          },
+          {
+            "var": "away_allowance_rate"
+          }
+        ]
+      },
+      "note": "Jours × taux horaire × multiple saisi. Part au-delà du plafond de non-imposition à réintégrer : à confirmer au CGI, traitée ici comme imposable",
+      "legal_ref": "CCNI art. 61 (copie de 1982 lue)"
+    },
+    {
+      "rule_id": "TR_OVERNIGHT",
+      "label": "Indemnité de découché",
+      "inputs": [
+        "INP_OVERNIGHTS"
+      ],
+      "params": [
+        "overnight_allowance_rate"
+      ],
+      "taxable": true,
+      "logic": {
+        "*": [
+          {
+            "var": "INP_OVERNIGHTS"
+          },
+          {
+            "var": "hourly_rate"
+          },
+          {
+            "var": "overnight_allowance_rate"
+          }
+        ]
+      },
+      "note": "Nuitées × taux horaire × multiple saisi. Même réserve fiscale que l'éloignement",
+      "legal_ref": "CCNI art. 61 (copie de 1982 lue)"
+    },
+    {
+      "rule_id": "TR_SAFE_BONUS",
+      "label": "Prime sans accident",
+      "inputs": [
+        "INP_SAFE_MONTHS"
+      ],
+      "params": [
+        "safe_driving_bonus"
+      ],
+      "taxable": true,
+      "logic": {
+        "*": [
+          {
+            "var": "INP_SAFE_MONTHS"
+          },
+          {
+            "var": "safe_driving_bonus"
+          }
+        ]
+      },
+      "note": "Mois sans accident (0 ou 1) × montant saisi. Fiscale et cotisable par défaut"
+    }
+  ],
+  "payroll_inputs": [
+    {
+      "input_code": "INP_TRIPS",
+      "label": "Trajets effectués",
+      "input_type": "quantity",
+      "unit": "trips",
+      "is_taxable": null,
+      "is_cotisable": null,
+      "legal_status": "to_provide"
+    },
+    {
+      "input_code": "INP_KM",
+      "label": "Kilomètres parcourus",
+      "input_type": "quantity",
+      "unit": "km",
+      "is_taxable": null,
+      "is_cotisable": null,
+      "legal_status": "to_provide"
+    },
+    {
+      "input_code": "INP_AWAY_DAYS",
+      "label": "Jours d'éloignement / repas",
+      "input_type": "quantity",
+      "unit": "days",
+      "is_taxable": null,
+      "is_cotisable": null,
+      "legal_status": "to_provide"
+    },
+    {
+      "input_code": "INP_OVERNIGHTS",
+      "label": "Nuits de découché",
+      "input_type": "quantity",
+      "unit": "nights",
+      "is_taxable": null,
+      "is_cotisable": null,
+      "legal_status": "to_provide"
+    },
+    {
+      "input_code": "INP_SAFE_MONTHS",
+      "label": "Mois sans accident (0 ou 1)",
+      "input_type": "quantity",
+      "unit": "months",
+      "is_taxable": null,
+      "is_cotisable": null,
+      "legal_status": "to_provide"
+    }
+  ],
+  "compliance_checks": [
+    {
+      "check_id": "TR_PERMIS",
+      "description": "Permis de conduire échu ou arrivant à échéance",
+      "emit_to": "legal_alerts",
+      "severity": "high"
+    },
+    {
+      "check_id": "TR_MISSING_RATE",
+      "description": "Saisie de période avec un tarif ou un multiple non renseigné : constat, aucun montant inventé",
+      "emit_to": "module_findings",
+      "severity": "warning"
+    },
+    {
+      "check_id": "TR_EQUIVALENCE",
+      "description": "Seuils d'équivalence des conducteurs non saisis : aucune heure supplémentaire déduite d'une équivalence",
+      "emit_to": "module_findings",
+      "severity": "warning"
+    }
+  ],
+  "tests": [
+    {
+      "case_id": "TR-T01",
+      "description": "Trajets saisis sans tarif : constat missing_parameter:trip_rate, aucune ligne de paie",
+      "expected": {
+        "finding": "missing_parameter:trip_rate",
+        "payslip_line": false
+      }
+    },
+    {
+      "case_id": "TR-T02",
+      "description": "20 trajets à 5 000 F et 2 nuits de découché à 3 × le taux horaire : lignes = 100 000 F et 2 × TH × 3",
+      "expected": {
+        "payslip_line": true
+      }
+    },
+    {
+      "case_id": "TR-T03",
+      "description": "Permis échu : alerte permis_echu",
+      "expected": {
+        "alert": "permis_echu"
+      }
+    }
+  ],
+  "notes": [
+    "Aucune convention collective de transport lue : tous les tarifs et multiples sont à saisir par le client. Le temps de conduite effective, d'attente et de disponibilité n'est pas qualifié par le moteur (décret 70-183 à lire).",
+    "Heures supplémentaires : planchers du décret 70-184 via le cœur."
+  ],
+  "planning_rules": {
+    "shift_templates": [
+      {
+        "code": "TR-J",
+        "label": "Journée (07 h-17 h)",
+        "start": "07:00",
+        "end": "17:00",
+        "duration_hours": 10
+      },
+      {
+        "code": "TR-N",
+        "label": "Convoi de nuit (20 h-06 h)",
+        "start": "20:00",
+        "end": "06:00",
+        "duration_hours": 10
+      }
+    ],
+    "note": "Horaires modifiables ; amplitude et temps de repos des conducteurs à confirmer avec le client"
+  }
+}

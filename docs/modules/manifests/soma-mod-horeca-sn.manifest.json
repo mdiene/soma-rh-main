@@ -1,0 +1,186 @@
+{
+  "manifest_version": "2.0",
+  "module_id": "soma-mod-horeca-sn",
+  "module_name": "Module vertical Hôtellerie et restauration (Sénégal)",
+  "version": "0.1.0-draft",
+  "status": "draft",
+  "jurisdiction": "SN",
+  "requires_core": ">=1.0",
+  "target_sector": "HORECA",
+  "custom_fields": [
+    {
+      "field_key": "hor_logement_pieces",
+      "target_entity": "Employee",
+      "label": "Nombre de pièces principales du logement fourni",
+      "data_type": "number",
+      "required": false
+    },
+    {
+      "field_key": "hor_logement_zone",
+      "target_entity": "Employee",
+      "label": "Zone du logement (dakar, chef_lieu, autre)",
+      "data_type": "string",
+      "required": false
+    },
+    {
+      "field_key": "hor_nourri",
+      "target_entity": "Contract",
+      "label": "Nourri sur place",
+      "data_type": "boolean",
+      "required": false,
+      "default_value": false
+    },
+    {
+      "field_key": "hor_service_coupe",
+      "target_entity": "Contract",
+      "label": "Horaires à coupure",
+      "data_type": "boolean",
+      "required": false,
+      "default_value": false
+    }
+  ],
+  "parameters": {
+    "weekly_legal_hours": {
+      "value": 40,
+      "unit": "hours_per_week",
+      "source": "Code du travail 2026 (loi 2026-18), art. 241",
+      "legal_status": "verified"
+    },
+    "equivalence_thresholds": {
+      "value": null,
+      "legal_status": "to_provide",
+      "client_input_allowed": true,
+      "note": "Seuils d'équivalence HORECA : à lire dans le décret sénégalais de dérogations ; les valeurs 50/45 h du carnet viennent d'un texte nigérien et ne sont pas reprises"
+    },
+    "split_shift_min_break": {
+      "value": null,
+      "legal_status": "to_provide",
+      "client_input_allowed": true,
+      "unit": "minutes",
+      "note": "Durée minimale de la pause entre deux services d'une journée à coupure"
+    },
+    "housing_value_dakar": {
+      "value": 33500,
+      "legal_status": "secondary",
+      "unit": "FCFA_per_room",
+      "source": "Arrêté 012914 (source secondaire)",
+      "note": "Valeur mensuelle du logement par pièce principale, Dakar. Source secondaire (publication relayant l'arrêté MEF 012914 du 31/07/2013), texte non lu"
+    },
+    "housing_value_chef_lieu": {
+      "value": 20000,
+      "legal_status": "secondary",
+      "unit": "FCFA_per_room",
+      "source": "Arrêté 012914 (source secondaire)",
+      "note": "Idem, autres chefs-lieux"
+    },
+    "housing_value_other": {
+      "value": 13500,
+      "legal_status": "secondary",
+      "unit": "FCFA_per_room",
+      "source": "Arrêté 012914 (source secondaire)",
+      "note": "Idem, autres localités"
+    },
+    "meal_benefit_value": {
+      "value": null,
+      "legal_status": "to_provide",
+      "client_input_allowed": true,
+      "unit": "FCFA_per_day",
+      "note": "Valeur de l'avantage nourriture : aucun texte lu"
+    },
+    "service_share_taxable": {
+      "value": null,
+      "legal_status": "to_provide",
+      "client_input_allowed": true,
+      "note": "Traitement du service et des pourboires (fiscal, social, allocation de congés) : référence du texte appliqué, à fournir"
+    }
+  },
+  "payroll_rules": [
+    {
+      "rule_id": "HOR_SERVICE",
+      "label": "Part de service redistribuée",
+      "inputs": [
+        "INP_SERVICE_AMOUNT"
+      ],
+      "params": [
+        "service_share_taxable"
+      ],
+      "taxable": true,
+      "logic": {
+        "var": "INP_SERVICE_AMOUNT"
+      },
+      "note": "Montant saisi repris tel quel. Le paramètre service_share_taxable (référence du texte appliqué) doit être saisi avant tout calcul ; traitée comme imposable et cotisable en attendant le texte"
+    }
+  ],
+  "payroll_inputs": [
+    {
+      "input_code": "INP_SERVICE_AMOUNT",
+      "label": "Part de service redistribuée (FCFA)",
+      "input_type": "quantity",
+      "unit": "FCFA",
+      "is_taxable": null,
+      "is_cotisable": null,
+      "legal_status": "to_provide"
+    }
+  ],
+  "compliance_checks": [
+    {
+      "check_id": "HOR_MISSING_PARAM",
+      "description": "Saisie de période avec un paramètre à fournir non renseigné : constat, aucun montant inventé",
+      "emit_to": "module_findings",
+      "severity": "warning"
+    },
+    {
+      "check_id": "HOR_LOGEMENT",
+      "description": "Logement fourni sans zone ou sans nombre de pièces : évaluation de l'avantage impossible",
+      "emit_to": "module_findings",
+      "severity": "warning"
+    }
+  ],
+  "tests": [
+    {
+      "case_id": "HOR-T01",
+      "description": "Part de service saisie sans traitement paramétré : constat missing_parameter:service_share_taxable, aucune ligne",
+      "expected": {
+        "finding": "missing_parameter:service_share_taxable",
+        "payslip_line": false
+      }
+    },
+    {
+      "case_id": "HOR-T02",
+      "description": "Traitement saisi puis 40 000 F de service : ligne = 40 000 F",
+      "expected": {
+        "payslip_line": true
+      }
+    }
+  ],
+  "notes": [
+    "Avantage logement : valeurs 33 500 / 20 000 / 13 500 F conservées en statut secondaire (texte de l'arrêté non lu). La retenue de l'avantage sur le net n'est pas encore branchée dans le moteur : les paramètres sont stockés pour le lot qui l'ajoutera.",
+    "Avantage nourriture : aucun texte lu, aucune valeur."
+  ],
+  "planning_rules": {
+    "shift_templates": [
+      {
+        "code": "HR-M",
+        "label": "Service du midi (10 h-15 h)",
+        "start": "10:00",
+        "end": "15:00",
+        "duration_hours": 5
+      },
+      {
+        "code": "HR-S",
+        "label": "Service du soir (18 h-23 h)",
+        "start": "18:00",
+        "end": "23:00",
+        "duration_hours": 5
+      },
+      {
+        "code": "HR-C",
+        "label": "Journée à coupure (10 h-15 h puis 18 h-23 h)",
+        "start": "10:00",
+        "end": "23:00",
+        "duration_hours": 10
+      }
+    ],
+    "note": "Pause entre services à paramétrer (split_shift_min_break)"
+  }
+}
