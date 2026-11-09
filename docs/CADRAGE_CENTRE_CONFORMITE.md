@@ -113,3 +113,33 @@ Chaque lot : migration + rollback dans `db/rollback/`, application dans `soma-rh
 4. **Références légales : amorçage depuis l'existant, puis réglage par l'admin.** L'amorçage reprend `legal_sources` et les en-têtes de migrations, plus `docs/CODE_TRAVAIL_2026_SPECIFICATION_SOMA_RH.md` et `docs/modules/INVENTAIRE_PARAMETRES.md` ; aucune référence n'est inventée, ce qui manque reste « à fournir ». Ensuite l'admin peut ajuster texte de loi, article, décret et statut (`à confirmer` → `confirmé`) depuis la page, chaque changement tracé dans `audit_log`.
 
 Impact sur les lots (§7) : L1 se scinde en **L1a** (constantes simples, catalogue, références) et **L1b** (barèmes datés + éditeur de tableau) ; un lot **L2b** ajoute la file de validation (onglet D) entre L2 et L3.
+
+## 9. Avancement et file d'attente (mis à jour le 2026-11-09, pause pour la recette utilisateur)
+
+### Livré et commité
+| Lot | Contenu | Commit |
+|---|---|---|
+| L1a | Catalogue des constantes (28), modification versionnée, réinitialisation, verrou des paies calculées | `35b6b937` |
+| L1b | Barèmes datés et éditables (impôt, heures sup., quotité cessible, licenciement, retraite, préavis) ; `severance_coefficient` lit enfin son barème | `57eebd20` |
+| L2 | Scan vert / orange / rouge, registre durable des dérogations, règles CDD-DUREE et constantes non confirmées | `82b409ca` |
+| L2b | File de validation : le RH et la paie saisissent, l'administrateur valide | `087e2073` |
+| L3 | Page `/centre-conformite` (constantes, barèmes, À valider), compteur de menu, écritures directes réservées à l'administrateur | `d8f7b073` |
+
+### En file d'attente (non commencé)
+- **L4 — onglets Cohérence et Dérogations** : pastille verte / orange / rouge et bouton « Lancer le scan » (`run_compliance_scan`), tableau des écarts (`compliance_open_findings`) filtrable par gravité et domaine, actions par ligne « Déroger » (modale : motif obligatoire, via `request_waiver`) et « Corriger » (lien selon `fix_target` : salarié, société, paramètre, planning, paie), registre des dérogations (statut, auteur, demandeur, révocation par l'administrateur via `revoke_waiver`). L'onglet par défaut de la page devient Cohérence.
+- **L5 — intégration** : widget « Conformité » sur le tableau de bord (`compliance_status`, pastille + date du dernier scan + lien), redirection de l'ancienne page `/conformite` vers le centre puis suppression de `CompliancePage.tsx`, mise à jour de `docs/` et de la matrice de recette.
+
+### Suites identifiées (à arbitrer après la recette)
+1. **Règles non couvertes faute de donnée** : renouvellements et cumul de 4 ans des CDD (aucun compteur en base) ; contingent annuel d'heures supplémentaires (aucun paramètre, valeur à fournir).
+2. **Références légales** : seules `DEC_2009_1412` et `IFC_INTERIM` sont confirmées ; toutes les autres sont « à confirmer » (revue du juriste). L'administrateur peut les régler depuis la page.
+3. **Trois règles de calcul** (base de l'indemnité de licenciement, IPM des prestataires, transport en cas d'absence) restent modifiables directement par l'administrateur depuis Paramètres, sans circuit de validation : ce ne sont pas des constantes du catalogue.
+4. **`v_conformite_retenues`** juge les anciens bulletins avec le barème de quotité cessible du jour (contrôle, pas calcul de paie).
+5. **Tests d'interface** : pas de compte QA `rh` / `paie` (le parcours « le RH envoie une demande » n'est couvert qu'en SQL) ; `a11y.spec.ts` instable sous charge (échecs différents d'un passage à l'autre, tous verts isolément) à relancer sur une machine peu chargée.
+6. **Ancien bouton « Déroger »** (page Conformité) : il crée désormais une demande, l'écart n'apparaît « dérogé » qu'après approbation de l'administrateur.
+
+### Points à observer pendant les tests utilisateurs
+- Un RH modifie une constante : la demande apparaît chez l'administrateur (compteur du menu, onglet À valider), rien ne change avant approbation ; le refus exige un motif et notifie le demandeur.
+- Date d'effet : impossible avant le premier mois libre (des paies sont calculées jusqu'au mois précédent) ; une paie calculée ne change jamais, vérifier par `scripts/verify-payroll.ps1`.
+- Réinitialisation : la valeur d'origine revient, y compris sur les versions futures encore modifiables.
+- Barème : continuité des tranches (départ à 0, pas de trou, dernière tranche sans limite) ; majoration d'heures sup. refusée sous le minimum légal.
+- Écran Paramètres : en lecture seule pour le RH et la paie, renvoi vers le centre.
