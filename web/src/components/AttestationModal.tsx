@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { Printer } from 'lucide-react'
 import { dataApi, unwrap } from '../lib/api'
-import { useCompany, useDesignations } from '../lib/queries'
+import { useAgreements, useCompany, useDesignations, useGrades } from '../lib/queries'
 import { date, fcfa, monthLabel } from '../lib/format'
 import { Button, Modal, Spinner } from './ui'
 import { PrintPortal, printPortal } from './PrintPortal'
@@ -36,6 +36,8 @@ function AttestationDocument({ employeeId, kind }: { employeeId: string; kind: A
     enabled: kind === 'attestation_salaire',
     queryFn: async () => unwrap(await dataApi.from('salary_slips').select('period_start, gross_pay, net_pay').eq('employee_id', employeeId).eq('status', 'Validé').order('period_start', { ascending: false }).limit(1)),
   })
+  const grades = useGrades(emp.data?.agreement_code)
+  const agreements = useAgreements()
   const tpl = useQuery({
     queryKey: ['document_template', kind],
     queryFn: async () => unwrap(await dataApi.from('document_templates').select('body').eq('code', kind).maybeSingle()),
@@ -53,10 +55,14 @@ function AttestationDocument({ employeeId, kind }: { employeeId: string; kind: A
   const today = date(new Date().toISOString().slice(0, 10))
   const place = 'Dakar'
   const f = e.gender === 'F' ? 'e' : ''
+  const grade = grades.data?.find((g) => g.id === e.grade_id)
+  const agreement = agreements.data?.find((a) => a.code === e.agreement_code)?.name
+  const category = grade ? `${grade.code}${agreement ? ` de la convention collective « ${agreement} »` : ''}` : ''
   const paragraphs = renderTemplate(tpl.data?.body ?? DEFAULT_TEMPLATES[kind], {
     societe: c?.name ?? '', civilite: civ, prenom: e.first_name, nom: e.last_name.toUpperCase(), matricule: e.employee_number,
     naissance: e.date_of_birth ? `, né${f} le ${date(e.date_of_birth)}${e.place_of_birth ? ` à ${e.place_of_birth}` : ''}` : '',
     etat: left ? 'a été' : 'est', employe: pron, fonction: designation ? ` en qualité de ${designation}` : '',
+    categorie: category ? `, catégorie ${category}` : '',
     date_embauche: date(e.date_of_joining), date_sortie: left ? date(e.relieving_date!) : '', fin: left ? ` jusqu’au ${date(e.relieving_date!)}` : '', e: f,
     effectif: kind === 'attestation_travail' && !left ? `L’intéressé${f} fait toujours partie de notre effectif à la date de la présente.` : '',
     salaire: kind !== 'attestation_salaire' ? '' : last

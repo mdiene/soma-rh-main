@@ -12,6 +12,7 @@ export const TEMPLATE_FIELDS: { key: string; label: string }[] = [
   { key: 'fonction', label: 'Fonction, avec son préfixe (« en qualité de … »), vide si inconnue' },
   { key: 'date_embauche', label: "Date d'entrée" },
   { key: 'fin', label: 'Date de sortie (« jusqu’au … »), vide si en poste' },
+  { key: 'categorie', label: 'Catégorie de la convention collective, avec sa virgule (« , catégorie … »), vide si inconnue' },
   { key: 'date_sortie', label: 'Date de sortie (vide si le salarié est en poste)' },
   { key: 'e', label: 'Accord au féminin : « e » ou vide' },
   { key: 'effectif', label: 'Phrase « fait toujours partie de notre effectif » (vide si sorti)' },
@@ -35,7 +36,7 @@ export const TEMPLATE_TITLES: Record<TemplateCode, string> = {
 export const DEFAULT_TEMPLATES: Record<TemplateCode, string> = {
   attestation_travail: `${COMMON}\n\n{{effectif}}\n\n${CLOSING}`,
   attestation_salaire: `${COMMON}\n\n{{salaire}}\n\n${CLOSING}`,
-  certificat_travail: "Nous soussignés, {{societe}}, certifions que {{civilite}} {{prenom}} {{nom}}{{naissance}}, matricule {{matricule}}, a été {{employe}} au sein de notre société{{fonction}} du {{date_embauche}} au {{date_sortie}}.\n\nLe présent certificat est délivré à l'intéressé{{e}}, à l'occasion de son départ de l'entreprise, pour servir et valoir ce que de droit.",
+  certificat_travail: "Nous soussignés, {{societe}}, certifions que {{civilite}} {{prenom}} {{nom}} a été {{employe}} au sein de notre société{{fonction}}{{categorie}}, du {{date_embauche}} au {{date_sortie}}.\n\nLe présent certificat est délivré à l'intéressé{{e}}, à l'occasion de son départ de l'entreprise, pour servir et valoir ce que de droit.",
 }
 
 const KNOWN = new Set(TEMPLATE_FIELDS.map((f) => f.key))

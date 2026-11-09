@@ -10,7 +10,7 @@ import { Button, ErrorNote, Section, SelectField, Spinner } from './ui'
 const SAMPLE: Record<string, string> = {
   societe: 'Société Exemple', civilite: 'Madame', prenom: 'Awa', nom: 'DIOP', matricule: 'M0001',
   naissance: ', née le 01/01/1990 à Dakar', etat: 'est', employe: 'employée', fonction: ' en qualité de Comptable',
-  date_embauche: '15/03/2020', date_sortie: '30/09/2026', fin: '', e: 'e', effectif: 'L’intéressée fait toujours partie de notre effectif à la date de la présente.',
+  date_embauche: '15/03/2020', categorie: ', catégorie 4B de la convention collective « Commerce »', date_sortie: '30/09/2026', fin: '', e: 'e', effectif: 'L’intéressée fait toujours partie de notre effectif à la date de la présente.',
   salaire: 'À la date du bulletin de octobre 2026, sa rémunération mensuelle s’établit à 450 000 F CFA brut, soit 380 000 F CFA net à payer.',
   date_du_jour: '09/11/2026', lieu: 'Dakar',
 }

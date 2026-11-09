@@ -34,7 +34,7 @@ test('les textes d\'origine des trois documents n\'utilisent que des champs conn
 })
 
 test('certificat de travail : dates d\'entrée et de sortie remplacées', () => {
-  const [p] = t.renderTemplate(t.DEFAULT_TEMPLATES.certificat_travail, { societe: 'S', civilite: 'Monsieur', prenom: 'A', nom: 'B', naissance: '', matricule: 'M1', employe: 'employé', fonction: ' en qualité de X', date_embauche: '01/01/2020', date_sortie: '31/10/2026', e: '' })
+  const [p] = t.renderTemplate(t.DEFAULT_TEMPLATES.certificat_travail, { societe: 'S', civilite: 'Monsieur', prenom: 'A', nom: 'B', employe: 'employé', fonction: ' en qualité de X', categorie: '', date_embauche: '01/01/2020', date_sortie: '31/10/2026', e: '' })
   assert.match(p, /du 01\/01\/2020 au 31\/10\/2026\.$/)
 })
 
