@@ -9,60 +9,51 @@ classeur Excel « GESTION DE LA PAIE DES CONGES » et sur le modèle fonctionnel
 * **Moteur de paie** : fonctions PL/pgSQL qui reproduisent les formules Excel au centime près
   (25 bulletins d'août 2026 identiques, voir [docs/ANALYSE_EXCEL.md](docs/ANALYSE_EXCEL.md))
 
-## Démarrer (Windows)
+## Deux versions, un seul code
+
+| | Locale | En ligne |
+|---|---|---|
+| Base de données | PostgreSQL 17 dans Docker | Supabase (projet `mzhdwdpesbggxtjxxgab`) |
+| Authentification | conteneur `api` (compatible `/auth/v1`), inscription fermée | Supabase Auth |
+| API de données | PostgREST (Docker) derrière la passerelle `api` | PostgREST de Supabase |
+| Documents salariés | fichiers sur disque via `/api/v1/documents` | Supabase Storage (bucket privé `employee-documents`) |
+| Miniatures de documents | image générée par la passerelle (`sharp`) | image elle-même (JPEG/PNG) ou type de fichier |
+| Dossier PDF complet d'un salarié | oui | **non** (bouton masqué) |
+| Lien privé d'un document | oui | **non** (bouton masqué) |
+| Envoi d'e-mails | non (la file `email_outbox` n'est pas traitée) | non |
+| Propriétaire des objets SQL | rôle `soma` | rôle `postgres` |
+| Front | `npm run dev` (http://localhost:5173) | Vercel |
+| Configuration du front | `web/.env.local` (modèle `web/.env.local.example`) | variables Vercel (modèle `web/.env.production.example`) |
+
+Le front ne les distingue que par `VITE_API_URL`, `VITE_API_PUBLIC_KEY` et `VITE_DOCUMENTS_MODE` (`gateway` ou `supabase`).
+
+## Lancer en local
 
 ```powershell
-cd C:\IT-Mozaic\SOMA-RH\web
-npm install
-npm run dev                    # http://localhost:5173
-```
-
-Pour démarrer la nouvelle base locale :
-
-```powershell
-Copy-Item .env.docker.example .env
+Copy-Item .env.docker.example .env        # puis renseigner POSTGRES_PASSWORD, JWT_SECRET, PGADMIN_* (jamais commité)
 docker compose up -d postgres postgrest api
+Copy-Item web\.env.local.example web\.env.local
+cd web; npm ci; npm run dev
 ```
 
-Services locaux : frontend `http://localhost:5173`, passerelle/API `http://localhost:8000`,
-PostgREST direct `http://localhost:3001`, PostgreSQL `localhost:5432`, pgAdmin `http://localhost:5051`.
+* Application : http://localhost:5173 ; passerelle/API : http://localhost:8000 ; PostgREST : http://localhost:3001 ; PostgreSQL : `localhost:5432` ; pgAdmin : http://localhost:5051 (`docker compose up -d pgadmin`).
+* Nouvelle migration : la créer dans `db/migrations/`, l'appliquer (`docker exec -i soma-rh-local-postgres-1 psql -U soma -d soma_rh -v ON_ERROR_STOP=1 < fichier.sql`), recharger PostgREST (`notify pgrst, 'reload schema'`) et régénérer `web/src/lib/database.types.ts`.
+* Contrôles : `cd web; npm run check; npm run build`, `scripts	est-sql.ps1`, `scriptserify-payroll.ps1` (nécessite `POSTGRES_PASSWORD` dans l'environnement ou `.env`).
+* Création d'un compte local : inscription fermée par défaut ; voir `scripts\sim-create-users.ps1` / `qa-create-users.ps1`, puis **Paramètres › Accès › Me déclarer administrateur**.
 
-pgAdmin est préconfiguré avec le serveur **SOMA-RH local**. Depuis pgAdmin, utilisez `postgres`
-comme hôte, `5432` comme port, `soma_rh` comme base, `soma` comme utilisateur et la valeur
-`POSTGRES_PASSWORD` du fichier `.env` comme mot de passe. Depuis Windows, n’utilisez pas `localhost`
-dans pgAdmin lancé dans Docker : les conteneurs communiquent via le nom de service `postgres`.
+## Mettre en ligne (Supabase + Vercel)
 
-Le volume PostgreSQL est initialisé une seule fois, dans l’ordre des migrations de
-[`db/migrations/`](C:/IT-Mozaic/SOMA-RH-local/db/migrations). Les secrets du fichier `.env` ne doivent jamais être commités.
+Les migrations ne se rejouent plus en entier (voir `db/baseline/README.md`) : une base neuve se construit avec la baseline puis les migrations postérieures à la coupure. `scripts/supabase-load.sh` le fait et remplace le rôle `soma` par `postgres`.
 
-La migration des données de l’base source nécessite une chaîne PostgreSQL directe complète
-dans `SOURCE_DATABASE_URL` et une chaîne cible dans `TARGET_DATABASE_URL`. Le script
-[`scripts/migrate-postgres.ps1`](C:/IT-Mozaic/SOMA-RH-local/scripts/migrate-postgres.ps1) exécute l’export/import
-avec `pg_dump` et `pg_restore`, sans copier de données personnelles dans Git.
-Le seed de développement charge actuellement les référentiels et 26 salariés ; les bulletins ne seront
-présents qu’après l’import des données source.
+1. **Sauvegarde** de l'existant (facultatif mais recommandé) : `.\scripts\supabase-backup.ps1 -DbHost aws-1-eu-west-1.pooler.supabase.com -DbUser postgres.mzhdwdpesbggxtjxxgab`.
+2. **Base** : `.\scripts\supabase-migrer.ps1 -Etape reset -Sauvegarde backups\<dossier>` — **destructif** (supprime puis recrée le schéma `public`, confirmation à taper). Le pooler IPv4 est utilisé ; le mot de passe de la base est saisi à l'écran, jamais écrit. `-Etape donnees` recharge ensuite les données d'une sauvegarde.
+   Si le schéma est déjà à jour et qu'il ne manque qu'une migration, l'appliquer seule avec `psql` sur le pooler (en remplaçant `FOR ROLE soma` par `FOR ROLE postgres`).
+3. **Stockage** : la migration `20261212090000_documents_supabase_storage.sql` crée le bucket privé `employee-documents` et ses politiques ; rien d'autre à faire dans Supabase.
+4. **Vercel** : importer le dépôt (racine `./`, `vercel.json` fixe le build). Dans *Settings › Environment Variables* : `VITE_API_URL` = URL du projet (`https://mzhdwdpesbggxtjxxgab.supabase.co`), `VITE_API_PUBLIC_KEY` = clé publique *anon*, `VITE_DOCUMENTS_MODE` = `supabase`. Ne jamais mettre la clé `service_role` ici. `.vercelignore` exclut le dossier `api/` (passerelle Docker, pas une fonction Vercel).
+5. **Supabase Auth** : *Authentication › URL Configuration* → adresse du site Vercel ; désactiver les inscriptions publiques (*Sign In / Providers › Allow new users to sign up*).
+6. **Premier administrateur** : créer l'utilisateur dans *Authentication › Users › Add user* (e-mail + mot de passe, « Auto Confirm »), se connecter à l'application, puis **Paramètres › Accès › Me déclarer administrateur** (possible tant qu'aucun administrateur n'existe). Créer ensuite les autres comptes de la même façon et leur attribuer les rôles.
 
-1. Copiez [`web/.env.example`](C:/IT-Mozaic/SOMA-RH-local/web/.env.example) vers `web/.env.local` :
-   l’URL doit être `http://localhost:8000`, celle de la passerelle PostgreSQL/JWT.
-2. Ouvrez l’application, créez un compte puis allez dans **Paramètres › Accès** et cliquez sur
-   **Me déclarer administrateur** (possible uniquement tant qu'aucun administrateur n'existe).
-3. Créez les comptes des autres utilisateurs, puis attribuez-leur les rôles **RH**, **Paie** ou **Salarié**.
-   Reliez un compte à une fiche pour que le salarié consulte ses bulletins.
-
-La paie d'**août 2026** est déjà chargée et calculée (statut « Calculée ») : ouvrez **Traitements de paie**.
-
-## Mise en ligne sur Vercel
-
-Le dépôt est prêt : `vercel.json` (racine) construit l'application de `web/` et redirige toutes les routes vers
-`index.html` ; `web/.env.production` fournit l'URL de la passerelle PostgreSQL et sa clé publique au build.
-
-1. Sur [vercel.com/new](https://vercel.com/new), importez le dépôt GitHub `mdiene/soma-rh`.
-   Laissez **Root Directory** à la racine (`./`) : `vercel.json` fixe les commandes et le dossier `web/dist`.
-2. Cliquez sur **Deploy** et définissez `VITE_API_URL` et `VITE_API_PUBLIC_KEY` vers la passerelle PostgreSQL
-   déployée ; PostgreSQL ne doit jamais être exposé directement au navigateur.
-
-Chaque `git push` sur `main` redéploie automatiquement. Dans Claude Code, le plugin officiel **Vercel**
-(activé dans `.claude/settings.json`) ajoute les commandes `/deploy`, `/env` et `/status`.
+Chaque `git push` sur la branche de production redéploie le front. Les données personnelles (sauvegardes, `db/seed/`, `.env*`) sont exclues de Git.
 
 ## Modules
 

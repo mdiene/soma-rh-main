@@ -16,7 +16,38 @@ export const dataApi = createClient<Database>(url, key, {
   auth: { persistSession: true, autoRefreshToken: true },
 })
 
+// Documents : « gateway » (défaut, version locale : fichiers servis par la passerelle /api/v1) ou
+// « supabase » (version en ligne : Supabase Storage, bucket privé « employee-documents »).
+export const documentsOnStorage = import.meta.env.VITE_DOCUMENTS_MODE === 'supabase'
+const BUCKET = 'employee-documents'
+
+async function sha256Hex(file: File) {
+  const digest = await crypto.subtle.digest('SHA-256', await file.arrayBuffer())
+  return Array.from(new Uint8Array(digest), (b) => b.toString(16).padStart(2, '0')).join('')
+}
+
+async function storageDocument(documentId: string) {
+  const row = unwrap(await dataApi.from('employee_documents').select('storage_path, file_name, mime_type').eq('id', documentId).maybeSingle())
+  return row
+}
+
+async function uploadToStorage(employeeId: string, requirementCode: string, file: File, documentSlot: number) {
+  const path = `${employeeId}/${requirementCode}-${crypto.randomUUID()}-${file.name.normalize('NFKC').replace(/[^a-zA-Z0-9._-]/g, '_').slice(0, 120)}`
+  const up = await dataApi.storage.from(BUCKET).upload(path, file, { contentType: file.type, upsert: false })
+  if (up.error) throw new Error(up.error.message)
+  const { data, error } = await dataApi.rpc('register_employee_document', {
+    p_employee_id: employeeId, p_requirement_code: requirementCode, p_slot: documentSlot, p_storage_path: path,
+    p_file_name: file.name, p_mime_type: file.type, p_size_bytes: file.size, p_checksum: await sha256Hex(file),
+  })
+  if (error) {
+    await dataApi.storage.from(BUCKET).remove([path])
+    throw new Error(error.message)
+  }
+  return data
+}
+
 export async function uploadEmployeeDocument(employeeId: string, requirementCode: string, file: File, documentSlot = 1) {
+  if (documentsOnStorage) return uploadToStorage(employeeId, requirementCode, file, documentSlot)
   const { data } = await dataApi.auth.getSession()
   const token = data.session?.access_token
   if (!token) throw new Error('Session expirée, reconnectez-vous.')
@@ -54,14 +85,31 @@ export function getEmployeeDocumentThumbnailUrl(documentId: string) {
 }
 
 export async function getEmployeeDocumentBlobUrl(documentId: string) {
+  if (documentsOnStorage) {
+    const doc = await storageDocument(documentId)
+    if (!doc) throw new Error('Le document est indisponible.')
+    const { data, error } = await dataApi.storage.from(BUCKET).download(doc.storage_path)
+    if (error) throw new Error(error.message)
+    await dataApi.rpc('log_employee_document_access', { p_document_id: documentId })
+    return URL.createObjectURL(data)
+  }
   return getPrivateBlobUrl(getEmployeeDocumentUrl(documentId), 'Le document est indisponible.')
 }
 
 export async function getEmployeeDocumentThumbnailBlobUrl(documentId: string) {
+  if (documentsOnStorage) {
+    // Miniature simplifiée en ligne : l'image elle-même pour JPEG/PNG, sinon l'écran affiche le type de fichier.
+    const doc = await storageDocument(documentId)
+    if (!doc || !doc.mime_type.startsWith('image/')) throw new Error('Pas de miniature')
+    const { data, error } = await dataApi.storage.from(BUCKET).download(doc.storage_path)
+    if (error) throw new Error(error.message)
+    return URL.createObjectURL(data)
+  }
   return getPrivateBlobUrl(getEmployeeDocumentThumbnailUrl(documentId), 'La miniature est indisponible.')
 }
 
 export async function openEmployeeDocumentsBundle(employeeId: string) {
+  if (documentsOnStorage) throw new Error("Le dossier PDF n'est pas disponible en ligne.")
   const popup = window.open('', '_blank')
   if (!popup) throw new Error('Autorisez les fenêtres contextuelles pour ouvrir le dossier PDF.')
   popup.opener = null
@@ -112,6 +160,12 @@ export async function archiveEmployeeDocument(documentId: string) {
 }
 
 export async function deleteEmployeeDocument(documentId: string) {
+  if (documentsOnStorage) {
+    const { data, error } = await dataApi.rpc('delete_employee_document', { p_document_id: documentId })
+    if (error) throw new Error(error.message)
+    await dataApi.storage.from(BUCKET).remove(data as string[])
+    return { deleted: true }
+  }
   const { data } = await dataApi.auth.getSession()
   const token = data.session?.access_token
   if (!token) throw new Error('Session expirée, reconnectez-vous.')

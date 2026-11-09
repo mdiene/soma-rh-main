@@ -31,3 +31,7 @@ web/playwright-report/
 web/e2e/.auth/
 tests/.env.qa-sim
 web/playwright-report-sim/
+
+# Versions locale / en ligne : les vrais .env ne sont pas suivis (modèles : web/.env.*.example)
+web/.env.production
+web/.env.production.local

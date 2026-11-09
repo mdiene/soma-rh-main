@@ -5585,6 +5585,10 @@ export type Database = {
         }
         Returns: string
       }
+      delete_employee_document: {
+        Args: { p_document_id: string }
+        Returns: string[]
+      }
       delete_payroll_entry: {
         Args: { p_payroll_entry_id: string }
         Returns: number
@@ -6072,6 +6076,42 @@ export type Database = {
           p_reason: string
         }
         Returns: undefined
+      }
+      register_employee_document: {
+        Args: {
+          p_checksum?: string; p_employee_id: string; p_file_name: string; p_mime_type: string
+          p_requirement_code: string; p_size_bytes: number; p_slot: number; p_storage_path: string
+        }
+        Returns: {
+          archived_at: string | null
+          archived_by: string | null
+          checksum: string | null
+          created_at: string
+          created_by: string
+          current_version: number
+          document_slot: number
+          document_type: string
+          employee_id: string
+          file_name: string
+          id: string
+          mime_type: string
+          rejection_reason: string | null
+          requirement_code: string | null
+          size_bytes: number
+          status: string
+          storage_path: string
+          submitted_at: string | null
+          thumbnail_path: string | null
+          title: string
+          validated_at: string | null
+          validated_by: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "employee_documents"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
       review_employee_document: {
         Args: { p_document_id: string; p_reason?: string; p_status: string }

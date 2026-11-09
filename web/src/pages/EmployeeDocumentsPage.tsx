@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Archive, CheckCircle2, Copy, Eye, FileText, Link as LinkIcon, LockKeyhole, Printer, Search, Trash2, Upload, XCircle } from 'lucide-react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import type { ApiClient } from '../lib/api'
-import { archiveEmployeeDocument, deleteEmployeeDocument, getEmployeeDocumentBlobUrl, getEmployeeDocumentThumbnailBlobUrl, getEmployeeDocumentUrl, openEmployeeDocumentsBundle, reviewEmployeeDocument, dataApi, unwrap, uploadEmployeeDocument } from '../lib/api'
+import { documentsOnStorage, archiveEmployeeDocument, deleteEmployeeDocument, getEmployeeDocumentBlobUrl, getEmployeeDocumentThumbnailBlobUrl, getEmployeeDocumentUrl, openEmployeeDocumentsBundle, reviewEmployeeDocument, dataApi, unwrap, uploadEmployeeDocument } from '../lib/api'
 import { Badge, Button, ErrorNote, Modal, PageHeader, Spinner } from '../components/ui'
 
 const db = dataApi as unknown as ApiClient
@@ -35,7 +35,7 @@ export function DocumentThumbnail({ document }: { document: ThumbnailDocument })
       ) : !failed ? (
         <span className="text-[11px] text-ink-muted">Chargement…</span>
       ) : (
-        <span className="px-2 text-center text-[10px] text-signal">Miniature indisponible</span>
+        <span className="px-2 text-center text-[10px] text-ink-muted">{documentsOnStorage ? document.file_name.split('.').pop()?.toUpperCase() : 'Miniature indisponible'}</span>
       )}
     </div>
   )
@@ -203,7 +203,7 @@ export default function EmployeeDocumentsPage() {
               <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line p-4">
                 <div><h2 className="text-lg font-semibold">{selected.first_name} {selected.last_name}</h2><p className="text-sm text-ink-muted">{selected.employee_number}</p></div>
                 <div className="flex flex-wrap items-center gap-2">
-                  <Button size="sm" variant="ghost" loading={bundleLoading} icon={<Printer className="h-3.5 w-3.5" />} onClick={() => void openBundle()}>Ouvrir le dossier PDF</Button>
+                  {!documentsOnStorage && <Button size="sm" variant="ghost" loading={bundleLoading} icon={<Printer className="h-3.5 w-3.5" />} onClick={() => void openBundle()}>Ouvrir le dossier PDF</Button>}
                   <span className="inline-flex items-center gap-2 text-xs text-ink-muted"><LockKeyhole className="h-4 w-4 text-river" /> Accès RH/admin</span>
                 </div>
               </div>
@@ -237,7 +237,7 @@ export default function EmployeeDocumentsPage() {
                         {document?.rejection_reason && <p className="mt-2 text-xs text-signal">Motif : {document.rejection_reason}</p>}
                         <div className="mt-3 flex flex-wrap gap-2">
                           <Button size="sm" variant="ghost" icon={<Eye className="h-3.5 w-3.5" />} disabled={!document} onClick={() => document && void showPreview(document)}>Prévisualiser</Button>
-                          {document && <Button size="sm" variant="ghost" icon={<Copy className="h-3.5 w-3.5" />} onClick={() => void copyPrivateLink(document.id)}>{copied ? 'Lien copié' : 'Lien privé'}</Button>}
+                          {document && !documentsOnStorage && <Button size="sm" variant="ghost" icon={<Copy className="h-3.5 w-3.5" />} onClick={() => void copyPrivateLink(document.id)}>{copied ? 'Lien copié' : 'Lien privé'}</Button>}
                           {document?.status !== 'refuse' && document && <Button size="sm" variant="primary" icon={<CheckCircle2 className="h-3.5 w-3.5" />} disabled={document.status === 'valide'} onClick={() => { setReviewReason(''); setReviewTarget({ document, status: 'valide' }) }}>Valider</Button>}
                           {document?.status !== 'refuse' && document && <Button size="sm" variant="danger" icon={<XCircle className="h-3.5 w-3.5" />} onClick={() => { setReviewReason(''); setReviewTarget({ document, status: 'refuse' }) }}>Refuser</Button>}
                           {document?.status === 'refuse' && <Button size="sm" variant="ghost" loading={archive.isPending} icon={<Archive className="h-3.5 w-3.5" />} onClick={() => archive.mutate(document.id)}>Archiver</Button>}
