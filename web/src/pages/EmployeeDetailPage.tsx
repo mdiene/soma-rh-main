@@ -11,6 +11,7 @@ import { Badge, Button, ErrorNote, Modal, PageHeader, Section, SelectField, Spin
 import { EmployeeFicheButton } from '../components/EmployeeFiche'
 import { AttestationModal } from '../components/AttestationModal'
 import { ModuleSection } from '../components/ModuleSection'
+import { JobHistorySection } from '../components/JobHistorySection'
 
 type Emp = Tables<'employees'>
 type Assign = Tables<'salary_structure_assignments'>
@@ -214,6 +215,7 @@ export default function EmployeeDetailPage() {
           <SlipHistory employeeId={emp.data.id} />
         </div>
       )}
+      {!isNew && emp.data && can('rh', 'paie') && <div className="mt-6"><JobHistorySection employeeId={emp.data.id} editable={can('rh')} /></div>}
       {!isNew && emp.data && <ModuleSection employeeId={emp.data.id} />}
     </>
   )

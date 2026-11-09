@@ -36,13 +36,19 @@ function AttestationDocument({ employeeId, kind }: { employeeId: string; kind: A
     enabled: kind === 'attestation_salaire',
     queryFn: async () => unwrap(await dataApi.from('salary_slips').select('period_start, gross_pay, net_pay').eq('employee_id', employeeId).eq('status', 'Validé').order('period_start', { ascending: false }).limit(1)),
   })
+  // art. 140 : le certificat indique la nature et les dates des emplois successifs
+  const jobs = useQuery({
+    queryKey: ['certificate_jobs', employeeId],
+    enabled: kind === 'certificat_travail',
+    queryFn: async () => unwrap(await dataApi.from('employee_job_history').select('title, valid_from, valid_to').eq('employee_id', employeeId).order('valid_from')),
+  })
   const grades = useGrades(emp.data?.agreement_code)
   const agreements = useAgreements()
   const tpl = useQuery({
     queryKey: ['document_template', kind],
     queryFn: async () => unwrap(await dataApi.from('document_templates').select('body').eq('code', kind).maybeSingle()),
   })
-  if (emp.isLoading || company.isLoading || tpl.isLoading) return <div className="p-6"><Spinner /></div>
+  if (emp.isLoading || company.isLoading || tpl.isLoading || jobs.isLoading) return <div className="p-6"><Spinner /></div>
   const e = emp.data
   const c = company.data
   if (!e) return <p className="p-6 text-sm">Salarié introuvable.</p>
@@ -55,13 +61,19 @@ function AttestationDocument({ employeeId, kind }: { employeeId: string; kind: A
   const today = date(new Date().toISOString().slice(0, 10))
   const place = 'Dakar'
   const f = e.gender === 'F' ? 'e' : ''
+  const history = jobs.data ?? []
+  // plusieurs emplois : « en qualité de A (du … au …), puis de B (du … au …) » ; un seul ou aucun : l'emploi de la fiche
+  const fonction = kind === 'certificat_travail' && history.length > 1
+    ? ' en qualité de ' + history.map((j, i) => `${i ? 'de ' : ''}${j.title} (du ${date(j.valid_from)}${j.valid_to ? ` au ${date(j.valid_to)}` : ''})`).join(', puis ')
+    : kind === 'certificat_travail' && history.length === 1 ? ` en qualité de ${history[0].title}`
+    : designation ? ` en qualité de ${designation}` : ''
   const grade = grades.data?.find((g) => g.id === e.grade_id)
   const agreement = agreements.data?.find((a) => a.code === e.agreement_code)?.name
   const category = grade ? `${grade.code}${agreement ? ` de la convention collective « ${agreement} »` : ''}` : ''
   const paragraphs = renderTemplate(tpl.data?.body ?? DEFAULT_TEMPLATES[kind], {
     societe: c?.name ?? '', civilite: civ, prenom: e.first_name, nom: e.last_name.toUpperCase(), matricule: e.employee_number,
     naissance: e.date_of_birth ? `, né${f} le ${date(e.date_of_birth)}${e.place_of_birth ? ` à ${e.place_of_birth}` : ''}` : '',
-    etat: left ? 'a été' : 'est', employe: pron, fonction: designation ? ` en qualité de ${designation}` : '',
+    etat: left ? 'a été' : 'est', employe: pron, fonction: fonction,
     categorie: category ? `, catégorie ${category}` : '',
     date_embauche: date(e.date_of_joining), date_sortie: left ? date(e.relieving_date!) : '', fin: left ? ` jusqu’au ${date(e.relieving_date!)}` : '', e: f,
     effectif: kind === 'attestation_travail' && !left ? `L’intéressé${f} fait toujours partie de notre effectif à la date de la présente.` : '',

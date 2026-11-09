@@ -1341,6 +1341,82 @@ export type Database = {
           },
         ]
       }
+      employee_job_history: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          designation_id: string | null
+          employee_id: string
+          grade_id: string | null
+          id: string
+          note: string | null
+          title: string
+          valid_from: string
+          valid_to: string | null
+        }
+        ComputedFields: never
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          designation_id?: string | null
+          employee_id: string
+          grade_id?: string | null
+          id?: string
+          note?: string | null
+          title: string
+          valid_from: string
+          valid_to?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          designation_id?: string | null
+          employee_id?: string
+          grade_id?: string | null
+          id?: string
+          note?: string | null
+          title?: string
+          valid_from?: string
+          valid_to?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_job_history_designation_id_fkey"
+            columns: ["designation_id"]
+            isOneToOne: false
+            referencedRelation: "designations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_job_history_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_job_history_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "v_conformite_embauche"
+            referencedColumns: ["employee_id"]
+          },
+          {
+            foreignKeyName: "employee_job_history_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "v_leave_balances"
+            referencedColumns: ["employee_id"]
+          },
+          {
+            foreignKeyName: "employee_job_history_grade_id_fkey"
+            columns: ["grade_id"]
+            isOneToOne: false
+            referencedRelation: "employee_grades"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       employee_manager_assignments: {
         Row: {
           created_at: string
