@@ -5,14 +5,14 @@ import { useCompany, useDesignations } from '../lib/queries'
 import { date, fcfa, monthLabel } from '../lib/format'
 import { Button, Modal, Spinner } from './ui'
 import { PrintPortal, printPortal } from './PrintPortal'
-import { DEFAULT_TEMPLATES, renderTemplate } from '../lib/documentTemplates'
+import { DEFAULT_TEMPLATES, TEMPLATE_TITLES, renderTemplate, type TemplateCode } from '../lib/documentTemplates'
 
-export type AttestationKind = 'attestation_travail' | 'attestation_salaire'
+export type AttestationKind = TemplateCode
 
 /** Attestation de travail / de salaire, prévisualisée à l'écran et imprimable (A4, à signer). */
 export function AttestationModal({ employeeId, kind, onClose }: { employeeId: string | null; kind: AttestationKind; onClose: () => void }) {
   return (
-    <Modal open={!!employeeId} onClose={onClose} wide title={kind === 'attestation_travail' ? 'Attestation de travail' : 'Attestation de salaire'}
+    <Modal open={!!employeeId} onClose={onClose} wide title={TEMPLATE_TITLES[kind]}
       footer={<><Button variant="ghost" onClick={onClose}>Fermer</Button><Button variant="primary" icon={<Printer className="h-4 w-4" />} onClick={printPortal}>Imprimer</Button></>}>
       {employeeId && (
         <>
@@ -57,7 +57,7 @@ function AttestationDocument({ employeeId, kind }: { employeeId: string; kind: A
     societe: c?.name ?? '', civilite: civ, prenom: e.first_name, nom: e.last_name.toUpperCase(), matricule: e.employee_number,
     naissance: e.date_of_birth ? `, né${f} le ${date(e.date_of_birth)}${e.place_of_birth ? ` à ${e.place_of_birth}` : ''}` : '',
     etat: left ? 'a été' : 'est', employe: pron, fonction: designation ? ` en qualité de ${designation}` : '',
-    date_embauche: date(e.date_of_joining), fin: left ? ` jusqu’au ${date(e.relieving_date!)}` : '', e: f,
+    date_embauche: date(e.date_of_joining), date_sortie: left ? date(e.relieving_date!) : '', fin: left ? ` jusqu’au ${date(e.relieving_date!)}` : '', e: f,
     effectif: kind === 'attestation_travail' && !left ? `L’intéressé${f} fait toujours partie de notre effectif à la date de la présente.` : '',
     salaire: kind !== 'attestation_salaire' ? '' : last
       ? `À la date du bulletin de ${monthLabel(last.period_start)}, sa rémunération mensuelle s’établit à ${fcfa(last.gross_pay)} F CFA brut, soit ${fcfa(last.net_pay)} F CFA net à payer.`
@@ -74,7 +74,7 @@ function AttestationDocument({ employeeId, kind }: { employeeId: string; kind: A
       </header>
 
       <h1 className="mb-10 text-center text-xl font-bold uppercase tracking-wide underline">
-        {kind === 'attestation_travail' ? 'Attestation de travail' : 'Attestation de salaire'}
+        {TEMPLATE_TITLES[kind]}
       </h1>
 
       {paragraphs.map((p, i) => <p key={i} className="mb-4">{p}</p>)}

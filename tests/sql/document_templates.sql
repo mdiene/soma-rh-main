@@ -15,6 +15,7 @@ begin
   perform set_config('request.jwt.claim.sub', v_rh::text, true);
   select version into ver from public.document_templates where code = 'attestation_travail';
   assert ver is not null, 'modèle de départ absent';
+  assert exists (select 1 from public.document_templates where code = 'certificat_travail'), 'modèle du certificat de travail absent';
   update public.document_templates set body = body || E'\n\nAjout de test' where code = 'attestation_travail';
   select version, body into ver, b from public.document_templates where code = 'attestation_travail';
   assert ver = 2 and b like '%Ajout de test', 'RH : modification + version +1 (' || ver || ')';

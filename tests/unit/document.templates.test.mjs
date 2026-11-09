@@ -28,6 +28,16 @@ test('unknownFields signale les fautes de frappe seulement', () => {
   assert.deepEqual(t.unknownFields('{{prenom}} {{prnom}} {{prnom}} {{nom}}'), ['prnom'])
 })
 
+test('les textes d\'origine des trois documents n\'utilisent que des champs connus', () => {
+  for (const [code, body] of Object.entries(t.DEFAULT_TEMPLATES)) assert.deepEqual(t.unknownFields(body), [], code)
+  assert.deepEqual(Object.keys(t.DEFAULT_TEMPLATES).sort(), Object.keys(t.TEMPLATE_TITLES).sort())
+})
+
+test('certificat de travail : dates d\'entrée et de sortie remplacées', () => {
+  const [p] = t.renderTemplate(t.DEFAULT_TEMPLATES.certificat_travail, { societe: 'S', civilite: 'Monsieur', prenom: 'A', nom: 'B', naissance: '', matricule: 'M1', employe: 'employé', fonction: ' en qualité de X', date_embauche: '01/01/2020', date_sortie: '31/10/2026', e: '' })
+  assert.match(p, /du 01\/01\/2020 au 31\/10\/2026\.$/)
+})
+
 test('espaces multiples réduits (champ vide au milieu d\'une phrase)', () => {
   assert.deepEqual(t.renderTemplate('A {{fonction}} depuis', { fonction: '' }), ['A depuis'])
 })

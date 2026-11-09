@@ -4,13 +4,13 @@ import { useEffect, useState } from 'react'
 import { dataApi, unwrap } from '../lib/api'
 import { useAuth } from '../lib/auth'
 import { date } from '../lib/format'
-import { DEFAULT_TEMPLATES, TEMPLATE_FIELDS, renderTemplate, unknownFields } from '../lib/documentTemplates'
+import { DEFAULT_TEMPLATES, TEMPLATE_FIELDS, TEMPLATE_TITLES, renderTemplate, unknownFields, type TemplateCode } from '../lib/documentTemplates'
 import { Button, ErrorNote, Section, SelectField, Spinner } from './ui'
 
 const SAMPLE: Record<string, string> = {
   societe: 'Société Exemple', civilite: 'Madame', prenom: 'Awa', nom: 'DIOP', matricule: 'M0001',
   naissance: ', née le 01/01/1990 à Dakar', etat: 'est', employe: 'employée', fonction: ' en qualité de Comptable',
-  date_embauche: '15/03/2020', fin: '', e: 'e', effectif: 'L’intéressée fait toujours partie de notre effectif à la date de la présente.',
+  date_embauche: '15/03/2020', date_sortie: '30/09/2026', fin: '', e: 'e', effectif: 'L’intéressée fait toujours partie de notre effectif à la date de la présente.',
   salaire: 'À la date du bulletin de octobre 2026, sa rémunération mensuelle s’établit à 450 000 F CFA brut, soit 380 000 F CFA net à payer.',
   date_du_jour: '09/11/2026', lieu: 'Dakar',
 }
@@ -19,7 +19,7 @@ const SAMPLE: Record<string, string> = {
 export function DocumentTemplatesTab() {
   const { can } = useAuth()
   const qc = useQueryClient()
-  const [code, setCode] = useState<'attestation_travail' | 'attestation_salaire'>('attestation_travail')
+  const [code, setCode] = useState<TemplateCode>('attestation_travail')
   const [body, setBody] = useState('')
   const list = useQuery({
     queryKey: ['document_templates'],
@@ -32,7 +32,7 @@ export function DocumentTemplatesTab() {
   const dirty = body !== (current?.body ?? DEFAULT_TEMPLATES[code])
   const save = useMutation({
     mutationFn: async () => unwrap(await dataApi.from('document_templates')
-      .upsert({ code, title: code === 'attestation_travail' ? 'Attestation de travail' : 'Attestation de salaire', body }, { onConflict: 'code' }).select()),
+      .upsert({ code, title: TEMPLATE_TITLES[code], body }, { onConflict: 'code' }).select()),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['document_templates'] }); qc.invalidateQueries({ queryKey: ['document_template'] }) },
   })
   const editable = can('rh')
@@ -50,8 +50,7 @@ export function DocumentTemplatesTab() {
         <div className="grid gap-4 lg:grid-cols-2">
           <div>
             <SelectField label="Document" value={code} onChange={(e) => setCode(e.target.value as typeof code)}>
-              <option value="attestation_travail">Attestation de travail</option>
-              <option value="attestation_salaire">Attestation de salaire</option>
+              {(Object.keys(TEMPLATE_TITLES) as TemplateCode[]).map((c) => <option key={c} value={c}>{TEMPLATE_TITLES[c]}</option>)}
             </SelectField>
             <label className="mt-3 block">
               <span className="label">Texte (une ligne vide sépare les paragraphes)</span>

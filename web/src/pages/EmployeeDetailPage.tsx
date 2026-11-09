@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { ArrowLeft, Lock, Save, Target } from 'lucide-react'
+import { ArrowLeft, FileText, Lock, Save, Target } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { omit, dataApi, unwrap, type Tables } from '../lib/api'
@@ -9,6 +9,7 @@ import { currentPeriod, fcfa, monthBounds, monthLabel } from '../lib/format'
 import { checkBaseSalary } from '../lib/payrollGuards'
 import { Badge, Button, ErrorNote, Modal, PageHeader, Section, SelectField, Spinner, TextField } from '../components/ui'
 import { EmployeeFicheButton } from '../components/EmployeeFiche'
+import { AttestationModal } from '../components/AttestationModal'
 import { ModuleSection } from '../components/ModuleSection'
 
 type Emp = Tables<'employees'>
@@ -57,6 +58,7 @@ export default function EmployeeDetailPage() {
   })
   const created = (location.state as { createdNumber?: string } | null)?.createdNumber
   const [changing, setChanging] = useState(false)
+  const [certificate, setCertificate] = useState(false)
 
   const save = useMutation({
     mutationFn: async () => {
@@ -85,12 +87,16 @@ export default function EmployeeDetailPage() {
         description={isNew ? 'Renseignez au minimum le nom, le contrat et la date d’entrée. Le matricule est attribué automatiquement.' : <span className="inline-flex items-center gap-2">{form.employee_number} <Badge value={form.status ?? 'Active'} /></span>}
         actions={<>
           {!isNew && emp.data && <EmployeeFicheButton employee={emp.data} />}
+          {!isNew && emp.data?.status === 'Left' && emp.data.relieving_date && can('rh') && (
+            <Button icon={<FileText className="h-4 w-4" />} onClick={() => setCertificate(true)}>Certificat de travail</Button>
+          )}
           {!readOnly && <Button variant="primary" icon={<Save className="h-4 w-4" />} loading={save.isPending} onClick={() => save.mutate()}>{isNew ? 'Créer le salarié' : 'Enregistrer la fiche'}</Button>}
         </>}
       />
       <ErrorNote error={emp.error || save.error} />
       {created && !save.isSuccess && <p className="mb-4 rounded border border-river/30 bg-river-light px-3 py-2 text-sm text-river-dark">Salarié créé avec le matricule <strong>{created}</strong>.</p>}
       {save.isSuccess && !isNew && <p className="mb-4 rounded border border-river/30 bg-river-light px-3 py-2 text-sm text-river-dark">Fiche enregistrée.</p>}
+      {!isNew && emp.data && <AttestationModal employeeId={certificate ? emp.data.id : null} kind="certificat_travail" onClose={() => setCertificate(false)} />}
       {!isNew && emp.data && (
         <ChangeNumberModal open={changing} onClose={() => setChanging(false)} employeeId={emp.data.id} current={emp.data.employee_number} />
       )}
