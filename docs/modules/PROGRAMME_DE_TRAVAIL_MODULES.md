@@ -41,7 +41,7 @@ Onglet `parametres/metiers` dans `SettingsPage` ; catalogue (cartes, badge, jaug
 ### M3 — Moteur de paie
 Décision préalable : langage des formules (spike CP-11, à valider par l'utilisateur). Puis `module_payroll_input`, `module_payroll_line`, `module_active_for`, `module_payroll_adjustments`, branchement minimal dans `compute_salary_slip` (seul lot autorisé à y toucher), section « Éléments métier » du bulletin et `SlipExplain`. Garde-fou : empreinte identique modules éteints, puis `-Save` seulement après revue et accord. Dépend de M0 à M2.
 
-### M4 — Services / Intérim
+### M4 — Services / Intérim (livré 09/11/2026 : agrément, IFC 7 %, durée 2 ans, cumul, motif art. 293 ; INT-T02 sans objet tant que la facturation n'existe pas)
 Contrôles art. 291 à 294, agrément (J-30), durée maximale 2 ans (◐), indemnité de fin de mission 7 % (✖ provisoire, saisie obligatoire). Tests INT-T01, INT-T02 et nouveaux. Dépend de M3 et de la décision utilisateur sur l'IFC.
 
 ### M5 — Gardiennage puis Industrie et mines

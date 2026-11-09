@@ -17,7 +17,7 @@ begin
 
   -- 1. mission commencée il y a 3 ans, en cours : durée dépassée => erreur
   insert into public.employee_module_data(employee_id, module_id, data, valid_from)
-    values (v_emp, 'soma-mod-services-interim-sn', '{"is_interim": true}', current_date - interval '3 years');
+    values (v_emp, 'soma-mod-services-interim-sn', '{"is_interim": true, "mission_reason": "TACHE_PONCTUELLE"}', current_date - interval '3 years');
   execute 'set local role authenticated';
   select severity into sev from public.legal_alerts() where code = 'mission_interim_duree_max' and employee_id = v_emp;
   execute 'reset role';
@@ -52,7 +52,7 @@ begin
   assert n = 0, 'non intérimaire : pas d''alerte (' || n || ')';
 
   -- 6. module éteint : rien
-  update public.employee_module_data set data = '{"is_interim": true}' where employee_id = v_emp;
+  update public.employee_module_data set data = '{"is_interim": true, "mission_reason": "TACHE_PONCTUELLE"}' where employee_id = v_emp;
   update public.module_activation set enabled = false where module_id = 'soma-mod-services-interim-sn';
   execute 'set local role authenticated';
   select count(*) into n from public.legal_alerts() where employee_id = v_emp and code like 'mission_interim%';
