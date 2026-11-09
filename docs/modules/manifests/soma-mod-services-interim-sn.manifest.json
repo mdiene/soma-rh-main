@@ -212,7 +212,7 @@
     {
       "check_id": "INT_MAX_DURATION",
       "description": "Alerte si une mission ou un enchaînement de missions dépasse la durée maximale paramétrée",
-      "legal_ref": "Décret 2009-1412 (à lire)",
+      "legal_ref": "Décret 2009-1412, art. 4 et 8",
       "severity": "medium"
     }
   ],
