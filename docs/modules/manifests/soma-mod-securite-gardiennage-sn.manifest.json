@@ -72,7 +72,10 @@
       "client_input_allowed": true,
       "format": "objet JSON {\"CATEGORIE\": heures_par_semaine}, clés = valeurs de sec_categorie_poste",
       "suggested_values": {
-        "value": { "GARDIENNAGE_JOUR_NON_CONTINU": 56, "GARDIENNAGE_NUIT_CONTINU": 48 },
+        "value": {
+          "GARDIENNAGE_JOUR_NON_CONTINU": 56,
+          "GARDIENNAGE_NUIT_CONTINU": 48
+        },
         "legal_status": "secondary",
         "source": "Réponse reçue le 09/11/2026 (sans texte cité, attribuée à un « décret 70-917 » non vérifié ; le JO 4091 liste les décrets 70-183 et 70-184). Non appliqué automatiquement : à saisir par le client après confirmation par l'arrêté de branche"
       }
@@ -99,16 +102,269 @@
       "legal_status": "to_provide",
       "client_input_allowed": true,
       "note": "Taux de la prime de nuit saisi par le client (convention ou accord). Aucune valeur par défaut : le 0,50 du document de départ n'a pas de source"
+    },
+    "overtime_first_band_weekly_hours": {
+      "value": 8,
+      "unit": "hours_per_week",
+      "legal_status": "verified",
+      "source": "Décret 70-184 (JO 4091 p. 259, lu) : première tranche d'heures supplémentaires de 8 heures (41e à 48e heure) ; appliquée au-dessus du seuil d'équivalence"
+    },
+    "overtime_rate_band1": {
+      "value": 0.1,
+      "legal_status": "verified",
+      "source": "Décret 70-184 (lu) : plancher légal +10 % pour la première tranche (CCNI art. 49 : 15 %, plus favorable, à saisir si la CCNI lie le client)"
+    },
+    "overtime_rate_band2": {
+      "value": 0.35,
+      "legal_status": "verified",
+      "source": "Décret 70-184 (lu) : plancher légal +35 % au-delà de la première tranche (CCNI art. 49 : 40 %)"
     }
   },
   "payroll_rules": [
     {
+      "rule_id": "GARD_OVERTIME",
+      "label": "Heures supplémentaires au-delà de l'équivalence (gardiennage)",
+      "inputs": [],
+      "requires_vars": [
+        "presence_hours"
+      ],
+      "params": [
+        "equivalence_thresholds",
+        "weekly_legal_hours",
+        "overtime_first_band_weekly_hours",
+        "overtime_rate_band1",
+        "overtime_rate_band2"
+      ],
+      "taxable": true,
+      "skip_if_zero": true,
+      "legal_ref": "Décret 70-183 art. 4 ; décret 70-184",
+      "logic": {
+        "*": [
+          {
+            "/": [
+              {
+                "*": [
+                  {
+                    "var": "hourly_rate"
+                  },
+                  {
+                    "*": [
+                      {
+                        "var": "weekly_legal_hours"
+                      },
+                      {
+                        "/": [
+                          52,
+                          12
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "*": [
+                  {
+                    "lookup": [
+                      "equivalence_thresholds",
+                      {
+                        "var": "sec_categorie_poste"
+                      }
+                    ]
+                  },
+                  {
+                    "/": [
+                      52,
+                      12
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "+": [
+              {
+                "*": [
+                  {
+                    "min": [
+                      {
+                        "max": [
+                          0,
+                          {
+                            "-": [
+                              {
+                                "var": "presence_hours"
+                              },
+                              {
+                                "*": [
+                                  {
+                                    "lookup": [
+                                      "equivalence_thresholds",
+                                      {
+                                        "var": "sec_categorie_poste"
+                                      }
+                                    ]
+                                  },
+                                  {
+                                    "/": [
+                                      52,
+                                      12
+                                    ]
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "*": [
+                          {
+                            "var": "overtime_first_band_weekly_hours"
+                          },
+                          {
+                            "/": [
+                              52,
+                              12
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "+": [
+                      1,
+                      {
+                        "var": "overtime_rate_band1"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "*": [
+                  {
+                    "-": [
+                      {
+                        "max": [
+                          0,
+                          {
+                            "-": [
+                              {
+                                "var": "presence_hours"
+                              },
+                              {
+                                "*": [
+                                  {
+                                    "lookup": [
+                                      "equivalence_thresholds",
+                                      {
+                                        "var": "sec_categorie_poste"
+                                      }
+                                    ]
+                                  },
+                                  {
+                                    "/": [
+                                      52,
+                                      12
+                                    ]
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "min": [
+                          {
+                            "max": [
+                              0,
+                              {
+                                "-": [
+                                  {
+                                    "var": "presence_hours"
+                                  },
+                                  {
+                                    "*": [
+                                      {
+                                        "lookup": [
+                                          "equivalence_thresholds",
+                                          {
+                                            "var": "sec_categorie_poste"
+                                          }
+                                        ]
+                                      },
+                                      {
+                                        "/": [
+                                          52,
+                                          12
+                                        ]
+                                      }
+                                    ]
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          {
+                            "*": [
+                              {
+                                "var": "overtime_first_band_weekly_hours"
+                              },
+                              {
+                                "/": [
+                                  52,
+                                  12
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "+": [
+                      1,
+                      {
+                        "var": "overtime_rate_band2"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "note": "Heures de présence du mois (grille de présences, working_hours) au-delà du seuil mensuel = seuil hebdomadaire de la catégorie × 52/12. Taux d'équivalence TH_eq = TH_40 × (40 × 52/12) / seuil mensuel ; première tranche de 8 h/semaine à +10 %, le reste à +35 % (planchers du décret 70-184). Ne pas saisir les mêmes heures en heures sup. (overtime_*) pour ces salariés : double paiement."
+    },
+    {
       "rule_id": "GARD_NIGHT_BONUS",
       "label": "Prime de nuit (gardiennage)",
-      "inputs": ["INP_NIGHT_HOURS"],
-      "params": ["night_bonus_rate"],
+      "inputs": [
+        "INP_NIGHT_HOURS"
+      ],
+      "params": [
+        "night_bonus_rate"
+      ],
       "taxable": true,
-      "logic": { "*": [{ "var": "INP_NIGHT_HOURS" }, { "var": "hourly_rate" }, { "var": "night_bonus_rate" }] },
+      "logic": {
+        "*": [
+          {
+            "var": "INP_NIGHT_HOURS"
+          },
+          {
+            "var": "hourly_rate"
+          },
+          {
+            "var": "night_bonus_rate"
+          }
+        ]
+      },
       "note": "Exécutable (JSONLogic) de la règle texte GARD_NIGHT_BONUS de calculation_rules. Cotisable : à confirmer avec le comptable"
     }
   ],
