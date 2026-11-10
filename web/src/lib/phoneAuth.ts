@@ -44,6 +44,13 @@ export const definirMotDePasse = (jeton: string, motDePasse: string) =>
 export async function seConnecterParTelephone(telephone: string, motDePasse: string) {
   const email = phoneToEmail(telephone)
   if (!email) throw new Error('Numéro invalide : saisissez un mobile sénégalais (77 123 45 67).')
+  if (import.meta.env.VITE_PHONE_AUTH_URL) {
+    // En ligne : le mot de passe 5-8 est dérivé côté serveur (voir supabase/functions/phone-auth), la connexion passe par la fonction
+    const s = await call<{ access_token: string; refresh_token: string }>('login', { phone: telephone, password: motDePasse })
+    const { error } = await dataApi.auth.setSession({ access_token: s.access_token, refresh_token: s.refresh_token })
+    if (error) throw new Error(error.message)
+    return
+  }
   const { error } = await dataApi.auth.signInWithPassword({ email, password: motDePasse })
   if (error) throw new Error(/invalid|credentials/i.test(error.message) ? 'Numéro ou mot de passe invalide' : error.message)
 }
