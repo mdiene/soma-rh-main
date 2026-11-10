@@ -101,7 +101,7 @@ export default function EmployeeDetailPage() {
       />
       <ErrorNote error={emp.error || save.error} />
       {created && !save.isSuccess && <p className="mb-4 rounded border border-river/30 bg-river-light px-3 py-2 text-sm text-river-dark">Salarié créé avec le matricule <strong>{created}</strong>.</p>}
-      {save.isSuccess && !isNew && <p className="mb-4 rounded border border-river/30 bg-river-light px-3 py-2 text-sm text-river-dark">Fiche enregistrée.</p>}
+      {save.isSuccess && !isNew && <p role="status" className="mb-4 rounded border border-river/30 bg-river-light px-3 py-2 text-sm text-river-dark">Fiche enregistrée.</p>}
       {!isNew && emp.data && <AttestationModal employeeId={certificate ? emp.data.id : null} kind="certificat_travail" onClose={() => setCertificate(false)} />}
       {!isNew && emp.data && (
         <ChangeNumberModal open={changing} onClose={() => setChanging(false)} employeeId={emp.data.id} current={emp.data.employee_number} />
@@ -249,8 +249,8 @@ function SalaryAssignment({ employee }: { employee: Emp }) {
   const current = q.data?.find((a) => a.id === selectedId) ?? q.data?.[0]
   const [f, setF] = useState<Partial<Assign>>({})
   useEffect(() => {
-    setF(current ?? { from_date: currentPeriod(), sursalaire: 0, fees: 0, other_fixed: 0, transport_mode: 'Prime de transport', leave_paid_monthly: true })
-  }, [current])
+    setF(current ?? { from_date: employee.date_of_joining ?? currentPeriod(), sursalaire: 0, fees: 0, other_fixed: 0, transport_mode: 'Prime de transport', leave_paid_monthly: true })
+  }, [current, employee.date_of_joining])
   const [period, setPeriod] = useState(currentPeriod())
   const original = f.id ? q.data?.find((a) => a.id === f.id) : undefined
   const movedEarlier = !!original && !!f.from_date && f.from_date < original.from_date
@@ -261,7 +261,9 @@ function SalaryAssignment({ employee }: { employee: Emp }) {
       if (!fromDate) throw new Error('La date « En vigueur à partir du » est obligatoire.')
       const duplicate = q.data?.find((a) => a.id !== f.id && a.from_date === fromDate)
       if (duplicate) throw new Error(`Une affectation commence déjà le ${fromDate.split('-').reverse().join('/')}. Modifiez-la depuis l'historique ou choisissez une autre date.`)
-      const payload = omit({ ...f, employee_id: employee.id, structure_id: f.structure_id ?? structures.data?.[0]?.id } as Assign, 'id', 'created_at', 'updated_at')
+      const structureId = f.structure_id ?? structures.data?.[0]?.id
+      if (!structureId) throw new Error('La structure salariale de référence n’est pas encore chargée : patientez un instant puis enregistrez de nouveau.')
+      const payload = omit({ ...f, employee_id: employee.id, structure_id: structureId } as Assign, 'id', 'created_at', 'updated_at')
       // modification d'une affectation existante : mise à jour par identifiant (la date peut changer,
       // y compris vers une date antérieure) ; sinon création d'une nouvelle version
       if (f.id) return unwrap(await dataApi.from('salary_structure_assignments').update(payload).eq('id', f.id).select().single())
@@ -284,6 +286,8 @@ function SalaryAssignment({ employee }: { employee: Emp }) {
   const num = (k: keyof Assign) => (e: React.ChangeEvent<HTMLInputElement>) => setF((x) => ({ ...x, [k]: e.target.value === '' ? null : Number(e.target.value) }))
   const salaryWarning = settings.data?.[0] && employee.employment_type !== 'Prestataire' ? checkBaseSalary(f.base_salary, settings.data[0]) : []
   const readOnly = !can('paie')
+  const notReady = q.isLoading || structures.isLoading // RPR-06 : pas d'enregistrement avant le chargement de la structure
+  const lateStart = !!f.from_date && f.from_date > new Date().toISOString().slice(0, 10) // RPR-07
 
   return (
     <Section
@@ -291,12 +295,14 @@ function SalaryAssignment({ employee }: { employee: Emp }) {
       actions={!readOnly && (
         <div className="flex gap-2">
           {q.data && q.data.length > 0 && <Button size="sm" variant="ghost" onClick={newVersion}>Nouvelle version</Button>}
-          <Button size="sm" variant="primary" loading={save.isPending} onClick={() => save.mutate()} icon={<Save className="h-3.5 w-3.5" />}>Enregistrer</Button>
+          <Button size="sm" variant="primary" loading={save.isPending} disabled={notReady} onClick={() => save.mutate()} icon={<Save className="h-3.5 w-3.5" />}>Enregistrer</Button>
         </div>
       )}
     >
       {q.isLoading ? <Spinner /> : (
         <fieldset disabled={readOnly} className="space-y-4">
+          {readOnly && <p role="note" className="rounded border border-line bg-paper px-3 py-2 text-xs text-ink-soft">Lecture seule : la structure salariale est affectée par le service paie ou par un administrateur.</p>}
+          {lateStart && <p role="alert" className="rounded border border-phosphate bg-phosphate-light px-3 py-2 text-xs text-ink">Cette date est postérieure à aujourd’hui : la structure ne s’appliquera pas aux paies des mois en cours ou déjà calculés.</p>}
           {q.data && q.data.length > 1 && (
             <div className="flex flex-wrap items-center gap-1.5 text-xs" aria-label="Historique des affectations">
               <span className="text-ink-muted">Historique :</span>
