@@ -2,18 +2,22 @@
 // Valide chaque fichier contre docs/modules/manifest.schema.json (ajv de web/node_modules), calcule le hash
 // sha256 du contenu, puis appelle public.load_module_manifest en tant que RH (via psql dans le conteneur).
 // Usage : node scripts/load-modules.mjs [--check]   (--check : valide seulement, n'écrit rien)
-import { readFileSync, readdirSync } from 'node:fs'
+//         node scripts/load-modules.mjs --sql db/seed/modules-en-ligne.sql   (écrit un fichier SQL pour Supabase au lieu de charger la base locale ; à appliquer avec scripts/supabase-appliquer.ps1)
+import { readFileSync, readdirSync, writeFileSync, mkdirSync } from 'node:fs'
 import { createHash } from 'node:crypto'
 import { createRequire } from 'node:module'
 import { execFileSync } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
 
+
 const root = join(dirname(fileURLToPath(import.meta.url)), '..')
 const Ajv = createRequire(join(root, 'web', 'package.json'))('ajv')
 const validate = new Ajv({ allErrors: true }).compile(JSON.parse(readFileSync(join(root, 'docs/modules/manifest.schema.json'), 'utf8')))
 const dir = join(root, 'docs/modules/manifests')
 const checkOnly = process.argv.includes('--check')
+const sqlOut = process.argv.includes('--sql') ? process.argv[process.argv.indexOf('--sql') + 1] : null
+const sqlParts = []
 let failed = false
 
 for (const f of readdirSync(dir).filter((x) => x.endsWith('.json'))) {
@@ -34,7 +38,9 @@ for (const f of readdirSync(dir).filter((x) => x.endsWith('.json'))) {
     `begin; select set_config('request.jwt.claim.sub', (select user_id::text from public.user_roles where role='rh' order by user_id limit 1), true);` +
     `set local role authenticated;` +
     `select public.load_module_manifest($m0$${JSON.stringify(manifest)}$m0$::jsonb, '${hash}'); commit;`
+  if (sqlOut) { sqlParts.push(sql.replace(/^begin; select set_config\('request\.jwt\.claim\.sub', \(select user_id::text from public\.user_roles where role='rh'/, "begin; select set_config('request.jwt.claim.sub', (select user_id::text from public.user_roles where role in ('rh','admin')").replace("order by user_id limit 1", "order by (role='rh') desc, user_id limit 1")); console.log(`SQL ${f}`); continue }
   const out = execFileSync('docker', ['exec', '-i', 'soma-rh-local-postgres-1', 'psql', '-U', 'soma', '-d', 'soma_rh', '-At', '-v', 'ON_ERROR_STOP=1'], { input: sql, encoding: 'utf8' })
   console.log(`OK ${f}: ${out.split('\n').find((l) => l.startsWith('{')) ?? out.trim()}`)
 }
+if (sqlOut && !failed) { mkdirSync(dirname(join(root, sqlOut)), { recursive: true }); writeFileSync(join(root, sqlOut), sqlParts.join('\n') + '\n'); console.log(`Ecrit : ${sqlOut}`) }
 process.exit(failed ? 1 : 0)
