@@ -71,7 +71,7 @@ begin
   end if;
   perform set_config('request.jwt.claim.sub', v_admin::text, true);
   perform public.admin_phone_access_decide(v_req, true, 'Contacté par téléphone');
-  assert exists (select 1 from public.legal_alerts() where code in ('phone_access_request', 'phone_access_shared')), 'alerte visible chez l''administrateur (numéro partagé)';
+  assert exists (select 1 from public.phone_access_alerts() where code in ('phone_access_request', 'phone_access_shared')), 'alerte visible chez l''administrateur';
   execute 'reset role';
   assert (select status from public.phone_access_requests where id = v_req) = 'authorized', 'autorisation enregistrée';
   assert (select expires_at from public.phone_access_requests where id = v_req) between now() + interval '47 hours' and now() + interval '49 hours', 'validité 48 h';

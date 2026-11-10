@@ -598,77 +598,35 @@ begin
 end;
 $$;
 
--- ----------------------------------------------- alertes de l'administrateur (système existant)
--- Même fonction que 20261105150000, plus un bloc réservé à l'administrateur : demandes d'accès par téléphone.
-drop function if exists public.legal_alerts(date, integer);
-create function public.legal_alerts(p_as_of date default current_date, p_horizon_days integer default 30)
+-- ----------------------------------------------- alertes de l'administrateur
+-- Fonction à part (legal_alerts reste inchangée : detecter_conformite() la lit et ne doit pas voir ces alertes).
+-- Même forme de retour que legal_alerts ; l'écran LegalAlerts affiche les deux listes ensemble.
+create or replace function public.phone_access_alerts()
 returns table (
   code text, severity text, employee_id uuid, employee_number text, employee_name text,
   due_date date, message text
 )
 language plpgsql
 security definer
-set search_path to ''
+set search_path = ''
 as $function$
-declare
-  s public.payroll_settings;
-  v_smic_month numeric;
 begin
-  if not public.has_role(array['rh', 'paie']) then
-    raise exception 'Droits insuffisants : rôle « rh » ou « paie » requis';
+  if not public.has_role(array['admin']) then
+    raise exception 'Réservé aux administrateurs';
   end if;
-  s := public.payroll_settings_at(p_as_of);
-  v_smic_month := coalesce(s.smig_hourly, 0) * coalesce(s.monthly_hours, 0);
-
+  perform public.phone_access_expire();
   return query
-  select case when e.contract_end < p_as_of then 'cdd_echu' else 'cdd_echeance' end,
-         case when e.contract_end < p_as_of then 'erreur' else 'alerte' end,
-         e.id, e.employee_number, e.last_name || ' ' || e.first_name, e.contract_end,
-         case when e.contract_end < p_as_of
-              then 'CDD échu depuis le ' || to_char(e.contract_end, 'DD/MM/YYYY') || ' : renouveler, requalifier ou clôturer la sortie'
-              else 'CDD arrivant à échéance le ' || to_char(e.contract_end, 'DD/MM/YYYY') || ' : décider du renouvellement ou de la sortie' end
-  from public.employees e
-  where e.status = 'Active' and e.employment_type = 'CDD' and e.contract_end is not null
-    and e.contract_end <= p_as_of + p_horizon_days;
-
-  if v_smic_month > 0 then
-    return query
-    select 'sous_smig'::text, 'erreur'::text, e.id, e.employee_number, e.last_name || ' ' || e.first_name, a.from_date,
-           'Salaire de base ' || round(a.base_salary) || ' F inférieur au SMIG mensuel paramétré (' || round(v_smic_month) || ' F)'
-    from public.employees e
-    join lateral (
-      select x.base_salary, x.from_date from public.salary_structure_assignments x
-      where x.employee_id = e.id and x.from_date <= p_as_of
-      order by x.from_date desc limit 1
-    ) a on true
-    where e.status = 'Active' and e.employment_type in ('CDI', 'CDD')
-      and a.base_salary is not null and a.base_salary > 0 and a.base_salary < v_smic_month;
-  end if;
-
-  return query
-  select case when e.id_expiry_date < p_as_of then 'piece_expiree' else 'piece_echeance' end,
-         case when e.id_expiry_date < p_as_of then 'alerte' else 'info' end,
-         e.id, e.employee_number, e.last_name || ' ' || e.first_name, e.id_expiry_date,
-         'Pièce d''identité ' || case when e.id_expiry_date < p_as_of then 'expirée le ' else 'expirant le ' end || to_char(e.id_expiry_date, 'DD/MM/YYYY')
-  from public.employees e
-  where e.status = 'Active' and e.id_expiry_date is not null and e.id_expiry_date <= p_as_of + p_horizon_days;
-
-  -- Administrateur seulement : demandes d'accès par téléphone
-  if public.has_role(array['admin']) then
-    perform public.phone_access_expire();
-    return query
-    select case when r.purpose = 'shared' then 'phone_access_shared' else 'phone_access_request' end,
-           case when r.purpose = 'shared' or r.repeat_count > 0 then 'erreur' else 'alerte' end,
-           r.employee_id, e.employee_number, coalesce(e.last_name || ' ' || e.first_name, 'Numéro partagé'), r.requested_at::date,
-           case when r.purpose = 'shared'
-                then 'Numéro partagé par plusieurs fiches (' || public.phone_mask(r.phone_e164) || ') : corriger les fiches'
-                else 'Demande d''accès par téléphone (' || case r.purpose when 'reset' then 'réinitialisation' else 'création' end
-                     || ') du ' || to_char(r.requested_at, 'DD/MM/YYYY') || ' : contacter le salarié puis autoriser ou refuser'
-                     || case when r.repeat_count > 0 then ' — redemandée ' || r.repeat_count || ' fois' else '' end end
-    from public.phone_access_requests r
-    left join public.employees e on e.id = r.employee_id
-    where r.status = 'pending' or (r.status = 'authorized' and r.repeat_count > 0);
-  end if;
+  select case when r.purpose = 'shared' then 'phone_access_shared' else 'phone_access_request' end,
+         case when r.purpose = 'shared' or r.repeat_count > 0 then 'erreur' else 'alerte' end,
+         r.employee_id, e.employee_number, coalesce(e.last_name || ' ' || e.first_name, 'Numéro partagé'), r.requested_at::date,
+         case when r.purpose = 'shared'
+              then 'Numéro partagé par plusieurs fiches (' || public.phone_mask(r.phone_e164) || ') : corriger les fiches'
+              else 'Demande d''accès par téléphone (' || case r.purpose when 'reset' then 'réinitialisation' else 'création' end
+                   || ') du ' || to_char(r.requested_at, 'DD/MM/YYYY') || ' : contacter le salarié puis autoriser ou refuser'
+                   || case when r.repeat_count > 0 then ' — redemandée ' || r.repeat_count || ' fois' else '' end end
+  from public.phone_access_requests r
+  left join public.employees e on e.id = r.employee_id
+  where r.status = 'pending' or (r.status = 'authorized' and r.repeat_count > 0);
 end;
 $function$;
 
@@ -684,12 +642,16 @@ grant execute on function public.phone_access_request(text, text), public.phone_
 
 revoke execute on function public.admin_phone_access_requests(), public.admin_phone_access_accounts(),
   public.admin_phone_access_decide(uuid, boolean, text), public.admin_phone_access_revoke(uuid),
-  public.employee_phone_access_status(uuid), public.legal_alerts(date, integer),
+  public.employee_phone_access_status(uuid), public.phone_access_alerts(),
   public.admin_link_employee(uuid, uuid), public.claim_first_admin() from public, anon;
 grant execute on function public.admin_phone_access_requests(), public.admin_phone_access_accounts(),
   public.admin_phone_access_decide(uuid, boolean, text), public.admin_phone_access_revoke(uuid),
-  public.employee_phone_access_status(uuid), public.legal_alerts(date, integer),
+  public.employee_phone_access_status(uuid), public.phone_access_alerts(),
   public.admin_link_employee(uuid, uuid), public.claim_first_admin() to authenticated;
-grant execute on function public.legal_alerts(date, integer) to service_role;
+
+-- Fonctions de déclencheur et utilitaires : jamais exécutables par le rôle anonyme (le déclencheur s'exécute sans ce droit)
+revoke execute on function public.phone_normalize(text), public.phone_mask(text), public.phone_access_on_phone_change(),
+  public.phone_access_role_lock(), public.phone_access_account_role_check() from public, anon;
+grant execute on function public.phone_normalize(text), public.phone_mask(text) to authenticated, service_role;
 
 notify pgrst, 'reload schema';

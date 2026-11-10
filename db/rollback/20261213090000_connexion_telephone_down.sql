@@ -1,6 +1,6 @@
 -- Retour de 20261213090000_connexion_telephone.sql : retire les tables, fonctions et déclencheurs de l'accès par téléphone.
 -- Les comptes déjà créés restent dans auth.users (rôle salarie) ; admin_link_employee et claim_first_admin
--- reprennent leur définition d'avant (sans refus des comptes téléphone) ; legal_alerts est à réappliquer (voir fin).
+-- reprennent leur définition d'avant (sans refus des comptes téléphone) .
 drop trigger if exists employees_phone_access_phone_change on public.employees;
 drop trigger if exists user_roles_phone_access_lock on public.user_roles;
 drop table if exists public.phone_access_tokens, public.phone_access_requests, public.phone_access_attempts,
@@ -33,6 +33,5 @@ begin
   return true;
 end; $$;
 
--- legal_alerts : réappliquer ensuite db/migrations/20261105150000_societe_numeros_alertes_legales.sql (sans le bloc administrateur)
-drop function if exists public.legal_alerts(date, integer);
+drop function if exists public.phone_access_alerts();
 notify pgrst, 'reload schema';

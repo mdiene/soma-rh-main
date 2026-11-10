@@ -17,7 +17,9 @@ const { Client } = createRequire(new URL('../../api/package.json', import.meta.u
 const db = new Client({ connectionString: `postgres://soma:${pgPass}@127.0.0.1:5432/soma_rh` })
 await db.connect()
 
-const PHONE = '77 000 31 31', E164 = '+221770003131', DOB = '1991-02-03', EMAIL = '221770003131@tel.soma-rh.invalid'
+// Numéro libre : les fiches de simulation portent déjà des numéros, un doublon créerait une alerte « numéro partagé »
+const [free, free2] = (await db.query(`select n from generate_series(700003100, 700003199) n where not exists (select 1 from public.employees where public.phone_normalize(phone_personal) = '+221' || n::text) limit 2`)).rows.map((r) => r.n)
+const PHONE = `${free}`, E164 = `+221${free}`, DOB = '1991-02-03', EMAIL = `221${free}@tel.soma-rh.invalid`
 const post = async (path, body) => {
   const r = await fetch(`${API}${path}`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) })
   return { status: r.status, body: await r.json().catch(() => ({})) }
@@ -35,11 +37,11 @@ async function cleanup() {
   await db.query(`delete from auth.users where email = $1`, [EMAIL])
   await db.query(`delete from public.phone_access_requests where phone_e164 = $1`, [E164])
   await db.query(`delete from public.phone_access_attempts where phone_e164 = $1 or phone_e164 is null`, [E164])
-  await db.query(`delete from public.employees where employee_number = 'TEL-J1'`)
+  await db.query(`delete from public.employees where last_name = 'Journey' and first_name = 'Test'`)
 }
 await cleanup()
-await db.query(`insert into public.employees (company_id, employee_number, first_name, last_name, employment_type, date_of_joining, status, phone_personal, date_of_birth)
-  select id, 'TEL-J1', 'Test', 'Journey', 'CDI', '2020-01-01', 'Active', $1, $2 from public.companies limit 1`, [PHONE, DOB])
+const EMPNO = (await db.query(`insert into public.employees (company_id, employee_number, first_name, last_name, employment_type, date_of_joining, status, phone_personal, date_of_birth)
+  select id, 'TEL-J1', 'Test', 'Journey', 'CDI', '2020-01-01', 'Active', $1, $2 from public.companies limit 1 returning employee_number`, [PHONE, DOB])).rows[0].employee_number // le matricule est attribué par la base
 after(async () => { await cleanup(); await db.end() })
 
 const admin = (await login(qa.QA_ADMIN_EMAIL, qa.QA_ADMIN_PASSWORD)).body.access_token
@@ -48,20 +50,20 @@ const paie = (await login(qa.QA_PAIE_EMAIL, qa.QA_PAIE_PASSWORD)).body.access_to
 let reqId, token
 
 test('numéro inconnu et numéro connu : même réponse, une seule demande créée', async () => {
-  const unknown = await post('/auth/v1/phone/request', { phone: '78 000 99 99' })
+  const unknown = await post('/auth/v1/phone/request', { phone: String(free2) })
   const known = await post('/auth/v1/phone/request', { phone: PHONE })
   assert.deepEqual(unknown, known)
   const list = (await rest('rpc/admin_phone_access_requests', admin, { method: 'POST', body: {} })).body
-  const mine = list.filter((r) => r.employee_number === 'TEL-J1' && r.status === 'pending')
+  const mine = list.filter((r) => r.employee_number === EMPNO && r.status === 'pending')
   assert.equal(mine.length, 1)
-  assert.match(mine[0].phone_masked, /^\+221 77 ••• •• 31$/)
-  assert.ok(!list.some((r) => r.phone_masked?.includes('99 99')), 'numéro inconnu : aucune demande')
+  assert.equal(mine[0].phone_masked, `+221 ${PHONE.slice(0, 2)} ••• •• ${PHONE.slice(-2)}`)
+  assert.ok(!list.some((r) => r.phone_masked?.endsWith(String(free2).slice(-2)) && r.employee_number !== EMPNO), 'numéro inconnu : aucune demande')
   reqId = mine[0].id
 })
 
 test("l'alerte apparaît chez l'administrateur, pas de décision possible pour rh ni paie", async () => {
-  const alerts = (await rest('rpc/legal_alerts', admin, { method: 'POST', body: { p_horizon_days: 30 } })).body
-  assert.ok(alerts.some((a) => a.code === 'phone_access_request' && a.employee_number === 'TEL-J1'))
+  const alerts = (await rest('rpc/phone_access_alerts', admin, { method: 'POST', body: {} })).body
+  assert.ok(alerts.some((a) => a.code === 'phone_access_request' && a.employee_number === EMPNO))
   for (const t of [rh, paie]) {
     const r = await rest('rpc/admin_phone_access_decide', t, { method: 'POST', body: { p_request_id: reqId, p_authorize: true } })
     assert.ok(r.status >= 400, 'refusé')
@@ -73,13 +75,13 @@ test("tant que rien n'est autorisé : « en attente » ; seconde information fau
   const r = await rest('rpc/admin_phone_access_decide', admin, { method: 'POST', body: { p_request_id: reqId, p_authorize: true, p_note: 'test' } })
   assert.equal(r.status, 204)
   assert.equal((await post('/auth/v1/phone/open', { phone: PHONE, second: '1991-02-04' })).body.status, 'pending')
-  const ok = await post('/auth/v1/phone/open', { phone: '+221 77 000 31 31', second: DOB })
+  const ok = await post('/auth/v1/phone/open', { phone: `+221 ${PHONE}`, second: DOB })
   assert.equal(ok.body.status, 'ready')
   token = ok.body.token
 })
 
 test('mot de passe : règle 5 à 8 lettres/chiffres, triviaux refusés, jeton à usage unique', async () => {
-  for (const bad of ['1234', '123456789', 'ab cd', 'ab-cd1', '12345', 'Journey', '00000', '00031313']) {
+  for (const bad of ['1234', '123456789', 'ab cd', 'ab-cd1', '12345', 'Journey', '00000', String(free).slice(0, 8)]) {
     assert.equal((await post('/auth/v1/phone/set-password', { token, password: bad })).status, 422, bad)
   }
   assert.equal((await post('/auth/v1/phone/set-password', { token, password: 'Kx7mP' })).body.status, 'done')
@@ -91,7 +93,7 @@ test('connexion par téléphone : rôle salarié seul, ses données seulement, p
   const ok = await login(EMAIL, 'Kx7mP')
   assert.equal(ok.status, 200)
   const t = ok.body.access_token
-  assert.deepEqual((await rest('employees?select=employee_number', t)).body, [{ employee_number: 'TEL-J1' }])
+  assert.deepEqual((await rest('employees?select=employee_number', t)).body, [{ employee_number: EMPNO }])
   assert.ok((await rest('rpc/admin_phone_access_requests', t, { method: 'POST', body: {} })).status >= 400)
   const uid = ok.body.user.id
   for (const role of ['rh', 'paie', 'admin', 'manager']) {
@@ -109,7 +111,7 @@ test('verrouillage progressif par couple numéro + adresse après 5 échecs ; au
 })
 
 test('révocation : statut « révoqué » et compte désactivé', async () => {
-  const empId = (await db.query(`select id from public.employees where employee_number = 'TEL-J1'`)).rows[0].id
+  const empId = (await db.query(`select id from public.employees where last_name = 'Journey' and first_name = 'Test'`)).rows[0].id
   const r = await rest('rpc/admin_phone_access_revoke', admin, { method: 'POST', body: { p_employee_id: empId } })
   assert.equal(r.status, 204)
   assert.equal((await rest('rpc/employee_phone_access_status', rh, { method: 'POST', body: { p_employee_id: empId } })).body, 'révoqué')

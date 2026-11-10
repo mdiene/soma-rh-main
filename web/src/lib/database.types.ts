@@ -5282,6 +5282,10 @@ export type Database = {
         Args: { p_employee_id: string; p_user_id: string }
         Returns: undefined
       }
+      phone_access_alerts: {
+        Args: Record<PropertyKey, never>
+        Returns: { code: string; due_date: string; employee_id: string; employee_name: string; employee_number: string; message: string; severity: string }[]
+      }
       admin_phone_access_accounts: {
         Args: Record<PropertyKey, never>
         Returns: { created_at: string; employee_id: string; employee_name: string; employee_number: string; phone_masked: string; status: string }[]
