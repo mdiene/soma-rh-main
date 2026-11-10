@@ -22,7 +22,8 @@ reset)
   echo "Base vide chargée."
   ;;
 donnees)
-  TABLES="companies departments designations contract_types employees employee_requests leave_allocations leave_applications attendance payroll_inputs additional_salaries salary_structure_assignments shift_assignments work_posts user_roles audit_log payroll_entries salary_slips salary_slip_details salary_payments"
+  # Le planning des gardiens (shift_assignments, work_posts, shift_types) est retiré du produit : non migré.
+  TABLES="companies departments designations contract_types employees employee_requests leave_allocations leave_applications attendance payroll_inputs additional_salaries salary_structure_assignments user_roles audit_log payroll_entries salary_slips salary_slip_details salary_payments"
   for t in $TABLES; do
     f=/bk/csv/$t.csv
     if [ ! -s "$f" ] || [ "$(wc -l < "$f")" -le 1 ]; then echo "  $t : vide, ignorée"; continue; fi
@@ -32,15 +33,30 @@ donnees)
 set session_replication_role = replica;
 create temp table s (like public.$t including defaults);
 \copy s($cols) from '$f' csv header
-insert into public.$t($cols) select $cols from s on conflict do nothing;
+insert into public.$t($cols) overriding system value select $cols from s on conflict do nothing;
+do \$do\$ declare sq text; begin if exists (select 1 from information_schema.columns where table_schema='public' and table_name='$t' and column_name='id') then sq := pg_get_serial_sequence('public.$t','id'); end if; if sq is not null then execute format('select setval(%L, greatest((select coalesce(max(id),1) from public.$t),1))', sq); end if; end \$do\$;
 SQL
   done
+  # Journal d'audit : les identifiants 1 à 42 sont pris par les écritures d'audit du rechargement du schéma.
+  # Les lignes de l'ancienne base qui sont entrées en collision sont reprises avec de nouveaux identifiants (idempotent).
+  if [ -s /bk/csv/audit_log.csv ]; then
+    cols=$(head -1 /bk/csv/audit_log.csv); cols_noid=$(echo "$cols" | tr ',' '\n' | grep -v '^id$' | paste -sd,)
+    echo "  audit_log : reprise des lignes en collision d'identifiant ..."
+    psql -v ON_ERROR_STOP=1 -q <<SQL
+set session_replication_role = replica;
+create temp table s (like public.audit_log including defaults);
+\copy s($cols) from '/bk/csv/audit_log.csv' csv header
+insert into public.audit_log($cols_noid) select $cols_noid from s
+ where not exists (select 1 from public.audit_log a where a.occurred_at = s.occurred_at and a.table_name = s.table_name
+                   and a.action = s.action and a.record_id is not distinct from s.record_id);
+SQL
+  fi
   $P -c "notify pgrst, 'reload schema'"
   echo "--- Contrôle des comptages (attendu = sauvegarde) ---"
   for t in $TABLES; do
     exp=$(grep "^public.$t," /bk/row-counts.csv | cut -d, -f2)
     got=$(psql -At -c "select count(*) from public.$t")
-    [ "$exp" = "$got" ] && s=OK || s="ECART"
+    if [ "$t" = audit_log ]; then [ "$got" -ge "$exp" ] && s=OK || s=ECART; else [ "$exp" = "$got" ] && s=OK || s=ECART; fi
     echo "$s  $t  attendu=$exp  charge=$got"
   done
   ;;

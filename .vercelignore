@@ -1,2 +1,14 @@
-# Passerelle Docker (version locale) : pas une fonction Vercel
-api/
+# Déploiement Vercel (CLI) : uniquement l'application web. Jamais les sauvegardes, bases, documents RH, identifiants de test ni la passerelle Docker.
+/*
+!/web
+!/vercel.json
+/web/node_modules
+/web/dist
+/web/test-results
+/web/playwright-report*
+/web/e2e
+/web/graphify-out
+/web/.env*
+!/web/.env.example
+!/web/.env.local.example
+!/web/.env.production.example
