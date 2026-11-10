@@ -477,6 +477,7 @@ end;
 $function$;
 
 alter table public.payroll_settings drop column if exists proration_basis;
+delete from public.salary_components c where c.code = 'RET_PRORATA' and not exists (select 1 from public.salary_slip_details d where d.component_code = c.code);
 revoke execute on function public.compute_salary_slip(uuid, date, date, numeric) from public, anon;
 grant execute on function public.compute_salary_slip(uuid, date, date, numeric) to authenticated, service_role;
 notify pgrst, 'reload schema';

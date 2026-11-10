@@ -7,6 +7,11 @@ alter table public.payroll_settings
   add column if not exists proration_basis text not null default 'ouvrables'
   check (proration_basis in ('ouvrables', 'calendaires'));
 
+-- la ligne de bulletin doit exister dans le référentiel (clé étrangère de salary_slip_details)
+insert into public.salary_components (code, name, rubric_number, component_type, input_mode)
+values ('RET_PRORATA', 'Retenue prorata (entrée ou sortie en cours de mois)', 16, 'gross_earning', 'computed')
+on conflict (code) do nothing;
+
 CREATE OR REPLACE FUNCTION public.compute_salary_slip(p_employee_id uuid, p_period_start date, p_period_end date, p_sursalaire numeric DEFAULT NULL::numeric)
  RETURNS jsonb
  LANGUAGE plpgsql

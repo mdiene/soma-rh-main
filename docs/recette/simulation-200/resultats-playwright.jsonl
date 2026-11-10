@@ -137,3 +137,7 @@
 {"uc":"UC-INTERDIT-sal_1-/journal","status":"VERT","note":"","at":"2026-11-10T20:13:22.023Z"}
 {"uc":"UC-INTERDIT-sal_1-/mon-equipe","status":"VERT","note":"","at":"2026-11-10T20:13:23.707Z"}
 {"uc":"UC-ISOLATION-sal_1","status":"VERT","note":"10 bulletins visibles","at":"2026-11-10T20:13:26.789Z"}
+{"uc":"UC-REOUVERTURE","status":"VERT","note":"octobre 2026 : Clôturée → Réouverte avec motif (admin)","at":"2026-11-10T20:36:51.878Z"}
+{"uc":"UC-RECALCUL-PRORATA","status":"ROUGE","note":"ligne RET_PRORATA du bulletin d'octobre de S0450 : 0","at":"2026-11-10T20:37:16.315Z"}
+{"uc":"UC-REOUVERTURE","status":"VERT","note":"octobre 2026 : Clôturée → Réouverte avec motif (admin)","at":"2026-11-10T20:39:42.552Z"}
+{"uc":"UC-RECALCUL-PRORATA","status":"VERT","note":"ligne RET_PRORATA du bulletin d'octobre de S0450 : 1","at":"2026-11-10T20:45:35.708Z"}

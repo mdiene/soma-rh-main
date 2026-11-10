@@ -90,7 +90,7 @@ export default function PayrollEntryPage() {
   if (!e) return <ErrorNote error={entry.error ?? 'Traitement introuvable'} />
   const rows = slips.data ?? []
   const paidSlips = new Set((payments.data ?? []).filter((p) => p.paid).map((p) => p.slip_id))
-  const editable = e.status === 'Brouillon' || e.status === 'Calculée'
+  const editable = e.status === 'Brouillon' || e.status === 'Calculée' || e.status === 'Réouverte' // RPR-05 : une paie rouverte peut être recalculée
   const closed = e.status === 'Clôturée'
 
   return (

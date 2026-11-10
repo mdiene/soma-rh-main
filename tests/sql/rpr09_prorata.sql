@@ -18,6 +18,8 @@ begin
    order by e.employee_number limit 1;
   if emp is null then raise exception 'aucun salarié témoin'; end if;
 
+  if not exists (select 1 from public.salary_components where code = 'RET_PRORATA') then raise exception 'RET_PRORATA absent du référentiel salary_components'; end if;
+
   -- 1. aucun changement en cours de mois : pas de ligne de prorata
   s0 := public.compute_salary_slip(emp, '2026-01-01', '2026-01-31');
   if pg_temp.gain(s0, 'RET_PRORATA') <> 0 then raise exception 'prorata sur un mois complet'; end if;
