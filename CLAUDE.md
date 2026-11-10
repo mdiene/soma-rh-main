@@ -41,7 +41,7 @@ Avant de commiter, selon ce qui a changé (depuis `web/` sauf mention) :
 
 Les tests e2e (`web/e2e`) :
 - demandent l'application lancée sur `http://localhost:5173` et les comptes de `tests/.env.qa` (hors Git) ; ils ne modifient aucune donnée ;
-- se connectent **une fois par rôle** (`auth.setup.ts`, session réutilisée) : l'API limite `POST /auth/v1/token` à 30 par 15 minutes et par IP, ne pas contourner cette limite ;
+- se connectent **une fois par rôle** (`auth.setup.ts`, session réutilisée) : l'API limite les connexions à 120 par 15 minutes et par adresse, et verrouille progressivement (5 échecs = 1 min, puis 2, 4… 30 min) par couple compte + adresse (RPR-03) : ne pas contourner ces limites ;
 - s'ouvrent en deux lots si la mémoire manque (Chromium + Docker) : un fichier à la fois.
 
 Toute modification du menu (`web/src/lib/nav.ts`, `Layout.tsx`) ou d'une page doit garder `menu.spec.ts` et `a11y.spec.ts` au vert.

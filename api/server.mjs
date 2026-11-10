@@ -15,7 +15,6 @@ import {
 // Store for rate limiting and brute force tracking (in-memory for simplicity;
 // in production use Redis or database with persistence)
 const rateLimitStore = new Map() // ip -> { count, resetTime }
-const bruteForceStore = new Map() // ip -> { failures, lockedUntil }
 
 // La table public.refresh_tokens est créée par la migration 20261105120000_refresh_tokens.sql (D-017).
 
@@ -47,25 +46,6 @@ function rateLimitMiddleware(max, windowMs) {
     } else {
       // New window
       rateLimitStore.set(ip, { count: 1, resetTime: now + windowMs })
-    }
-
-    next()
-  }
-}
-
-// Brute force protection checker
-function bruteForceCheckMiddleware(maxFailures, lockDurationMs) {
-  return async (request, response, next) => {
-    const ip = clientIp(request)
-    const now = Date.now()
-    const entry = bruteForceStore.get(ip)
-
-    // If IP is locked, reject unless it's past the lock duration
-    if (entry && entry.lockedUntil && now < entry.lockedUntil) {
-      const retryAfter = Math.ceil((entry.lockedUntil - now) / 1000)
-      return json(response, 429, {
-        message: 'Compte verrouillé suite à trop d\'échecs, réessayez dans ' + retryAfter + ' secondes',
-      })
     }
 
     next()
@@ -124,12 +104,12 @@ const SECURITY = {
   // Rate limiting : max requêtes par intervalle par IP
   rateLimit: {
     windowMs: 15 * 60 * 1000, // 15 minutes
-    max: Number(process.env.RATE_LIMIT_MAX ?? 30), // 30 connexions/15min par IP par défaut
+    max: Number(process.env.RATE_LIMIT_MAX ?? 120), // RPR-03 : limite par adresse séparée du verrou par compte, 120 requêtes sensibles/15 min par défaut
   },
   // Refresh token : expiration en ms (24h par défaut)
   refreshTokenTtl: Number(process.env.REFRESH_TOKEN_TTL ?? 24 * 60 * 60 * 1000),
   // Anti-force brute : échecs avant verrouillage
-  bruteForceMax: Number(process.env.BRUTE_FORCE_MAX ?? 3),
+  bruteForceMax: Number(process.env.BRUTE_FORCE_MAX ?? 5),
   // TOTP : configurable par rôle (admin/rh sensibles)
   totpEnabled: process.env.TOTP_ENABLED === 'true',
 };
@@ -400,6 +380,7 @@ function setCors(request, response) {
 
 // Connexion par téléphone : verrouillage progressif par couple numéro + adresse (jamais par adresse seule, RPR-03)
 const phoneLoginLimiter = createLoginLimiter()
+const emailLoginLimiter = createLoginLimiter({ maxFailures: SECURITY.bruteForceMax })
 const phoneRoutes = ['/auth/v1/phone/request', '/auth/v1/phone/open', '/auth/v1/phone/set-password']
 const ipSalt = () => jwtSecret
 const phoneDb = (fn, params) => pool.query(`select public.${fn} as r`, params).then((x) => x.rows[0].r)
@@ -473,9 +454,6 @@ async function auth(request, response, pathname) {
   const sensible = request.method === 'POST' && (pathname === '/auth/v1/token' || pathname === '/auth/v1/signup' || phoneRoutes.includes(pathname))
   if (sensible) {
     await rateLimitMiddleware(SECURITY.rateLimit.max, SECURITY.rateLimit.windowMs)(request, response, async () => {})
-    if (!phoneLogin && !phoneRoutes.includes(pathname)) {
-      await bruteForceCheckMiddleware(SECURITY.bruteForceMax, 30 * 60 * 1000)(request, response, async () => {})
-    }
     if (response.writableEnded) return true // 429 déjà envoyé : on n'exécute pas la requête
   }
 
@@ -489,12 +467,6 @@ async function auth(request, response, pathname) {
     const input = await body(request)
     if (!input.email || !input.password || input.password.length < 8) {
       return json(response, 400, { error: 'email et mot de passe de 8 caractères minimum requis' })
-    }
-    // Vérifier les échecs précédents pour ce IP (débloquer si nécessaire)
-    const ip = clientIp(request)
-    const bfEntry = bruteForceStore.get(ip)
-    if (bfEntry && bfEntry.lockedUntil && Date.now() > bfEntry.lockedUntil) {
-      delete bruteForceStore.get(ip)
     }
     const password = await bcrypt.hash(input.password, 12)
     const id = randomUUID()
@@ -522,6 +494,12 @@ async function auth(request, response, pathname) {
 
   if (request.method === 'POST' && pathname === '/auth/v1/token') {
     const input = await body(request)
+    // RPR-03 : verrouillage progressif par couple compte + adresse (un poste ne bloque jamais les autres comptes ni les autres postes)
+    const lockKey = `${hashIp(clientIp(request), ipSalt())}|${String(input.email ?? '').toLowerCase()}`
+    if (!phoneLogin) {
+      const wait = emailLoginLimiter.retryAfter(lockKey)
+      if (wait) return json(response, 429, { message: `Trop d'échecs pour ce compte depuis ce poste, réessayez dans ${wait} secondes` })
+    }
     const result = await pool.query('select id, email, encrypted_password, created_at, updated_at from auth.users where email = lower($1)', [input.email])
     const user = result.rows[0]
     if (phoneLogin) {
@@ -546,23 +524,10 @@ async function auth(request, response, pathname) {
       })
     }
     if (!user || !(await bcrypt.compare(input.password ?? '', user.encrypted_password))) {
-      // Enregistrer l'échec pour anti-force brute
-      const ip = clientIp(request)
-      let bfEntry = bruteForceStore.get(ip)
-      if (!bfEntry) {
-        bfEntry = { failures: 0, lockedUntil: 0 }
-        bruteForceStore.set(ip, bfEntry)
-      }
-      bfEntry.failures++
-      if (bfEntry.failures >= SECURITY.bruteForceMax) {
-        // Verrouiller pendant 30 minutes
-        bfEntry.lockedUntil = Date.now() + 30 * 60 * 1000
-      }
+      emailLoginLimiter.fail(lockKey)
       return json(response, 400, { error: 'invalid_credentials', error_description: 'Adresse ou mot de passe invalide' })
     }
-    // Réinitialiser les échecs à la connexion réussie
-    const ip = clientIp(request)
-    bruteForceStore.delete(ip)
+    emailLoginLimiter.success(lockKey)
     // Rotate refresh token : ancien invalide, nouveau créé
     const newRefreshToken = await rotateRefreshToken(user.id, input.email)
     return json(response, 200, {
