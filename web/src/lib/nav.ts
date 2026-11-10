@@ -37,7 +37,6 @@ export const SPACES: NavSpace[] = [
     { to: '/presences', label: 'Présences', icon: CalendarCheck2, roles: ['rh', 'paie'] },
     { to: '/planning', label: 'Planning métier', icon: CalendarRange, roles: ['rh', 'paie'], keywords: 'poste vacation equipe rotation nuit gardiennage' },
     { to: '/equipes', label: 'Équipes et managers', icon: UsersRound, roles: ['rh'] },
-    { to: '/conformite', label: 'Conformité', icon: ShieldCheck, roles: ['rh', 'paie'] },
   ] },
   { id: 'paie', label: 'Paie et rémunération', icon: Wallet, items: [
     { to: '/paie/variables', label: 'Variables du mois', icon: SlidersHorizontal, roles: ['paie', 'rh'] },

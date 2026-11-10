@@ -4,7 +4,7 @@ import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YA
 import { Link, useSearchParams } from 'react-router-dom'
 import { useMemo, useState } from 'react'
 import { dataApi, unwrap } from '../lib/api'
-import { fcfa, monthLabel, MONTHS_SHORT } from '../lib/format'
+import { date, fcfa, monthLabel, MONTHS_SHORT } from '../lib/format'
 import { useAuth } from '../lib/auth'
 import { usePayrollEntries } from '../lib/queries'
 import { AnnualSynthesis } from '../components/AnnualSynthesis'
@@ -132,6 +132,7 @@ export default function DashboardPage() {
         <div className="space-y-6">
           <PayrollComposition d={d} />
           <MonthContributions d={d} />
+          {can('rh', 'paie') && <ComplianceWidget />}
           {can('rh', 'paie') && <LegalAlerts />}
 
           <div className="grid gap-6 lg:grid-cols-3">
@@ -263,6 +264,25 @@ function Breakdown({ title, data }: { title: string; data: Record<string, number
         ))}
       </ul>
     </div>
+  )
+}
+
+/** Pastille de conformité : dernier scan (obsolète au-delà de 24 h), lien vers le centre. */
+function ComplianceWidget() {
+  const q = useQuery({
+    queryKey: ['compliance', 'status'],
+    queryFn: async () => (unwrap(await dataApi.rpc('compliance_status')) as unknown as { status: 'vert' | 'orange' | 'rouge'; nb_bloquants: number; nb_alertes: number; scanned_at: string; stale: boolean }[])[0] ?? null,
+  })
+  const s = q.data
+  const dot = { vert: 'bg-phosphate', orange: 'bg-signal', rouge: 'bg-red-600' }
+  return (
+    <Section title="Conformité">
+      <Link to="/centre-conformite" className="flex flex-wrap items-center gap-3 text-sm hover:text-river">
+        <span className={`inline-block size-3 rounded-full ${s ? dot[s.status] : 'bg-ink-muted'}`} aria-hidden />
+        {q.isLoading ? 'Chargement…' : !s ? 'Aucun scan : ouvrir le centre de conformité pour lancer le premier.'
+          : <span>{s.nb_bloquants} bloquant(s), {s.nb_alertes} alerte(s) — scan du {date(s.scanned_at)}{s.stale ? ' (à relancer)' : ''}</span>}
+      </Link>
+    </Section>
   )
 }
 

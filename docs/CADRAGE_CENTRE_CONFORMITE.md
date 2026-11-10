@@ -143,3 +143,8 @@ Impact sur les lots (§7) : L1 se scinde en **L1a** (constantes simples, catalog
 - Réinitialisation : la valeur d'origine revient, y compris sur les versions futures encore modifiables.
 - Barème : continuité des tranches (départ à 0, pas de trou, dernière tranche sans limite) ; majoration d'heures sup. refusée sous le minimum légal.
 - Écran Paramètres : en lecture seule pour le RH et la paie, renvoi vers le centre.
+
+## Avancement L4-L5 (2026-11-10)
+- **L4 livré** : onglets Cohérence (scan, constats ouverts filtrables, lien « Corriger » vers la fiche salarié, le bulletin, le planning de la semaine, la fiche société, les constantes ou l’état des cotisations, demande de dérogation motivée) et Dérogations (registre, révocation par l’administrateur). Onglet par défaut du centre.
+- **L5 livré** : widget Conformité sur le tableau de bord, `/conformite` redirige vers `/centre-conformite`, `CompliancePage.tsx` et son entrée de menu supprimées. Les pages Paramètres (`?onglet=societe`), États (`?onglet=cotisations`) et Planning (`?semaine=AAAA-MM-JJ`) s’ouvrent directement sur l’élément visé.
+- Reste : e2e à rejouer (comptes `tests/.env.qa` absents de ce dossier).

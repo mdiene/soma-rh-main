@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import clsx from 'clsx'
 import { useEffect, useMemo, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { dataApi, isPayrollValidated, unwrap, type Views } from '../lib/api'
 import { useCompany, usePayrollEntries } from '../lib/queries'
 import { date, fcfa, monthLabel } from '../lib/format'
@@ -146,7 +147,8 @@ export default function ReportsPage() {
   const entries = usePayrollEntries()
   const company = useCompany()
   const [entryId, setEntryId] = useState('')
-  const [tab, setTab] = useState<Tab>('livre')
+  const [params] = useSearchParams()
+  const [tab, setTab] = useState<Tab>(TABS.find((t) => t.id === params.get('onglet'))?.id ?? 'livre')
   const [byStatus, setByStatus] = useState(false)
   useEffect(() => { if (!entryId && entries.data?.length) setEntryId(entries.data.find((e) => e.status !== 'Annulée')?.id ?? '') }, [entries.data, entryId])
   const entry = entries.data?.find((e) => e.id === entryId)

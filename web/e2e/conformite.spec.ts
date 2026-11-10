@@ -12,13 +12,14 @@ test.describe('administrateur', () => {
     await page.getByRole('navigation', { name: 'Navigation principale' }).getByRole('link', { name: /Centre de conformité/ }).click()
     await expect(page).toHaveURL(/\/centre-conformite$/)
     await expect(page.getByRole('heading', { level: 1, name: 'Centre de conformité' })).toBeVisible()
-    await expect(page.getByRole('tab', { name: 'Constantes et barèmes' })).toHaveAttribute('aria-selected', 'true')
+    await expect(page.getByRole('tab', { name: 'Cohérence' })).toHaveAttribute('aria-selected', 'true')
+    await page.getByRole('tab', { name: 'Constantes et barèmes' }).click()
     await expect(page.getByText('Les modifications s’appliqueront uniquement aux paies non encore calculées.')).toBeVisible()
     expect(errors).toEqual([])
   })
 
   test('chaque constante affiche sa valeur d\'origine et le texte de loi', async ({ page }) => {
-    await start(page, '/centre-conformite')
+    await start(page, '/centre-conformite?onglet=constantes')
     await expect(page.getByRole('heading', { name: 'Cotisations sociales' })).toBeVisible()
     const row = page.getByRole('button', { name: 'Plafond CSS (mensuel)', exact: true })
     await row.click()
@@ -28,7 +29,7 @@ test.describe('administrateur', () => {
   })
 
   test('« Modifier » ouvre la saisie contrôlée, « Réinitialiser » est inactif sur une valeur d\'origine', async ({ page }) => {
-    await start(page, '/centre-conformite')
+    await start(page, '/centre-conformite?onglet=constantes')
     await page.getByRole('button', { name: 'Modifier Plafond CSS (mensuel)' }).click()
     const dialog = page.getByRole('dialog', { name: /Modifier : Plafond CSS/ })
     await expect(dialog).toBeVisible()
@@ -40,7 +41,7 @@ test.describe('administrateur', () => {
   })
 
   test('les barèmes sont listés avec leur version et leurs lignes', async ({ page }) => {
-    await start(page, '/centre-conformite')
+    await start(page, '/centre-conformite?onglet=constantes')
     await expect(page.getByRole('heading', { name: 'Barèmes' })).toBeVisible()
     const hs = page.getByRole('button', { name: 'Majorations des heures supplémentaires', exact: true })
     await hs.click()
