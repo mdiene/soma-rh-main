@@ -1,0 +1,33 @@
+---
+title: "Accorder un prêt ou une avance"
+description: "Créer un prêt retenu sur les bulletins, dans la limite du plafond de retenue."
+---
+
+**Rôle concerné** : paie (ou admin). **Exemple** : S0455 (fictif), prêt de 300 000 F, brut de 138 513 F.
+
+## Étapes
+1. Menu **Paie et rémunération → Prêts et régularisations**, onglet **Prêts**.
+2. Renseignez **Salarié**, **Libellé**, **Montant (F)**, **Échéances** et **Première retenue** (champ mois, ex. octobre 2026).
+
+   ![Formulaire de prêt](/guide-utilisateur/captures-sim/pret-formulaire.png)
+3. Cliquez sur **Accorder le prêt**.
+
+## Le plafond de retenue
+Avec 6 échéances, la retenue mensuelle serait de 50 000 F. Elle dépasse le plafond (33,0 % du brut, soit 45 709 F) et le prêt est refusé :
+
+> Retenue mensuelle trop élevée : 50000 F (dont 0 F de prêts en cours) pour un plafond de 45709 F (33.0 % du brut de 138513 F). Augmentez le nombre d'échéances ou réduisez le montant.
+
+![Refus au plafond](/guide-utilisateur/captures-sim/pret-plafond-refus.png)
+
+Avec 12 échéances (25 000 F par mois), le prêt est accordé.
+
+![Prêt accordé](/guide-utilisateur/captures-sim/pret-accorde.png)
+
+## Résultat attendu
+Le bulletin du mois porte la ligne **Remboursement de prêt** : 25 000 F en octobre 2026, et le net passe de 142 473 F (septembre) à 117 473 F (octobre).
+
+## Règle de gestion
+Plafond par défaut de 1/3 du brut, modifiable par salarié (décision du propriétaire D-30/D-53) ; le net ne devient jamais négatif. Aucun article de loi n'est cité ici : source légale non confirmée (◐).
+
+## Voir aussi
+[Calculer et clôturer la paie du mois](/guide-utilisateur/calculer-et-cloturer-la-paie)

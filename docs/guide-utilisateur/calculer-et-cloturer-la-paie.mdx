@@ -1,0 +1,26 @@
+---
+title: "Calculer et clôturer la paie du mois"
+description: "Variables du mois, calcul des bulletins, puis revue, approbation, validation, paiement et clôture."
+---
+
+**Rôles concernés** : paie (variables, calcul, validation, paiement), rh + paie (approbation), admin (clôture). **Exemple** : octobre 2026, 200 salariés fictifs.
+
+## Étapes
+1. **Paie** : menu **Variables du mois**, choisissez le mois, saisissez les heures et primes, puis **Enregistrer**. Exemple : 10 h supplémentaires à 15 % pour S0294, prime de performance de 50 000 F pour S0298.
+
+   ![Variables du mois](/guide-utilisateur/captures-sim/variables-octobre.png)
+2. **Paie** : menu **Traitements de paie → Nouveau traitement**, mois **2026-10**, mode « Virement bancaire », **Créer le traitement**, puis **Calculer les bulletins**. Message attendu : « 200 bulletin(s) calculé(s). » (18 secondes à 200 salariés).
+
+   ![Calcul d'octobre](/guide-utilisateur/captures-sim/calcul-octobre.png)
+3. Menu **Contrôle et clôture**, dans cet ordre et avec des comptes distincts : **Envoyer en revue** (paie), **Approuver la paie** (administrateur ou détenteur des rôles rh et paie), **Valider la paie** (paie), **Marquer comme payée** (paie), **Clôturer la période** (admin).
+
+   ![Période clôturée](/guide-utilisateur/captures-sim/gouvernance-octobre.png)
+
+## Résultat attendu et vérifications faites
+- Heures supplémentaires de S0294 : 10 h × (115 718 F ÷ 173,33 h) × 1,15 = 7 677,44 F, identique au bulletin.
+- Prime de S0298 : 50 000 F au bulletin.
+- Prêt de S0455 : retenue de 25 000 F.
+- La période passe à **Clôturée** : plus aucune modification possible.
+
+## À savoir
+Un salarié sorti en cours de mois est payé le mois entier (voir [Enregistrer une sortie](/guide-utilisateur/enregistrer-une-sortie)).

@@ -1,0 +1,16 @@
+---
+title: "Guide utilisateur SOMA-RH"
+description: "Pages écrites à partir de parcours réellement exécutés sur la base de simulation (200 salariés fictifs)."
+---
+
+Chaque page décrit un parcours **joué de bout en bout** par un test Playwright, avec captures prises pendant ce test. Un parcours qui échoue figure dans le dossier de reprise, pas ici.
+
+| Page | Rôle |
+|---|---|
+| [Enregistrer la sortie d'un salarié](/guide-utilisateur/enregistrer-une-sortie) | RH |
+| [Demander et faire approuver un congé](/guide-utilisateur/demander-un-conge) | RH, salarié |
+| [Accorder un prêt ou une avance](/guide-utilisateur/accorder-un-pret) | Paie |
+| [Calculer et clôturer la paie du mois](/guide-utilisateur/calculer-et-cloturer-la-paie) | Paie, RH, admin |
+| [Accès par téléphone](/guide-utilisateur/ACCES_TELEPHONE) | Admin, salarié |
+
+Les captures se régénèrent avec `npx playwright test -c playwright.sim.config.ts --workers=1` depuis `web/`. Les données sont fictives.

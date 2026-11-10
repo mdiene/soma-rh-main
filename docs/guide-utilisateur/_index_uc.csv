@@ -1,0 +1,10 @@
+uc,page,test,statut
+UC-SORTIE,enregistrer-une-sortie.mdx,web/e2e/sim/11-octobre.sim.spec.ts (sortie),VERT
+UC-CONGE-DOT,demander-un-conge.mdx,web/e2e/sim/11-octobre.sim.spec.ts (congé),VERT
+UC-CONGE-DEMANDE,demander-un-conge.mdx,web/e2e/sim/11-octobre.sim.spec.ts (congé),VERT
+UC-CONGE-VALIDATION,demander-un-conge.mdx,web/e2e/sim/11-octobre.sim.spec.ts (congé),VERT (approbation RH ; étape manager ORANGE)
+UC-PRET-PLAFOND,accorder-un-pret.mdx,web/e2e/sim/11-octobre.sim.spec.ts (prêt),VERT
+UC-PRET,accorder-un-pret.mdx,web/e2e/sim/11-octobre.sim.spec.ts (prêt),VERT
+UC-CALC-OCT,calculer-et-cloturer-la-paie.mdx,web/e2e/sim/11-octobre.sim.spec.ts (calcul),VERT
+UC-WORKFLOW-OCT,calculer-et-cloturer-la-paie.mdx,web/e2e/sim/11-octobre.sim.spec.ts (calcul),VERT
+UC-SORTIE-PRORATA,enregistrer-une-sortie.mdx,tests/sql/rpr09_prorata.sql,VERT (SQL ; parcours Playwright à écrire)

@@ -3727,6 +3727,7 @@ export type Database = {
           meal_allowance_factor: number
           monthly_hours: number
           precarity_rate: number
+          proration_basis: string
           seniority_min_years: number
           severance_basis: string
           severance_min_months: number
@@ -3763,6 +3764,7 @@ export type Database = {
           meal_allowance_factor?: number
           monthly_hours?: number
           precarity_rate?: number
+          proration_basis?: string
           seniority_min_years?: number
           severance_basis?: string
           severance_min_months?: number
@@ -3798,6 +3800,7 @@ export type Database = {
           meal_allowance_factor?: number
           monthly_hours?: number
           precarity_rate?: number
+          proration_basis?: string
           seniority_min_years?: number
           severance_basis?: string
           severance_min_months?: number

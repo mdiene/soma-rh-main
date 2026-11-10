@@ -67,3 +67,18 @@ Dépôt : `C:\IT-Mozaic\SOMA-RH-local`. Migrations : `docker cp` + `psql -f`, pu
 
 ## Résolu pendant la campagne
 - D-64 garde de période (migration `20261109170000_d64_garde_periode_mois_precedent.sql`, rollback, test `tests/sql/d64_garde_periode.sql`) : appliqué, test OK.
+
+---
+## Complément du 10/11/2026 (palier 10)
+- **RPR-09 confirmée** : sortie du 23/10/2026 (S0450) payée le mois entier ; aucun prorata dans `compute_salary_slip`. Décision D-56 à coder (entrée et sortie, base ouvrables par défaut).
+- **RPR-01 à RPR-15** : aucun correctif commité à ce jour (`git log`). Suivi en `test.fixme` dans `web/e2e/sim/30-rpr.sim.spec.ts`.
+- **Nouveau (ORANGE)** : approbation de congé par le manager introuvable dans `/mon-equipe` (bouton Approuver absent) ; la RH a approuvé directement.
+- **Nouveau (ORANGE)** : statut de la fiche resté « Actif » après enregistrement d'une date de sortie par la fiche.
+- **Nettoyage** : demande de congé d'un test antérieur (S0291, « eere r »).
+
+### RPR-09 corrigée (10/11/2026, branche `fix/rpr-09-prorata`)
+- Migration `20261214090000_rpr09_prorata_entree_sortie` (+ retour `db/rollback/…_down.sql`, testé) : paramètre `payroll_settings.proration_basis` (`ouvrables` par défaut = lundi au samedi, jours fériés non déduits ; `calendaires`) et ligne de bulletin `RET_PRORATA`. Entrée et sortie incluses ; transport, kilométrique et prime d'ancienneté suivent le ratio.
+- Test : `tests/sql/rpr09_prorata.sql` (entrée le 15/01 : 12/27 retenus ; calendaire : 14/31 ; sortie le 23/10 : 7/27 ; sortie le 31/10 : aucun prorata ; base invalide refusée). Recalcul de septembre : 200 bulletins, 0 écart avec les bulletins clôturés. Suite SQL : mêmes 11 échecs de données qu'avant (vérifié migration retirée).
+- Les bulletins déjà calculés ne sont pas recalculés. Octobre 2026 (clôturé) reste au mois entier pour S0450 : à rouvrir et recalculer (réouverture motivée, admin) si le propriétaire le souhaite.
+- Changer la base de prorata passe par une nouvelle version datée des paramètres (garde-fou existant : un paramétrage déjà utilisé n'est pas modifiable).
+- Décisions ouvertes : jours fériés (non déduits en base ouvrables) ; prorata appliqué aussi au transport (choix retenu) ; interface de saisie du paramètre non faite.

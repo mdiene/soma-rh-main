@@ -147,3 +147,19 @@ Paliers 8 (août, 175) et 9 (septembre, 200 salariés) : VERT de bout en bout. C
 | Réf | Constat | Statut |
 |---|---|---|
 | P9-01 | Premier chargement de /paie/variables à 200 salariés > 30 s lors d'un run (puis normal au run suivant). À surveiller : lenteur ou serveur de dev saturé. | ORANGE (performance) |
+
+## Palier 10 — octobre 2026, 200 salariés (10/11/2026, v3)
+
+Base conservée (aucune remise à zéro). Sauvegarde préalable : `backups/soma-rh-20261110-191512.dump` (restauration : `scripts/local-restore.ps1`). Spec : `web/e2e/sim/11-octobre.sim.spec.ts`.
+
+| Réf | Constat | Statut |
+|---|---|---|
+| P10-01 | Sortie par la fiche (S0450, démission le 23/10) : date et motif enregistrés ; message « Fiche enregistrée » non vérifié ; statut resté « Actif ». | VERT / ORANGE |
+| P10-02 | Congé : dotation 24 j (RH), demande salarié (état Ouverte), approbation RH (état Approuvée). L'approbation par le manager n'a pas pu être rejouée : bouton Approuver absent de /mon-equipe pour cette demande. | VERT / ORANGE |
+| P10-03 | Prêt de 300 000 F sur 6 échéances refusé (50 000 F > plafond 45 709 F = 33,0 % du brut 138 513 F) avec message clair ; accepté sur 12 échéances ; retenue de 25 000 F au bulletin d'octobre (net 142 473 → 117 473). | VERT |
+| P10-04 | Heures supplémentaires : S0294, 10 h à 15 % = 7 677,44 F, identique au recalcul manuel (115 718 ÷ 173,33 × 1,15 × 10). Prime de 50 000 F (S0298) au bulletin. | VERT |
+| P10-05 | Calcul de 200 bulletins : 18 s ; workflow à comptes distincts jusqu'à Clôturée. | VERT |
+| P10-06 | **Prorata à la sortie** : S0450 sort le 23/10, bulletin d'octobre au mois entier (salaire de base 70 709 F, identique à septembre). `compute_salary_slip` ne contient aucun prorata (D-56 non implémentée). | ROUGE (RPR-09) |
+| P10-07 | Un congé annuel de test (S0291, 19 j du 14/11 au 02/12, motif « eere r ») était en attente avant ce palier : reste d'un test antérieur, à supprimer. | ORANGE |
+
+Non joué dans ce palier : CDD et intérim, réouverture motivée, ordres de virement et déclarations (IPRES/CSS, DGID), paiements par lot. Voir le rapport final.

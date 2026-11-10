@@ -82,3 +82,58 @@
 {"uc":"UC-EMB-P9","status":"VERT","note":"0 embauches créées par le compte RH","at":"2026-11-09T17:30:07.607Z"}
 {"uc":"UC-CALC-P9","status":"VERT","note":"200 bulletin(s) calculé(s).","at":"2026-11-09T17:30:24.634Z"}
 {"uc":"UC-WORKFLOW-P9","status":"VERT","note":"état Clôturée","at":"2026-11-09T17:30:39.531Z"}
+{"uc":"UC-SORTIE","status":"VERT","note":"statut Active, motif DEMISSION","at":"2026-11-10T19:54:07.383Z"}
+{"uc":"UC-CONGE-DOT","status":"VERT","note":"dotation de 24 jours ouvrables","at":"2026-11-10T19:54:17.240Z"}
+{"uc":"UC-CONGE-DEMANDE","status":"VERT","note":"état Ouverte","at":"2026-11-10T19:54:20.574Z"}
+{"uc":"UC-CONGE-VALID-MANAGER","status":"ORANGE","note":"bouton Approuver introuvable pour cette demande","at":"2026-11-10T19:54:22.444Z"}
+{"uc":"UC-CONGE-VALIDATION","status":"VERT","note":"état final : Approuvée","at":"2026-11-10T19:54:26.638Z"}
+{"uc":"UC-PRET","status":"ROUGE","note":"0 prêt(s) pour S0455","at":"2026-11-10T19:54:37.058Z"}
+{"uc":"UC-PRET","status":"ROUGE","note":"0 prêt(s) pour S0455","at":"2026-11-10T19:56:02.577Z"}
+{"uc":"UC-PRET-PLAFOND","status":"VERT","note":"Retenue mensuelle trop élevée : 50000 F (dont 0 F de prêts en cours) pour un plafond de 45709 F (33.0 % du brut de 138513 F). Augmentez le nombre d'échéances ou","at":"2026-11-10T19:57:17.409Z"}
+{"uc":"UC-PRET","status":"VERT","note":"1 prêt(s) pour S0455","at":"2026-11-10T19:57:20.305Z"}
+{"uc":"UC-CALC-OCT","status":"VERT","note":"200 bulletin(s) calculé(s). en 18 s","at":"2026-11-10T19:58:44.384Z"}
+{"uc":"UC-WORKFLOW-OCT","status":"VERT","note":"état Clôturée","at":"2026-11-10T19:59:19.814Z"}
+{"uc":"UC-EMB-P5","status":"VERT","note":"0 embauches créées par le compte RH","at":"2026-11-10T20:05:22.747Z"}
+{"uc":"UC-WORKFLOW-P5","status":"VERT","note":"Envoyer en revue: bouton « Envoyer en revue » absent | Approuver la paie: bouton « Approuver la paie » absent | Valider la paie: bouton « Valider la paie » absent | Marquer comme payée: bouton « Marquer comme payée » absent | Clôturer la période: bouton « Clôturer la période » absent","at":"2026-11-10T20:06:21.388Z"}
+{"uc":"UC-EMB-P6","status":"VERT","note":"0 embauches créées par le compte RH","at":"2026-11-10T20:06:29.119Z"}
+{"uc":"UC-WORKFLOW-P6","status":"VERT","note":"Envoyer en revue: bouton « Envoyer en revue » absent | Approuver la paie: bouton « Approuver la paie » absent | Valider la paie: bouton « Valider la paie » absent | Marquer comme payée: bouton « Marquer comme payée » absent | Clôturer la période: bouton « Clôturer la période » absent","at":"2026-11-10T20:07:27.349Z"}
+{"uc":"UC-EMB-P7","status":"VERT","note":"0 embauches créées par le compte RH","at":"2026-11-10T20:07:35.023Z"}
+{"uc":"UC-WORKFLOW-P7","status":"VERT","note":"Envoyer en revue: bouton « Envoyer en revue » absent | Approuver la paie: bouton « Approuver la paie » absent | Valider la paie: bouton « Valider la paie » absent | Marquer comme payée: bouton « Marquer comme payée » absent | Clôturer la période: bouton « Clôturer la période » absent","at":"2026-11-10T20:08:34.569Z"}
+{"uc":"UC-EMB-P8","status":"VERT","note":"0 embauches créées par le compte RH","at":"2026-11-10T20:08:42.796Z"}
+{"uc":"UC-WORKFLOW-P8","status":"VERT","note":"Envoyer en revue: bouton « Envoyer en revue » absent | Approuver la paie: bouton « Approuver la paie » absent | Valider la paie: bouton « Valider la paie » absent | Marquer comme payée: bouton « Marquer comme payée » absent | Clôturer la période: bouton « Clôturer la période » absent","at":"2026-11-10T20:09:41.028Z"}
+{"uc":"UC-EMB-P9","status":"VERT","note":"0 embauches créées par le compte RH","at":"2026-11-10T20:09:48.279Z"}
+{"uc":"UC-WORKFLOW-P9","status":"VERT","note":"Envoyer en revue: bouton « Envoyer en revue » absent | Approuver la paie: bouton « Approuver la paie » absent | Valider la paie: bouton « Valider la paie » absent | Marquer comme payée: bouton « Marquer comme payée » absent | Clôturer la période: bouton « Clôturer la période » absent","at":"2026-11-10T20:10:46.945Z"}
+{"uc":"UC-SORTIE","status":"VERT","note":"statut Active, motif DEMISSION","at":"2026-11-10T20:10:51.578Z"}
+{"uc":"UC-CONGE-DOT","status":"VERT","note":"dotation de 24 jours ouvrables","at":"2026-11-10T20:10:57.212Z"}
+{"uc":"UC-CONGE-DEMANDE","status":"VERT","note":"état Approuvée","at":"2026-11-10T20:10:57.314Z"}
+{"uc":"UC-CONGE-VALIDATION","status":"VERT","note":"état final : Approuvée","at":"2026-11-10T20:10:57.480Z"}
+{"uc":"UC-PRET","status":"VERT","note":"1 prêt(s) pour S0455","at":"2026-11-10T20:10:59.759Z"}
+{"uc":"UC-WORKFLOW-OCT","status":"VERT","note":"Envoyer en revue: bouton « Envoyer en revue » absent | Approuver la paie: bouton « Approuver la paie » absent | Valider la paie: bouton « Valider la paie » absent | Marquer comme payée: bouton « Marquer comme payée » absent | Clôturer la période: bouton « Clôturer la période » absent","at":"2026-11-10T20:12:04.185Z"}
+{"uc":"UC-ROLE-admin-/salaries","status":"VERT","note":"","at":"2026-11-10T20:12:08.636Z"}
+{"uc":"UC-ROLE-admin-/paie","status":"VERT","note":"","at":"2026-11-10T20:12:10.827Z"}
+{"uc":"UC-ROLE-admin-/paie/gouvernance","status":"VERT","note":"","at":"2026-11-10T20:12:12.528Z"}
+{"uc":"UC-ROLE-admin-/parametres","status":"VERT","note":"","at":"2026-11-10T20:12:16.742Z"}
+{"uc":"UC-ROLE-admin-/journal","status":"VERT","note":"","at":"2026-11-10T20:12:19.939Z"}
+{"uc":"UC-ROLE-admin-/centre-conformite","status":"VERT","note":"","at":"2026-11-10T20:12:22.932Z"}
+{"uc":"UC-ROLE-rh-/salaries","status":"VERT","note":"","at":"2026-11-10T20:12:27.392Z"}
+{"uc":"UC-ROLE-rh-/conges","status":"VERT","note":"","at":"2026-11-10T20:12:29.225Z"}
+{"uc":"UC-ROLE-rh-/dossiers-salaries","status":"VERT","note":"","at":"2026-11-10T20:12:31.163Z"}
+{"uc":"UC-ROLE-rh-/equipes","status":"VERT","note":"","at":"2026-11-10T20:12:32.963Z"}
+{"uc":"UC-ROLE-paie-/paie","status":"VERT","note":"","at":"2026-11-10T20:12:37.096Z"}
+{"uc":"UC-ROLE-paie-/paie/variables","status":"VERT","note":"","at":"2026-11-10T20:12:40.910Z"}
+{"uc":"UC-ROLE-paie-/paie/gouvernance","status":"VERT","note":"","at":"2026-11-10T20:12:44.954Z"}
+{"uc":"UC-ROLE-paie-/etats","status":"VERT","note":"","at":"2026-11-10T20:12:49.443Z"}
+{"uc":"UC-ROLE-mgr_1-/mon-equipe","status":"VERT","note":"","at":"2026-11-10T20:12:55.084Z"}
+{"uc":"UC-ROLE-mgr_1-/demandes","status":"VERT","note":"","at":"2026-11-10T20:12:57.142Z"}
+{"uc":"UC-ROLE-mgr_1-/conges","status":"VERT","note":"","at":"2026-11-10T20:12:58.868Z"}
+{"uc":"UC-ROLE-sal_1-/mon-espace","status":"VERT","note":"","at":"2026-11-10T20:13:03.705Z"}
+{"uc":"UC-ROLE-sal_1-/mes-bulletins","status":"VERT","note":"","at":"2026-11-10T20:13:05.723Z"}
+{"uc":"UC-INTERDIT-mgr_1-/paie","status":"VERT","note":"","at":"2026-11-10T20:13:09.951Z"}
+{"uc":"UC-INTERDIT-mgr_1-/parametres","status":"VERT","note":"","at":"2026-11-10T20:13:11.567Z"}
+{"uc":"UC-INTERDIT-mgr_1-/journal","status":"VERT","note":"","at":"2026-11-10T20:13:13.220Z"}
+{"uc":"UC-INTERDIT-sal_1-/salaries","status":"VERT","note":"","at":"2026-11-10T20:13:17.200Z"}
+{"uc":"UC-INTERDIT-sal_1-/paie","status":"VERT","note":"","at":"2026-11-10T20:13:18.788Z"}
+{"uc":"UC-INTERDIT-sal_1-/parametres","status":"VERT","note":"","at":"2026-11-10T20:13:20.413Z"}
+{"uc":"UC-INTERDIT-sal_1-/journal","status":"VERT","note":"","at":"2026-11-10T20:13:22.023Z"}
+{"uc":"UC-INTERDIT-sal_1-/mon-equipe","status":"VERT","note":"","at":"2026-11-10T20:13:23.707Z"}
+{"uc":"UC-ISOLATION-sal_1","status":"VERT","note":"10 bulletins visibles","at":"2026-11-10T20:13:26.789Z"}
