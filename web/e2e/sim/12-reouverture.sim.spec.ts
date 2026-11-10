@@ -8,7 +8,7 @@ const SORTANT = 'S0450'
 test('réouverture d’octobre, recalcul et nouvelle clôture', async ({ browser }) => {
   const admin = await as(browser, 'admin')
   const paie = await as(browser, 'paie')
-  const rhpaie = await as(browser, 'rhpaie')
+  const approbateur = await as(browser, 'paie2') // RPR-02 : approuvent l'administrateur et le rôle paie (pas rh)
 
   const entree = (await rows<{ id: string; status: string }>(admin, 'payroll_entries?select=id,status&period_start=eq.2026-10-01&status=neq.Annulée'))[0]
   const prorata = async () => rows<{ id: string }>(admin, `salary_slip_details?select=id,salary_slips!inner(employee_number,period_start,status)&component_code=eq.RET_PRORATA&salary_slips.employee_number=eq.${SORTANT}&salary_slips.period_start=eq.2026-10-01&salary_slips.status=neq.Annulé`)
@@ -41,7 +41,7 @@ test('réouverture d’octobre, recalcul et nouvelle clôture', async ({ browser
   const refus: string[] = []
   const etat = async () => (await rows<{ status: string }>(admin, `payroll_entries?select=status&id=eq.${entree.id}`))[0].status
   if ((await etat()) !== 'Clôturée') {
-    for (const [page, label] of [[paie, 'Envoyer en revue'], [rhpaie, 'Approuver la paie'], [paie, 'Valider la paie'], [paie, 'Marquer comme payée'], [admin, 'Clôturer la période']] as const) {
+    for (const [page, label] of [[paie, 'Envoyer en revue'], [approbateur, 'Approuver la paie'], [paie, 'Valider la paie'], [paie, 'Marquer comme payée'], [admin, 'Clôturer la période']] as const) {
       const r = await govStep(page, label)
       if (r) refus.push(`${label}: ${r}`)
     }

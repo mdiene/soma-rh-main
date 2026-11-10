@@ -82,3 +82,16 @@ Dépôt : `C:\IT-Mozaic\SOMA-RH-local`. Migrations : `docker cp` + `psql -f`, pu
 - Les bulletins déjà calculés ne sont pas recalculés. Octobre 2026 (clôturé) reste au mois entier pour S0450 : à rouvrir et recalculer (réouverture motivée, admin) si le propriétaire le souhaite.
 - Changer la base de prorata passe par une nouvelle version datée des paramètres (garde-fou existant : un paramétrage déjà utilisé n'est pas modifiable).
 - Décisions ouvertes : jours fériés (non déduits en base ouvrables) ; prorata appliqué aussi au transport (choix retenu) ; interface de saisie du paramètre non faite.
+
+---
+## État au 10/11/2026 (branche `fix/rpr-09-prorata`)
+| Fiche | Statut | Détail |
+|---|---|---|
+| RPR-09 | corrigée | voir plus haut ; octobre 2026 rouvert, recalculé, reclôturé (S0450 : retenue de prorata 18 331,96 F, net 63 403,18 F) |
+| RPR-05 | corrigée | bouton Recalculer sur une paie « Réouverte » ; `run_payroll_batch` remet les bulletins validés en brouillon avant recalcul (migration `20261214100000`). Cause racine : sans cela chaque bulletin refusait le recalcul et l'écran annonçait quand même « N bulletin(s) calculé(s) » |
+| RPR-01 | corrigée (base) | `transition_payroll_entry` refuse « En revue » et liste les salariés sans bulletin (migration `20261214110000`, test `rpr01_revue_incomplete`). Reste : avertissement persistant sur la page d'une paie incomplète |
+| RPR-02 | corrigée (base) | approbation par admin et rôle paie, plus par rh (migration `20261214120000`, test `rpr02_approbation_roles`). L'écran était déjà conforme. Specs : `paie2` approuve. Reste : parcours Playwright sur un mois ouvert (tous les mois simulés sont clôturés) |
+| RPR-03 | corrigée (partiel) | verrou progressif par couple compte + adresse (`api/server.mjs`), limite par adresse 120/15 min, test `tests/api/login.lock.test.mjs`. Reste : alerte à l'administrateur ; verrou en mémoire (perdu au redémarrage de la passerelle) |
+| RPR-04 à RPR-08, RPR-10 à RPR-15 | à faire | |
+
+Constats nouveaux : (1) `run_payroll_batch` avale les erreurs de calcul ; (2) la ligne `RET_PRORATA` devait exister dans `salary_components` (clé étrangère) ; (3) la passerelle de test sur le port 8001 doit pointer `POSTGREST_URL=http://localhost:3001` quand elle tourne hors Docker.

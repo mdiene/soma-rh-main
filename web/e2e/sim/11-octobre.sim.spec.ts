@@ -124,7 +124,7 @@ test('prêt — plafond de retenue puis accord de 300 000 F sur 12 échéances (
 
 test('calcul d’octobre et workflow jusqu’à la clôture', async ({ browser }) => {
   const paie = await as(browser, 'paie')
-  const rhpaie = await as(browser, 'rhpaie')
+  const approbateur = await as(browser, 'paie2') // RPR-02 : approuvent l'administrateur et le rôle paie (pas rh)
   const admin = await as(browser, 'admin')
   const existant = await rows<{ status: string }>(admin, `payroll_entries?select=status&period_start=eq.${YM}-01&status=neq.Annulée`)
   if (existant.length === 0) {
@@ -149,7 +149,7 @@ test('calcul d’octobre et workflow jusqu’à la clôture', async ({ browser }
     await shot(paie, 'calcul-octobre')
   }
   const refus: string[] = []
-  for (const [page, label] of [[paie, 'Envoyer en revue'], [rhpaie, 'Approuver la paie'], [paie, 'Valider la paie'], [paie, 'Marquer comme payée'], [admin, 'Clôturer la période']] as const) {
+  for (const [page, label] of [[paie, 'Envoyer en revue'], [approbateur, 'Approuver la paie'], [paie, 'Valider la paie'], [paie, 'Marquer comme payée'], [admin, 'Clôturer la période']] as const) {
     const r = await govStep(page, label)
     if (r) refus.push(`${label}: ${r}`)
   }
