@@ -4,7 +4,7 @@ import { ArrowLeft, Ban, BookOpen, CheckCircle2, ChevronRight, Banknote, Downloa
 import { DeletePayrollModal } from '../components/DeletePayrollModal'
 import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { PayrollRefusal, REVERTIBLE, dataApi, isPayrollValidated, transitionPayroll, unwrap, type ApiClient, type Views } from '../lib/api'
+import { REVERTIBLE, dataApi, isPayrollValidated, transitionPayroll, unwrap, type ApiClient, type Views } from '../lib/api'
 import { useAuth } from '../lib/auth'
 import { date, fcfa, monthLabel } from '../lib/format'
 import { BatchModal, ComparisonPanel, RevertModal, downloadPayrollSummary } from '../components/PayrollEntryExtras'
@@ -202,12 +202,11 @@ export default function PayrollEntryPage() {
       <BatchModal entryId={id!} open={confirm === 'batch'} onClose={() => setConfirm(null)} onDone={(r) => { setConfirm(null); setResult(r as RunResult); refresh() }} />
       <RevertModal entryId={id!} status={e.status} open={confirm === 'reopen'} onClose={() => setConfirm(null)} onDone={() => { setConfirm(null); refresh() }} />
       <Modal open={confirm === 'submit'} onClose={() => setConfirm(null)} title="Valider la paie"
-        footer={<><Button variant="ghost" onClick={() => setConfirm(null)}>Revenir</Button><Button variant="primary" loading={submit.isPending} onClick={() => submit.mutate()}>Valider {rows.length} bulletin(s)</Button></>}>
+        footer={<><Button variant="ghost" onClick={() => setConfirm(null)}>Revenir</Button><Button variant="primary" loading={submit.isPending} disabled={!motif.trim()} onClick={() => submit.mutate()}>Valider {rows.length} bulletin(s)</Button></>}>
         <p className="text-sm">Une fois validés, les bulletins de {monthLabel(e.period_start)} ne peuvent plus être recalculés et deviennent visibles par les salariés.</p>
-        {submit.error instanceof PayrollRefusal && submit.error.code === 'SD403' && (
-          <TextField className="mt-3" label="Motif de la dérogation (obligatoire)" value={motif} onChange={(ev) => setMotif(ev.target.value)}
-            hint="Vous avez préparé cette paie : en tant qu'administrateur, vous pouvez la valider en indiquant un motif, qui sera journalisé." />
-        )}
+        {/* RPR-04 : valider une paie « Calculée » sans revue ni approbation est une dérogation (D-43) : motif toujours demandé, champ vide au départ */}
+        <TextField className="mt-3" label="Motif de la dérogation (obligatoire)" value={motif} onChange={(ev) => setMotif(ev.target.value)}
+          hint="Cette validation passe sans revue ni approbation, et peut concerner une paie que vous avez préparée : le motif est enregistré dans le journal d'audit." />
         <div className="mt-3"><ErrorNote error={submit.error} /></div>
       </Modal>
       <Modal open={confirm === 'cancel'} onClose={() => setConfirm(null)} title="Annuler le traitement"
