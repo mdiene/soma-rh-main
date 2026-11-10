@@ -34,7 +34,9 @@ export function LegalAlerts() {
             {sorted.map((a) => (
               <li key={a.code + a.employee_id} className="flex flex-wrap items-center gap-2 py-2">
                 <span className={`rounded border px-2 py-0.5 text-xs font-medium ${TONE[a.severity]}`}>{LABEL[a.severity]}</span>
-                {a.employee_id
+                {a.code.startsWith('phone_access')
+                  ? <Link to="/parametres?onglet=acces" className="font-medium text-river hover:underline">{a.employee_name} — ouvrir l'écran d'autorisation</Link>
+                  : a.employee_id
                   ? <Link to={`/salaries/${a.employee_id}`} className="font-medium text-river hover:underline">{a.employee_number} {a.employee_name}</Link>
                   : <Link to="/parametres" className="font-medium text-river hover:underline">{a.employee_name} (société)</Link>}
                 <span className="text-ink-soft">{a.message}</span>
