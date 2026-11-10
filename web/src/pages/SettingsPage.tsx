@@ -3,7 +3,7 @@ import { createColumnHelper } from '@tanstack/react-table'
 import clsx from 'clsx'
 import { Plus, Save, ShieldCheck } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { dataApi, omit, unwrap, type Tables } from '../lib/api'
 import { checkRateSettings, settingsSaveMode, type RateSettings } from '../lib/payrollGuards'
 import { useAuth, type Role } from '../lib/auth'
@@ -11,6 +11,7 @@ import { useAgreements, useCompany, useComponents, useEmployees, useGrades } fro
 import { date, fcfa, num, pct } from '../lib/format'
 import { DataTable } from '../components/DataTable'
 import { DocumentTemplatesTab } from '../components/DocumentTemplatesTab'
+import { PhoneAccessAdmin } from '../components/PhoneAccessAdmin'
 import { AuditLogView, ReferentialManager, type RefConfig, type RefTable } from '../components/ReferentialManager'
 import { Button, ErrorNote, Modal, PageHeader, Section, SelectField, Spinner, TextField } from '../components/ui'
 
@@ -28,7 +29,8 @@ const TABS = [
 type Tab = (typeof TABS)[number]['id']
 
 export default function SettingsPage() {
-  const [tab, setTab] = useState<Tab>('acces')
+  const [params] = useSearchParams()
+  const [tab, setTab] = useState<Tab>(TABS.find((t) => t.id === params.get('onglet'))?.id ?? 'acces')
   return (
     <>
       <PageHeader title="Paramètres" description="Comptes et rôles, référentiels RH, constantes de paie, barèmes, rubriques et grilles des conventions collectives." />
@@ -130,6 +132,8 @@ function AccessTab() {
           )}
         </Section>
       )}
+
+      {can('admin') && <PhoneAccessAdmin />}
     </div>
   )
 }

@@ -3691,6 +3691,12 @@ export type Database = {
           },
         ]
       }
+      phone_access_settings: {
+        Row: { authorization_hours: number; id: boolean; second_factor: boolean; updated_at: string; validation: string }
+        Insert: { authorization_hours?: number; id?: boolean; second_factor?: boolean; updated_at?: string; validation?: string }
+        Update: { authorization_hours?: number; id?: boolean; second_factor?: boolean; updated_at?: string; validation?: string }
+        Relationships: []
+      }
       payroll_settings: {
         Row: {
           allowance_absence_basis: string
@@ -5276,6 +5282,24 @@ export type Database = {
         Args: { p_employee_id: string; p_user_id: string }
         Returns: undefined
       }
+      phone_access_alerts: {
+        Args: Record<PropertyKey, never>
+        Returns: { code: string; due_date: string; employee_id: string; employee_name: string; employee_number: string; message: string; severity: string }[]
+      }
+      admin_phone_access_accounts: {
+        Args: Record<PropertyKey, never>
+        Returns: { created_at: string; employee_id: string; employee_name: string; employee_number: string; phone_masked: string; status: string }[]
+      }
+      admin_phone_access_decide: {
+        Args: { p_authorize: boolean; p_note?: string; p_request_id: string }
+        Returns: undefined
+      }
+      admin_phone_access_requests: {
+        Args: Record<PropertyKey, never>
+        Returns: { decided_at: string; department: string; employee_id: string; employee_name: string; employee_number: string; expires_at: string; has_birth_date: boolean; id: string; phone_masked: string; purpose: string; repeat_count: number; requested_at: string; status: string }[]
+      }
+      admin_phone_access_revoke: { Args: { p_employee_id: string }; Returns: undefined }
+      employee_phone_access_status: { Args: { p_employee_id: string }; Returns: string }
       admin_list_users: {
         Args: Record<PropertyKey, never>
         Returns: {

@@ -3,7 +3,7 @@ import { as, record, rows, shot, type SimRole } from './sim-helpers'
 
 // Droits par rôle à l'écran : pages accessibles et pages refusées, captures pour le guide.
 const PAGES: Record<string, string[]> = {
-  admin: ['/salaries', '/paie', '/paie/gouvernance', '/parametres', '/journal', '/conformite'],
+  admin: ['/salaries', '/paie', '/paie/gouvernance', '/parametres', '/journal', '/centre-conformite'],
   rh: ['/salaries', '/conges', '/dossiers-salaries', '/equipes'],
   paie: ['/paie', '/paie/variables', '/paie/gouvernance', '/etats'],
   mgr_1: ['/mon-equipe', '/demandes', '/conges'],

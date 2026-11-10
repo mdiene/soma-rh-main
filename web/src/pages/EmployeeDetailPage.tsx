@@ -39,6 +39,11 @@ export default function EmployeeDetailPage() {
     enabled: !isNew,
     queryFn: async () => unwrap(await dataApi.from('employees').select('*').eq('id', id!).single()),
   })
+  const phoneStatus = useQuery({
+    queryKey: ['phone_status', id],
+    enabled: !isNew && can('rh'),
+    queryFn: async () => unwrap(await dataApi.rpc('employee_phone_access_status', { p_employee_id: id! })) as string,
+  })
   const [form, setForm] = useState<Partial<Emp>>(EMPTY)
   useEffect(() => { if (emp.data) setForm(emp.data) }, [emp.data])
   const grades = useGrades(form.agreement_code)
@@ -137,7 +142,8 @@ export default function EmployeeDetailPage() {
         <Section title="Coordonnées">
           <div className="grid gap-3 sm:grid-cols-2">
             <TextField label="Adresse" className="sm:col-span-2" value={form.address ?? ''} onChange={set('address')} />
-            <TextField label="Téléphone personnel" value={form.phone_personal ?? ''} onChange={set('phone_personal')} />
+            <TextField label="Téléphone personnel" value={form.phone_personal ?? ''} onChange={set('phone_personal')}
+              hint={phoneStatus.data ? `Accès par téléphone : ${phoneStatus.data}. Modifier le numéro désactive l'accès jusqu'à une nouvelle autorisation.` : undefined} />
             <TextField label="Téléphone professionnel" value={form.phone_work ?? ''} onChange={set('phone_work')} />
             <TextField label="E-mail personnel" type="email" value={form.email_personal ?? ''} onChange={set('email_personal')} />
             <TextField label="E-mail professionnel" type="email" value={form.email_work ?? ''} onChange={set('email_work')} />

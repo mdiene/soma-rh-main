@@ -1,6 +1,6 @@
 # Prompt Claude Code — Correctifs issus de la simulation 10 → 200 salariés (RPR-01 à RPR-15)
 
-Tu travailles dans `C:\IT-Mozaic\SOMA-RH-local` (React 18/Vite/TS, Postgres 17 + PostgREST, gateway `api/server.mjs`, DB `soma_rh`, conteneurs `soma-rh-local-postgres-1`, `-api-1`, `-postgrest-1`). Langue de travail : français.
+Tu travailles **uniquement** dans `C:\IT-Mozaic\soma-rh-main` (dépôt actif, GitHub `mdiene/soma-rh-main`, branche `main`) : React 18/Vite/TS, Postgres 17 + PostgREST, gateway `api/server.mjs`, DB `soma_rh`, conteneurs `soma-rh-local-postgres-1`, `-api-1`, `-postgrest-1`. Ne lis, n'écris et ne lance rien dans `C:\IT-Mozaic\SOMA-RH-local` (ancien dossier de simulation, conservé tel quel) : tous les chemins relatifs de ce document (`docs/`, `db/`, `tests/`, `scripts/`, `web/`, `api/`) se résolvent depuis `C:\IT-Mozaic\soma-rh-main`. Langue de travail : français.
 
 ## 0. À lire d'abord
 `docs/recette/simulation-200/RAPPORT_VERT_ROUGE.md`, `DOSSIER_DE_REPRISE.md`, `JOURNAL_PALIERS.md`, `PROPOSITION_PAIEMENTS_INDIVIDUELS.md`, `docs/recette/PROMPT_SIMULATION_200_SALARIES.md` (§11), les migrations `20261107120000_d43_…`, `20261107130000_d30_d53_…`, `20261109170000_d64_…`.

@@ -1,8 +1,10 @@
 import { useState } from 'react'
 import { dataApi } from '../lib/api'
 import { Button, ErrorNote, TextField } from '../components/ui'
+import { PhoneLogin } from '../components/PhoneLogin'
 
 export default function LoginPage() {
+  const [tab, setTab] = useState<'email' | 'phone'>('email')
   const [mode, setMode] = useState<'signin' | 'signup'>('signin')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -47,7 +49,18 @@ export default function LoginPage() {
       </div>
 
       <div className="flex items-center justify-center p-6">
-        <form onSubmit={submit} className="w-full max-w-sm space-y-4">
+        <div className="w-full max-w-sm space-y-4">
+          <div role="tablist" aria-label="Mode de connexion" className="flex gap-1 rounded border border-line p-1 text-sm">
+            {([['email', 'E-mail'], ['phone', 'Téléphone']] as const).map(([id, label]) => (
+              <button key={id} type="button" role="tab" id={`tab-${id}`} aria-selected={tab === id} aria-controls={`panel-${id}`}
+                onClick={() => setTab(id)}
+                className={`flex-1 rounded px-3 py-2 font-medium ${tab === id ? 'bg-ink text-white' : 'text-ink-soft hover:bg-paper'}`}>{label}</button>
+            ))}
+          </div>
+          {tab === 'phone' ? (
+            <div role="tabpanel" id="panel-phone" aria-labelledby="tab-phone"><PhoneLogin /></div>
+          ) : (
+        <form onSubmit={submit} role="tabpanel" id="panel-email" aria-labelledby="tab-email" className="space-y-4">
           <div>
             <h2 className="text-2xl">{mode === 'signin' ? 'Connexion' : 'Créer un compte'}</h2>
             <p className="mt-1 text-sm text-ink-soft">
@@ -67,6 +80,8 @@ export default function LoginPage() {
             {mode === 'signin' ? 'Pas encore de compte ? Créer un compte' : 'Déjà un compte ? Se connecter'}
           </button>
         </form>
+          )}
+        </div>
       </div>
     </div>
   )

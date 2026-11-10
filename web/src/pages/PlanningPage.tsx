@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import clsx from 'clsx'
 import { CalendarCheck2, ChevronLeft, ChevronRight, Save } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { dataApi, unwrap } from '../lib/api'
 import { useAuth } from '../lib/auth'
 import { useEmployees } from '../lib/queries'
@@ -25,7 +26,8 @@ export default function PlanningPage() {
   const editable = can('rh') || can('paie')
   const qc = useQueryClient()
   const employees = useEmployees()
-  const [week, setWeek] = useState(mondayOf(iso(new Date())))
+  const [params] = useSearchParams()
+  const [week, setWeek] = useState(() => { const w = params.get('semaine'); return mondayOf(w && /^\d{4}-\d{2}-\d{2}$/.test(w) ? w : iso(new Date())) })
   const [dayIdx, setDayIdx] = useState(0)
   const [query, setQuery] = useState('')
   const [drafts, setDrafts] = useState<Record<string, string>>({})
