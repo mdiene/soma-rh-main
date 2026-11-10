@@ -1,5 +1,5 @@
 import http from 'node:http'
-import { createHash, randomUUID } from 'node:crypto'
+import { createHash, randomBytes, randomUUID } from 'node:crypto'
 import { mkdir, readFile, unlink, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 import bcrypt from 'bcryptjs'
@@ -7,6 +7,10 @@ import { SignJWT, jwtVerify } from 'jose'
 import pg from 'pg'
 import { PDFDocument, StandardFonts, rgb } from 'pdf-lib'
 import { createDocumentThumbnail } from './thumbnail.mjs'
+import {
+  NEUTRAL_OPEN_MESSAGE, NEUTRAL_REQUEST_MESSAGE, createLoginLimiter, emailToPhone, hashIp, hashToken,
+  isPhoneEmail, parseBirthDate, passwordProblem, phoneToEmail,
+} from './phone.mjs'
 
 // Store for rate limiting and brute force tracking (in-memory for simplicity;
 // in production use Redis or database with persistence)
@@ -148,6 +152,7 @@ async function issueToken(user) {
 }
 
 async function body(request) {
+  if (request.parsedBody) return request.parsedBody // corps déjà lu par auth() (le flux ne se relit pas)
   const chunks = []
   for await (const chunk of request) chunks.push(chunk)
   if (!chunks.length) return {}
@@ -393,15 +398,88 @@ function setCors(request, response) {
   response.setHeader('access-control-allow-methods', 'GET, POST, PATCH, PUT, DELETE, OPTIONS')
 }
 
+// Connexion par téléphone : verrouillage progressif par couple numéro + adresse (jamais par adresse seule, RPR-03)
+const phoneLoginLimiter = createLoginLimiter()
+const phoneRoutes = ['/auth/v1/phone/request', '/auth/v1/phone/open', '/auth/v1/phone/set-password']
+const ipSalt = () => jwtSecret
+const phoneDb = (fn, params) => pool.query(`select public.${fn} as r`, params).then((x) => x.rows[0].r)
+
+async function phoneAuth(request, response, pathname) {
+  const input = await body(request)
+  const ipHash = hashIp(clientIp(request), ipSalt())
+
+  // 1. Demande d'accès : toujours la même réponse, que le numéro existe ou non
+  if (pathname === '/auth/v1/phone/request') {
+    await pool.query('select public.phone_access_request($1, $2)', [String(input.phone ?? '').slice(0, 40), ipHash])
+    return json(response, 200, { status: 'received', message: NEUTRAL_REQUEST_MESSAGE })
+  }
+
+  // 2. Ouverture de l'activation : numéro (+ date de naissance) ; renvoie un jeton de 15 min à usage unique
+  if (pathname === '/auth/v1/phone/open') {
+    const token = randomBytes(24).toString('hex')
+    const ok = await phoneDb('phone_access_open($1, $2::date, $3, $4)',
+      [String(input.phone ?? '').slice(0, 40), parseBirthDate(input.second), ipHash, hashToken(token)])
+    return ok
+      ? json(response, 200, { status: 'ready', token })
+      : json(response, 200, { status: 'pending', message: NEUTRAL_OPEN_MESSAGE })
+  }
+
+  // 3. Définition du mot de passe (création ou réinitialisation)
+  const client = await pool.connect()
+  try {
+    await client.query('begin')
+    const tokenHash = hashToken(input.token ?? '')
+    const peek = (await client.query('select * from public.phone_access_peek($1)', [tokenHash])).rows[0]
+    if (!peek) {
+      await client.query('rollback')
+      return json(response, 400, { message: "Le lien d'activation est invalide ou a expiré. Recommencez la saisie de votre numéro." })
+    }
+    const problem = passwordProblem(input.password, {
+      phone: peek.phone_e164, firstName: peek.first_name, lastName: peek.last_name, employeeNumber: peek.employee_number,
+      birthDate: peek.date_of_birth ? new Date(peek.date_of_birth).toISOString().slice(0, 10) : null,
+    })
+    if (problem) {
+      await client.query('rollback') // le jeton reste utilisable : le salarié corrige et réessaie
+      return json(response, 422, { message: problem })
+    }
+    const hash = await bcrypt.hash(input.password, 12)
+    let userId = peek.user_id
+    if (userId) {
+      await client.query('update auth.users set encrypted_password = $2, updated_at = now() where id = $1', [userId, hash])
+    } else {
+      userId = randomUUID()
+      await client.query(
+        'insert into auth.users (id, email, encrypted_password, email_confirmed_at) values ($1, $2, $3, now())',
+        [userId, phoneToEmail(peek.phone_e164), hash],
+      )
+    }
+    await client.query('select public.phone_access_complete($1, $2)', [tokenHash, userId])
+    await client.query('commit')
+    return json(response, 200, { status: 'done' })
+  } catch (error) {
+    await client.query('rollback').catch(() => {})
+    throw error
+  } finally {
+    client.release()
+  }
+}
+
 async function auth(request, response, pathname) {
+  // Corps lu une fois pour toutes : la connexion par téléphone n'obéit pas au verrou collectif par adresse
+  if (request.method === 'POST') request.parsedBody = await body(request).catch(() => ({}))
+  const phoneLogin = pathname === '/auth/v1/token' && isPhoneEmail(request.parsedBody?.email)
   // Middleware : vérification rate limit et brute force
   // Limitation seulement sur les points qui reçoivent des identifiants : /auth/v1/user est appelé à chaque page
-  const sensible = request.method === 'POST' && (pathname === '/auth/v1/token' || pathname === '/auth/v1/signup')
+  const sensible = request.method === 'POST' && (pathname === '/auth/v1/token' || pathname === '/auth/v1/signup' || phoneRoutes.includes(pathname))
   if (sensible) {
     await rateLimitMiddleware(SECURITY.rateLimit.max, SECURITY.rateLimit.windowMs)(request, response, async () => {})
-    await bruteForceCheckMiddleware(SECURITY.bruteForceMax, 30 * 60 * 1000)(request, response, async () => {})
+    if (!phoneLogin && !phoneRoutes.includes(pathname)) {
+      await bruteForceCheckMiddleware(SECURITY.bruteForceMax, 30 * 60 * 1000)(request, response, async () => {})
+    }
     if (response.writableEnded) return true // 429 déjà envoyé : on n'exécute pas la requête
   }
+
+  if (request.method === 'POST' && phoneRoutes.includes(pathname)) return phoneAuth(request, response, pathname)
 
   if (request.method === 'POST' && pathname === '/auth/v1/signup') {
     // Inscription fermée par défaut : seule une invitation admin permet de créer un compte
@@ -446,6 +524,27 @@ async function auth(request, response, pathname) {
     const input = await body(request)
     const result = await pool.query('select id, email, encrypted_password, created_at, updated_at from auth.users where email = lower($1)', [input.email])
     const user = result.rows[0]
+    if (phoneLogin) {
+      // Compte téléphone : verrouillage progressif par couple numéro + adresse, compte actif obligatoire
+      const key = `${clientIp(request)}|${String(input.email).toLowerCase()}`
+      const wait = phoneLoginLimiter.retryAfter(key)
+      if (wait) return json(response, 429, { message: `Trop d'échecs, réessayez dans ${wait} secondes` })
+      const valid = user && (await bcrypt.compare(input.password ?? '', user.encrypted_password))
+        && (await phoneDb('phone_access_account_status($1)', [user.id])) === 'active'
+      const phone = emailToPhone(input.email)
+      if (!valid) {
+        const locked = phoneLoginLimiter.fail(key)
+        await pool.query('select public.phone_access_log_login($1, $2)', [phone, locked ? 'verrouillage de connexion' : 'connexion échouée'])
+        return json(response, 400, { error: 'invalid_credentials', error_description: 'Numéro ou mot de passe invalide' })
+      }
+      phoneLoginLimiter.success(key)
+      await pool.query('select public.phone_access_log_login($1, $2)', [phone, 'connexion réussie'])
+      const refresh = await rotateRefreshToken(user.id, input.email)
+      return json(response, 200, {
+        user: { id: user.id, email: user.email, created_at: user.created_at, updated_at: user.updated_at },
+        access_token: await issueToken(user), refresh_token: refresh, token_type: 'bearer', expires_in: 28800,
+      })
+    }
     if (!user || !(await bcrypt.compare(input.password ?? '', user.encrypted_password))) {
       // Enregistrer l'échec pour anti-force brute
       const ip = clientIp(request)
