@@ -323,3 +323,16 @@
 {"uc":"UC-INTERDIT-sal_1-/journal","status":"VERT","note":"","at":"2026-11-11T13:22:07.425Z"}
 {"uc":"UC-INTERDIT-sal_1-/mon-equipe","status":"VERT","note":"","at":"2026-11-11T13:22:08.696Z"}
 {"uc":"UC-ISOLATION-sal_1","status":"VERT","note":"10 bulletins visibles","at":"2026-11-11T13:22:10.629Z"}
+{"uc":"UC-NOVEMBRE-CALCUL","status":"VERT","note":"paie de novembre créée pour les parcours RPR : 199 bulletin(s) calculé(s).","at":"2026-11-11T13:47:56.694Z"}
+{"uc":"UC-NOVEMBRE-CALCUL","status":"VERT","note":"paie de novembre créée pour les parcours RPR : 199 bulletin(s) calculé(s).","at":"2026-11-11T13:49:24.355Z"}
+{"uc":"UC-RPR-01","status":"VERT","note":"bandeau et refus d'envoi en revue citant S0291","at":"2026-11-11T13:49:29.780Z"}
+{"uc":"UC-RPR-04","status":"VERT","note":"motif obligatoire, bouton désactivé tant que le champ est vide","at":"2026-11-11T13:49:33.889Z"}
+{"uc":"UC-RPR-02","status":"VERT","note":"approuvée par paie2 ; refus de rh et de la personne qui a préparé","at":"2026-11-11T13:49:57.668Z"}
+{"uc":"UC-RPR-06","status":"VERT","note":"message de lecture seule pour rh","at":"2026-11-11T13:50:01.406Z"}
+{"uc":"UC-NOVEMBRE-CALCUL","status":"VERT","note":"paie de novembre créée pour les parcours RPR : 199 bulletin(s) calculé(s).","at":"2026-11-11T14:05:16.059Z"}
+{"uc":"UC-RPR-01","status":"VERT","note":"bandeau et refus d'envoi en revue citant S0291","at":"2026-11-11T14:05:19.642Z"}
+{"uc":"UC-RPR-04","status":"VERT","note":"motif obligatoire, bouton désactivé tant que le champ est vide","at":"2026-11-11T14:05:23.088Z"}
+{"uc":"UC-RPR-02","status":"VERT","note":"approuvée par paie2 ; refus de rh et de la personne qui a préparé","at":"2026-11-11T14:05:42.250Z"}
+{"uc":"UC-RPR-06","status":"VERT","note":"message de lecture seule pour rh","at":"2026-11-11T14:05:43.318Z"}
+{"uc":"UC-RPR-10","status":"VERT","note":"département créé, visible sur la fiche, supprimé","at":"2026-11-11T14:05:45.912Z"}
+{"uc":"UC-RPR-14","status":"VERT","note":"préfixe et chiffres paramétrables par l’admin, désactivés pour rh","at":"2026-11-11T14:05:47.089Z"}
