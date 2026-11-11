@@ -101,7 +101,7 @@ function AccessTab() {
 
       {can('admin') && (
         <Section title="Comptes et rôles">
-          <p className="mb-3 text-sm text-ink-soft">Les comptes se créent depuis l'écran de connexion. Attribuez ensuite les rôles ; relier un compte à une fiche lui donne accès à « Mes bulletins ».</p>
+          <p className="mb-3 text-sm text-ink-soft">L'inscription est fermée : un compte est créé sur invitation d'un administrateur (les salariés peuvent aussi demander un accès depuis l'onglet « Téléphone » de l'écran de connexion). Attribuez ensuite les rôles ; relier un compte à une fiche lui donne accès à « Mes bulletins ».</p>
           <ErrorNote error={users.error || toggle.error || link.error} />
           {users.isLoading ? <Spinner /> : (
             <div className="overflow-x-auto">
@@ -441,7 +441,7 @@ function ReferentialsTab() {
   const order: RefTable[] = ['designations', 'contract_types', 'collective_agreements', 'employee_grades', 'payment_modes']
   return (
     <>
-    <div className="grid gap-4 lg:grid-cols-[13rem_1fr]">
+    <div className="grid gap-4 lg:grid-cols-[13rem_minmax(0,1fr)]">
       <nav aria-label="Référentiels" className="flex flex-row flex-wrap gap-1 lg:flex-col">
         {order.map((t) => (
           <button key={t} type="button" aria-current={which === t} onClick={() => setWhich(t)}

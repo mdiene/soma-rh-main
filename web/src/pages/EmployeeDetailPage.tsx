@@ -194,7 +194,7 @@ export default function EmployeeDetailPage() {
             <SelectField label="Catégorie" className="sm:col-span-2" value={form.grade_id ?? ''} onChange={set('grade_id')} disabled={!form.agreement_code}>
               <option value="">—</option>
               {selectable(grades.data, (g) => g.id === form.grade_id).map((g) => (
-                <option key={g.id} value={g.id}>{g.code} — {g.staff_status}{g.grade_class ? ` (classe ${g.grade_class})` : ''} — {fcfa(g.base_salary)} F</option>
+                <option key={g.id} value={g.id}>{g.code} — {g.staff_status}{g.grade_class ? ` (classe ${g.grade_class})` : ''} — {Number(g.base_salary) > 0 ? `${fcfa(g.base_salary)} F` : 'minimum non renseigné'}</option>
               ))}
             </SelectField>
             <TextField label="Date d'entrée" type="date" required value={form.date_of_joining ?? ''} onChange={set('date_of_joining')} />
