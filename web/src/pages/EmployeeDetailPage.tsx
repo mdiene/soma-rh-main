@@ -102,6 +102,12 @@ export default function EmployeeDetailPage() {
       <ErrorNote error={emp.error || save.error} />
       {created && !save.isSuccess && <p className="mb-4 rounded border border-river/30 bg-river-light px-3 py-2 text-sm text-river-dark">Salarié créé avec le matricule <strong>{created}</strong>.</p>}
       {save.isSuccess && !isNew && <p role="status" className="mb-4 rounded border border-river/30 bg-river-light px-3 py-2 text-sm text-river-dark">Fiche enregistrée.</p>}
+      {/* RPR-13 : la validation de la 1re paie est refusée sans référence de déclaration d'embauche ; on le signale dès la fiche */}
+      {!isNew && emp.data && !emp.data.hire_declaration_ref && (
+        <p role="alert" className="mb-4 rounded border border-phosphate bg-phosphate-light px-3 py-2 text-sm text-ink">
+          <strong>Déclaration d’embauche non référencée.</strong> Renseignez la référence et la date ci-dessous : sans elles, la validation de la première paie de ce salarié sera refusée.
+        </p>
+      )}
       {!isNew && emp.data && <AttestationModal employeeId={certificate ? emp.data.id : null} kind="certificat_travail" onClose={() => setCertificate(false)} />}
       {!isNew && emp.data && (
         <ChangeNumberModal open={changing} onClose={() => setChanging(false)} employeeId={emp.data.id} current={emp.data.employee_number} />
