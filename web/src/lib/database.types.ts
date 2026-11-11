@@ -6237,6 +6237,13 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: string
       }
+      payroll_missing_employees: {
+        Args: { p_payroll_entry_id: string }
+        Returns: {
+          employee_name: string
+          employee_number: string
+        }[]
+      }
       payroll_settings_at: {
         Args: { p_date: string }
         Returns: {
@@ -6600,6 +6607,18 @@ export type Database = {
           effective_from: string
           locked: boolean
           nb_lines: number
+        }[]
+      }
+      security_alerts: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          code: string
+          due_date: string
+          employee_id: string
+          employee_name: string
+          employee_number: string
+          message: string
+          severity: string
         }[]
       }
       set_employee_loan_cap: {

@@ -381,6 +381,22 @@ function setCors(request, response) {
 // Connexion par téléphone : verrouillage progressif par couple numéro + adresse (jamais par adresse seule, RPR-03)
 const phoneLoginLimiter = createLoginLimiter()
 const emailLoginLimiter = createLoginLimiter({ maxFailures: SECURITY.bruteForceMax })
+
+// RPR-03 : chaque verrouillage de connexion est journalisé (compte masqué, adresse hachée) et remonte dans les alertes de l'administrateur
+const maskEmail = (email) => {
+  const [local = '', domain = ''] = String(email ?? '').toLowerCase().split('@')
+  return `${local.slice(0, 2)}***@${domain.slice(0, 60)}`
+}
+async function logLoginLock(email, ipHash) {
+  try {
+    await pool.query(
+      "insert into public.audit_events (action, resource_type, result, after_data) values ('verrouillage_connexion', 'auth', 'denied', jsonb_build_object('account', $1::text, 'ip_hash', $2::text))",
+      [maskEmail(email), ipHash],
+    )
+  } catch (error) {
+    console.error('Journal du verrouillage indisponible :', error.message) // ne jamais empêcher la réponse de connexion
+  }
+}
 const phoneRoutes = ['/auth/v1/phone/request', '/auth/v1/phone/open', '/auth/v1/phone/set-password']
 const ipSalt = () => jwtSecret
 const phoneDb = (fn, params) => pool.query(`select public.${fn} as r`, params).then((x) => x.rows[0].r)
@@ -524,7 +540,7 @@ async function auth(request, response, pathname) {
       })
     }
     if (!user || !(await bcrypt.compare(input.password ?? '', user.encrypted_password))) {
-      emailLoginLimiter.fail(lockKey)
+      if (emailLoginLimiter.fail(lockKey)) await logLoginLock(input.email, lockKey.split('|')[0])
       return json(response, 400, { error: 'invalid_credentials', error_description: 'Adresse ou mot de passe invalide' })
     }
     emailLoginLimiter.success(lockKey)

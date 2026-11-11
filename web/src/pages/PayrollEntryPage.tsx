@@ -80,6 +80,12 @@ export default function PayrollEntryPage() {
     enabled: !!id && !!entry.data && entry.data.status !== 'Annulée' && (slips.data?.length ?? 0) > 0,
     queryFn: async () => (unwrap(await dataApi.rpc('payroll_entry_checks', { p_payroll_entry_id: id! })) ?? []) as unknown as Check[],
   })
+  // RPR-01 : salariés attendus sans bulletin (structure salariale manquante, erreur de calcul) ; l'envoi en revue est refusé tant qu'il en reste
+  const missing = useQuery({
+    queryKey: ['payroll-missing', id, entry.data?.status, slips.data?.length],
+    enabled: !!id && !!entry.data && ['Brouillon', 'Calculée', 'Réouverte', 'En revue'].includes(entry.data.status),
+    queryFn: async () => (unwrap(await dataApi.rpc('payroll_missing_employees', { p_payroll_entry_id: id! })) ?? []) as { employee_number: string; employee_name: string }[],
+  })
   const cancel = useMutation({
     mutationFn: async () => unwrap(await dataApi.rpc('cancel_payroll_entry', { p_payroll_entry_id: id! })),
     onSuccess: () => { setConfirm(null); refresh() },
@@ -127,6 +133,12 @@ export default function PayrollEntryPage() {
       <DeletePayrollModal open={confirm === 'delete'} entry={e} onClose={() => setConfirm(null)} onDeleted={() => nav('/paie', { replace: true })} />
       <ErrorNote error={slips.error || run.error} />
 
+      {missing.data && missing.data.length > 0 && rows.length > 0 && (
+        <p role="alert" className="mb-4 rounded border border-signal/40 bg-signal-light px-3 py-2 text-sm text-signal">
+          <strong>{missing.data.length} salarié(s) sans bulletin</strong> : {missing.data.slice(0, 8).map((m) => `${m.employee_number} ${m.employee_name}`).join(', ')}{missing.data.length > 8 ? ', …' : ''}.
+          {' '}L’envoi en revue est refusé tant qu’ils n’ont pas de bulletin : affectez-leur une structure salariale, puis recalculez.
+        </p>
+      )}
       {result && (
         <div className="mb-4 rounded border border-line bg-white text-sm">
           <div className="flex items-center gap-3 px-4 py-3">

@@ -14,7 +14,10 @@ const db = new Client({ connectionString: `postgres://soma:${read('../../.env').
 await db.connect()
 
 const A = 'verrou-a@verrou.test.invalid', B = 'verrou-b@verrou.test.invalid', PW = 'Mot-de-passe-de-test-1'
-const cleanup = () => db.query('delete from auth.users where email = any($1)', [[A, B]])
+const cleanup = async () => {
+  await db.query('delete from auth.users where email = any($1)', [[A, B]])
+  await db.query(`delete from public.audit_events where action = 'verrouillage_connexion' and after_data->>'account' like '%@verrou.test.invalid'`)
+}
 await cleanup()
 for (const email of [A, B]) {
   await db.query(`insert into auth.users (id, email, encrypted_password, email_confirmed_at) values (gen_random_uuid(), $1, crypt($2, gen_salt('bf')), now())`, [email, PW])
@@ -31,6 +34,9 @@ test('cinq échecs sur le compte A le verrouillent, même avec le bon mot de pas
   const r = await login(A, PW)
   assert.equal(r.status, 429)
   assert.match(r.body.message, /réessayez dans \d+ secondes/)
+  // le verrouillage est journalisé (compte masqué) pour l'alerte de l'administrateur
+  const n = (await db.query(`select count(*)::int n from public.audit_events where action = 'verrouillage_connexion' and after_data->>'account' = 've***@verrou.test.invalid'`)).rows[0].n
+  assert.ok(n >= 1, 'verrouillage non journalisé')
 })
 
 test('le compte B, depuis la même adresse, se connecte normalement', async () => {
