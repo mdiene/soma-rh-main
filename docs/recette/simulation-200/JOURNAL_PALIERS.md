@@ -179,3 +179,6 @@ Non joué dans ce palier : CDD et intérim, réouverture motivée, ordres de vir
 | P11-05 | `scripts/check-migrations.sh` : préfixes en double 20261204090000, 20261206090000, 20261207090000, 20261208090000 (antérieurs au chantier). | ORANGE |
 
 Reste à jouer (palier 10, partie 2) : CDD et intérim, ordres de virement, états IPRES/CSS et DGID, journal comptable, rapport de clôture, paiements par lot, accès interdits par rôle, temps à 200 salariés.
+
+### Connexion par téléphone — e2e de bout en bout (11/11/2026)
+Spec `web/e2e/sim/32-telephone.sim.spec.ts` (salarié synthétique « Tel E2E », supprimé), 6 parcours au vert en 50 s : demande ; l'écran d'autorisation est réservé à l'administrateur (rh ne le voit pas) ; autorisation ; ouverture, mot de passe, connexion ; le compte téléphone ne voit ni `/paie`, ni `/salaries`, ni `/parametres` ; réutilisation refusée ; 5 mauvaises dates puis bonne date refusée ; réinitialisation ; révocation (connexion refusée) ; refus. Pas encore couvert : autorisation expirée (délai de 48 h, test SQL seulement).

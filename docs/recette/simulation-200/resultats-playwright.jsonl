@@ -336,3 +336,15 @@
 {"uc":"UC-RPR-06","status":"VERT","note":"message de lecture seule pour rh","at":"2026-11-11T14:05:43.318Z"}
 {"uc":"UC-RPR-10","status":"VERT","note":"département créé, visible sur la fiche, supprimé","at":"2026-11-11T14:05:45.912Z"}
 {"uc":"UC-RPR-14","status":"VERT","note":"préfixe et chiffres paramétrables par l’admin, désactivés pour rh","at":"2026-11-11T14:05:47.089Z"}
+{"uc":"UC-TEL-AUTORISATION","status":"VERT","note":"demande visible chez l’administrateur ; rh sans case d’autorisation","at":"2026-11-11T15:05:46.060Z"}
+{"uc":"UC-TEL-CONNEXION","status":"VERT","note":"activation et connexion ; /paie, /salaries, /parametres inaccessibles","at":"2026-11-11T15:05:59.127Z"}
+{"uc":"UC-TEL-REUTILISATION","status":"VERT","note":"seconde ouverture sans nouvelle autorisation refusée","at":"2026-11-11T15:06:02.222Z"}
+{"uc":"UC-TEL-MAUVAISES-DATES","status":"VERT","note":"après 5 mauvaises dates, la bonne date est refusée","at":"2026-11-11T15:06:11.786Z"}
+{"uc":"UC-TEL-REINIT","status":"VERT","note":"mot de passe réinitialisé par une nouvelle demande autorisée","at":"2026-11-11T15:06:28.806Z"}
+{"uc":"UC-TEL-AUTORISATION","status":"VERT","note":"demande visible chez l’administrateur ; rh sans case d’autorisation","at":"2026-11-11T15:07:20.911Z"}
+{"uc":"UC-TEL-CONNEXION","status":"VERT","note":"activation et connexion ; /paie, /salaries, /parametres inaccessibles","at":"2026-11-11T15:07:26.602Z"}
+{"uc":"UC-TEL-REUTILISATION","status":"VERT","note":"seconde ouverture sans nouvelle autorisation refusée","at":"2026-11-11T15:07:27.981Z"}
+{"uc":"UC-TEL-MAUVAISES-DATES","status":"VERT","note":"après 5 mauvaises dates, la bonne date est refusée","at":"2026-11-11T15:07:32.958Z"}
+{"uc":"UC-TEL-REINIT","status":"VERT","note":"mot de passe réinitialisé par une nouvelle demande autorisée","at":"2026-11-11T15:07:41.791Z"}
+{"uc":"UC-TEL-REVOCATION","status":"VERT","note":"après révocation, la connexion est refusée","at":"2026-11-11T15:07:45.535Z"}
+{"uc":"UC-TEL-REFUS","status":"VERT","note":"demande refusée : activation fermée","at":"2026-11-11T15:07:51.223Z"}
