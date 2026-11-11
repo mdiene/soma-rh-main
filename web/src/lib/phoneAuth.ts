@@ -21,11 +21,13 @@ async function call<T>(route: string, body: unknown): Promise<T & { message?: st
     method: 'POST',
     headers: { 'content-type': 'application/json', apikey: apiKey, authorization: `Bearer ${apiKey}` },
     body: JSON.stringify(body),
-  })
-  const data = (await r.json().catch(() => ({}))) as T & { message?: string }
+  }).catch(() => { throw new Error('Service injoignable : vérifiez votre connexion puis réessayez.') })
+  const parsed = await r.json().catch(() => null)
+  const data = (parsed ?? {}) as T & { message?: string }
   if (r.status === 429) throw new Error(data.message ?? 'Trop de tentatives, réessayez plus tard.')
   if (!r.ok && r.status !== 422 && r.status !== 400) throw new Error('Service indisponible, réessayez plus tard.')
   if (!r.ok) throw new Error(data.message ?? 'Demande refusée.')
+  if (parsed === null || typeof parsed !== 'object') throw new Error('Réponse inattendue du service, réessayez plus tard.') // page de proxy, corps vide
   return data
 }
 

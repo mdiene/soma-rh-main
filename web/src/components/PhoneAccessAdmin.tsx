@@ -47,7 +47,7 @@ export function PhoneAccessAdmin() {
         Contactez le salarié (appel ou message) avant d'autoriser. Une autorisation est valable {settings.data?.authorization_hours ?? 48} h et ne sert qu'une fois ;
         le salarié devra ressaisir son numéro{settings.data?.second_factor ? ' et sa date de naissance' : ''}, puis choisira son mot de passe.
       </p>
-      <ErrorNote error={requests.error || accounts.error || decide.error || revoke.error || secondFactor.error} />
+      <ErrorNote error={requests.error || accounts.error || settings.error || decide.error || revoke.error || secondFactor.error} />
 
       {requests.isLoading ? <Spinner /> : rows.length === 0 ? <p className="text-sm text-ink-soft">Aucune demande d'accès par téléphone.</p> : (
         <div className="overflow-x-auto">
@@ -70,7 +70,7 @@ export function PhoneAccessAdmin() {
                     {r.status === 'pending' && r.purpose !== 'shared' && (
                       <div className="flex flex-wrap items-center gap-3">
                         <label className="flex items-center gap-2">
-                          <input type="checkbox" className="h-4 w-4 accent-river" checked={false} disabled={decide.isPending || (settings.data?.second_factor && !r.has_birth_date)}
+                          <input type="checkbox" className="h-4 w-4 accent-river" checked={false} disabled={decide.isPending || !settings.data || (settings.data.second_factor && !r.has_birth_date)}
                             onChange={() => decide.mutate({ id: r.id, authorize: true })} />
                           Autoriser l'accès par téléphone
                         </label>
@@ -101,7 +101,7 @@ export function PhoneAccessAdmin() {
       )}
 
       <label className="mt-6 flex items-center gap-2 text-sm">
-        <input type="checkbox" className="h-4 w-4 accent-river" checked={settings.data?.second_factor ?? true} disabled={secondFactor.isPending}
+        <input type="checkbox" className="h-4 w-4 accent-river" checked={settings.data?.second_factor ?? true} disabled={secondFactor.isPending || !settings.data}
           onChange={(e) => secondFactor.mutate(e.target.checked)} />
         Exiger la date de naissance à l'activation (recommandé tant qu'aucun SMS n'est envoyé)
       </label>

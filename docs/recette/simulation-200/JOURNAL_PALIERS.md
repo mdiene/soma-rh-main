@@ -182,3 +182,24 @@ Reste à jouer (palier 10, partie 2) : CDD et intérim, ordres de virement, éta
 
 ### Connexion par téléphone — e2e de bout en bout (11/11/2026)
 Spec `web/e2e/sim/32-telephone.sim.spec.ts` (salarié synthétique « Tel E2E », supprimé), 6 parcours au vert en 50 s : demande ; l'écran d'autorisation est réservé à l'administrateur (rh ne le voit pas) ; autorisation ; ouverture, mot de passe, connexion ; le compte téléphone ne voit ni `/paie`, ni `/salaries`, ni `/parametres` ; réutilisation refusée ; 5 mauvaises dates puis bonne date refusée ; réinitialisation ; révocation (connexion refusée) ; refus. Pas encore couvert : autorisation expirée (délai de 48 h, test SQL seulement).
+
+### Revue du 11/11/2026 (sécurité, base de données, échecs silencieux) — corrections appliquées
+Migration `20261215090000_revue_corrections.sql` (+ retour arrière, test `revue_corrections.sql`), passerelle `api/server.mjs`, fonction Edge, écrans.
+
+| Réf | Constat | Correction | Statut |
+|---|---|---|---|
+| REV-01 | Validation dérogatoire (Calculée → Validée) sans contrôle des bulletins manquants | même contrôle que l'envoi en revue | VERT |
+| REV-02 | `run_payroll_batch` : échec de calcul sans trace ni sqlstate, ancien bulletin brouillon conservé (périmé) | `sqlstate`, journal d'audit `calcul_bulletin_echec`, bulletin brouillon périmé écarté (le contrôle de complétude le signale) | VERT |
+| REV-03 | `next_employee_number()` rappelable par tout compte connecté (consommation de la séquence) | retirée aux rôles connectés (le déclencheur est `security definer`) ; `preview_employee_number` réservée rh/paie | VERT |
+| REV-04 | Devinette de la date de naissance : ~480 essais possibles en 48 h | autorisation révoquée après 10 secondes informations fausses | VERT |
+| REV-05 | Corps de requête sans plafond sur les routes non authentifiées | 64 Ko, réponse 413 | VERT |
+| REV-06 | Délai bcrypt différent si le compte n'existe pas (énumération par la durée) | hachage factice toujours comparé | VERT |
+| REV-07 | JSON invalide traité comme `{}` ; types non texte → 500 | 400 « Corps de requête invalide » | VERT |
+| REV-08 | Journal des connexions : échec = 500 sur une connexion réussie ; suppression de fichier : erreurs avalées | journal protégé et tracé ; `unlink` trace tout sauf ENOENT | VERT |
+| REV-09 | Fonction Edge : erreurs `rpc` ignorées (demande perdue en silence), panne d'authentification comptée comme mot de passe faux, adresse falsifiable (entrée de gauche) | 500/503 explicites sans verrou, entrée de droite | VERT (non exécuté : Deno absent, non déployé) |
+| REV-10 | Écran : réponse non JSON prise pour un succès ; réglages non chargés = case « date de naissance » affichée cochée | « Réponse inattendue », cases désactivées tant que les réglages manquent | VERT |
+| REV-11 | Retour arrière de la migration téléphone bloqué par l'index `employees_phone_normalized_idx` | `drop index` ajouté | VERT |
+
+**Non corrigé, à décider** : (a) verrou d'ouverture par numéro seul : 5 mauvaises dates bloquent l'activation de n'importe quel numéro autorisé pendant 30 min (déni de service ciblé ; le lier à l'adresse affaiblirait la défense) ; (b) verrou de connexion en mémoire, jamais purgé, perdu au redémarrage (étape 10 du prompt : table en base) ; (c) `TRUST_PROXY=1` suppose exactement un proxy et une API non joignable directement ; (d) **organigramme** : un salarié qui a un compte téléphone ne peut pas être nommé manager (le verrou de rôle lève une erreur et annule l'opération, y compris une réorganisation par lot qui le contient) ; (e) un jeton émis (8 h) survit à la désactivation du compte si `has_role` s'appuie sur une claim du jeton (à vérifier) ; (f) `phone_access_settings` : changements non journalisés ; (g) jeu de données : `decide_leave_droits` échoue désormais faute de congé en attente (j'ai supprimé le congé de test demandé par le prompt) : 12 échecs SQL de données manquantes au lieu de 11.
+
+Contrôles : SQL 60 tests, 12 échecs (tous de données manquantes), `revue_corrections` OK ; unitaires 45/45 ; API 7/7 et 4/4 ; e2e sim 31 et 32 21/21 ; menu et a11y 19/19 (un échec isolé sur `/modules`, vert au rejeu seul) ; build et scan de données personnelles OK.

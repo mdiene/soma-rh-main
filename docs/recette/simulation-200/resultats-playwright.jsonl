@@ -348,3 +348,17 @@
 {"uc":"UC-TEL-REINIT","status":"VERT","note":"mot de passe réinitialisé par une nouvelle demande autorisée","at":"2026-11-11T15:07:41.791Z"}
 {"uc":"UC-TEL-REVOCATION","status":"VERT","note":"après révocation, la connexion est refusée","at":"2026-11-11T15:07:45.535Z"}
 {"uc":"UC-TEL-REFUS","status":"VERT","note":"demande refusée : activation fermée","at":"2026-11-11T15:07:51.223Z"}
+{"uc":"UC-NOVEMBRE-CALCUL","status":"VERT","note":"paie de novembre créée pour les parcours RPR : 199 bulletin(s) calculé(s).","at":"2026-11-11T15:20:23.517Z"}
+{"uc":"UC-RPR-01","status":"VERT","note":"bandeau et refus d'envoi en revue citant S0291","at":"2026-11-11T15:20:38.616Z"}
+{"uc":"UC-RPR-04","status":"VERT","note":"motif obligatoire, bouton désactivé tant que le champ est vide","at":"2026-11-11T15:20:48.904Z"}
+{"uc":"UC-RPR-02","status":"VERT","note":"approuvée par paie2 ; refus de rh et de la personne qui a préparé","at":"2026-11-11T15:21:19.062Z"}
+{"uc":"UC-RPR-06","status":"VERT","note":"message de lecture seule pour rh","at":"2026-11-11T15:21:21.345Z"}
+{"uc":"UC-RPR-10","status":"VERT","note":"département créé, visible sur la fiche, supprimé","at":"2026-11-11T15:21:26.456Z"}
+{"uc":"UC-RPR-14","status":"VERT","note":"préfixe et chiffres paramétrables par l’admin, désactivés pour rh","at":"2026-11-11T15:21:28.623Z"}
+{"uc":"UC-TEL-AUTORISATION","status":"VERT","note":"demande visible chez l’administrateur ; rh sans case d’autorisation","at":"2026-11-11T15:21:58.556Z"}
+{"uc":"UC-TEL-CONNEXION","status":"VERT","note":"activation et connexion ; /paie, /salaries, /parametres inaccessibles","at":"2026-11-11T15:22:06.890Z"}
+{"uc":"UC-TEL-REUTILISATION","status":"VERT","note":"seconde ouverture sans nouvelle autorisation refusée","at":"2026-11-11T15:22:10.594Z"}
+{"uc":"UC-TEL-MAUVAISES-DATES","status":"VERT","note":"après 5 mauvaises dates, la bonne date est refusée","at":"2026-11-11T15:22:17.625Z"}
+{"uc":"UC-TEL-REINIT","status":"VERT","note":"mot de passe réinitialisé par une nouvelle demande autorisée","at":"2026-11-11T15:22:26.905Z"}
+{"uc":"UC-TEL-REVOCATION","status":"VERT","note":"après révocation, la connexion est refusée","at":"2026-11-11T15:22:30.784Z"}
+{"uc":"UC-TEL-REFUS","status":"VERT","note":"demande refusée : activation fermée","at":"2026-11-11T15:22:35.921Z"}

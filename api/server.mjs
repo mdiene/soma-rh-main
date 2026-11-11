@@ -131,10 +131,15 @@ async function issueToken(user) {
     .sign(secret)
 }
 
-async function body(request) {
+async function body(request, maxBytes = 25 * 1024 * 1024) {
   if (request.parsedBody) return request.parsedBody // corps déjà lu par auth() (le flux ne se relit pas)
   const chunks = []
-  for await (const chunk of request) chunks.push(chunk)
+  let size = 0
+  for await (const chunk of request) {
+    size += chunk.length
+    if (size > maxBytes) throw Object.assign(new Error('Corps trop volumineux'), { code: 'BODY_TOO_LARGE' })
+    chunks.push(chunk)
+  }
   if (!chunks.length) return {}
   const raw = Buffer.concat(chunks).toString('utf8')
   const contentType = request.headers['content-type'] ?? ''
@@ -317,8 +322,8 @@ async function documentRoute(request, response, url) {
       return json(response, 201, { document: document.rows[0] }), true
     } catch (error) {
       await client.query('rollback')
-      await unlink(absolutePath).catch(() => {})
-      await unlink(absoluteThumbnailPath).catch(() => {})
+      await unlink(absolutePath).catch(logUnlink)
+      await unlink(absoluteThumbnailPath).catch(logUnlink)
       throw error
     } finally {
       client.release()
@@ -361,8 +366,8 @@ async function documentRoute(request, response, url) {
     )
     if (!access.rows[0]) return json(response, 404, { message: 'Document introuvable ou non autorisé' }), true
     await pool.query('delete from public.employee_documents where id = $1', [documentId])
-    await unlink(path.join(documentRoot, access.rows[0].storage_path)).catch(() => {})
-    if (access.rows[0].thumbnail_path) await unlink(path.join(documentRoot, access.rows[0].thumbnail_path)).catch(() => {})
+    await unlink(path.join(documentRoot, access.rows[0].storage_path)).catch(logUnlink)
+    if (access.rows[0].thumbnail_path) await unlink(path.join(documentRoot, access.rows[0].thumbnail_path)).catch(logUnlink)
     return json(response, 200, { deleted: true }), true
   }
   return false
@@ -396,6 +401,15 @@ async function logLoginLock(email, ipHash) {
   } catch (error) {
     console.error('Journal du verrouillage indisponible :', error.message) // ne jamais empêcher la réponse de connexion
   }
+}
+// Hachage bcrypt (coût 12) d'un mot de passe inconnu : sert à égaliser le temps de réponse quand le compte n'existe pas
+// Suppression de fichier : l'absence du fichier est normale, toute autre erreur laisse une trace (pièce orpheline)
+const logUnlink = (error) => { if (error?.code !== 'ENOENT') console.error('Suppression de fichier impossible :', error?.message) }
+const DUMMY_HASH = bcrypt.hashSync(randomBytes(16).toString('hex'), 12)
+// Le journal des connexions ne doit jamais empêcher la réponse (comme logLoginLock), mais l'échec est tracé
+async function logPhoneLogin(phone, action) {
+  try { await pool.query('select public.phone_access_log_login($1, $2)', [phone, action]) }
+  catch (error) { console.error('Journal de connexion téléphone indisponible :', error.message) }
 }
 const phoneRoutes = ['/auth/v1/phone/request', '/auth/v1/phone/open', '/auth/v1/phone/set-password']
 const ipSalt = () => jwtSecret
@@ -463,7 +477,18 @@ async function phoneAuth(request, response, pathname) {
 
 async function auth(request, response, pathname) {
   // Corps lu une fois pour toutes : la connexion par téléphone n'obéit pas au verrou collectif par adresse
-  if (request.method === 'POST') request.parsedBody = await body(request).catch(() => ({}))
+  // Routes non authentifiées : corps plafonné à 64 Ko, JSON invalide refusé (plus de « {} » silencieux)
+  if (request.method === 'POST') {
+    try { request.parsedBody = await body(request, 64 * 1024) } catch (error) {
+      if (error?.code === 'BODY_TOO_LARGE') {
+        response.setHeader('connection', 'close')
+        response.once('finish', () => request.destroy()) // on coupe le flux seulement une fois le 413 envoyé
+        return json(response, 413, { message: 'Requête trop volumineuse' })
+      }
+      return json(response, 400, { message: 'Corps de requête invalide' })
+    }
+    if (request.parsedBody === null || typeof request.parsedBody !== 'object') return json(response, 400, { message: 'Corps de requête invalide' })
+  }
   const phoneLogin = pathname === '/auth/v1/token' && isPhoneEmail(request.parsedBody?.email)
   // Middleware : vérification rate limit et brute force
   // Limitation seulement sur les points qui reçoivent des identifiants : /auth/v1/user est appelé à chaque page
@@ -510,6 +535,7 @@ async function auth(request, response, pathname) {
 
   if (request.method === 'POST' && pathname === '/auth/v1/token') {
     const input = await body(request)
+    if (typeof input.email !== 'string' || typeof input.password !== 'string') return json(response, 400, { error: 'invalid_credentials', error_description: 'Adresse ou mot de passe invalide' })
     // RPR-03 : verrouillage progressif par couple compte + adresse (un poste ne bloque jamais les autres comptes ni les autres postes)
     const lockKey = `${hashIp(clientIp(request), ipSalt())}|${String(input.email ?? '').toLowerCase()}`
     if (!phoneLogin) {
@@ -523,23 +549,26 @@ async function auth(request, response, pathname) {
       const key = `${clientIp(request)}|${String(input.email).toLowerCase()}`
       const wait = phoneLoginLimiter.retryAfter(key)
       if (wait) return json(response, 429, { message: `Trop d'échecs, réessayez dans ${wait} secondes` })
-      const valid = user && (await bcrypt.compare(input.password ?? '', user.encrypted_password))
+      // bcrypt est toujours exécuté (hachage factice si le numéro n'a pas de compte) : le délai ne révèle pas les comptes existants
+      const passwordOk = await bcrypt.compare(input.password, user?.encrypted_password ?? DUMMY_HASH)
+      const valid = user && passwordOk
         && (await phoneDb('phone_access_account_status($1)', [user.id])) === 'active'
       const phone = emailToPhone(input.email)
       if (!valid) {
         const locked = phoneLoginLimiter.fail(key)
-        await pool.query('select public.phone_access_log_login($1, $2)', [phone, locked ? 'verrouillage de connexion' : 'connexion échouée'])
+        await logPhoneLogin(phone, locked ? 'verrouillage de connexion' : 'connexion échouée')
         return json(response, 400, { error: 'invalid_credentials', error_description: 'Numéro ou mot de passe invalide' })
       }
       phoneLoginLimiter.success(key)
-      await pool.query('select public.phone_access_log_login($1, $2)', [phone, 'connexion réussie'])
+      await logPhoneLogin(phone, 'connexion réussie')
       const refresh = await rotateRefreshToken(user.id, input.email)
       return json(response, 200, {
         user: { id: user.id, email: user.email, created_at: user.created_at, updated_at: user.updated_at },
         access_token: await issueToken(user), refresh_token: refresh, token_type: 'bearer', expires_in: 28800,
       })
     }
-    if (!user || !(await bcrypt.compare(input.password ?? '', user.encrypted_password))) {
+    const emailPasswordOk = await bcrypt.compare(input.password, user?.encrypted_password ?? DUMMY_HASH)
+    if (!user || !emailPasswordOk) {
       if (emailLoginLimiter.fail(lockKey)) await logLoginLock(input.email, lockKey.split('|')[0])
       return json(response, 400, { error: 'invalid_credentials', error_description: 'Adresse ou mot de passe invalide' })
     }
