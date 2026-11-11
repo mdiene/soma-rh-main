@@ -125,3 +125,9 @@ Contrôles du 11/11 : tests unitaires 44/44 ; API 11/11 ; SQL 11 échecs de donn
 Décision du propriétaire du 11/11 : `loan_max_rate` reste dans le circuit de demande de constante (non retiré du catalogue).
 
 Prompt de reprise pour poursuivre le chantier : `docs/recette/PROMPT_REPRISE_2026-11-11.md`.
+
+### Mise à jour du 11/11/2026 (reprise) : parcours Playwright et étape manager
+- `web/e2e/sim/31-rpr-mutating.sim.spec.ts` : RPR-01/12 (bandeau + avertissement + refus avec la liste), RPR-04 (motif obligatoire), RPR-02 (rh refusé, même personne refusée, paie2 approuve), RPR-06, RPR-10, RPR-14. 15/15 au vert (53 s). La paie de novembre 2026 est créée (199 bulletins : S0450 est sorti le 23/10) puis supprimée (retour à « Calculée » avec motif, règle de `delete_payroll_entry`). Un échec isolé de création de la paie, non reproduit, a été observé au 3e passage. `30-rpr` garde `fixme` pour RPR-03, 05, 07, 08, 11, 13, 15 (couvertes par SQL, API et unitaires).
+- Bouton « Approuver » introuvable dans `/mon-equipe` : **pas un défaut**. Le salarié de test (S0291) n'avait aucun manager affecté ; l'étape manager est « Ignorée » et la demande attend à l'étape RH. `LeaveApprovals` ne s'affiche que s'il existe une demande à décider pour ce manager. Le congé de test (« eere r ») est supprimé.
+- Statut « Actif » après une date de sortie (S0450, sortie 23/10) : **conforme à la conception**. Le statut passe à « Left » par le processus de sortie (solde de tout compte), pas par l'enregistrement de la date sur la fiche.
+- `scripts/check-migrations.sh` signale des préfixes en double (20261204090000, 20261206090000, 20261207090000, 20261208090000) : antérieurs au chantier, à traiter ou à ajouter à la liste d'exceptions.
