@@ -49,7 +49,7 @@ export default function SettingsPage() {
       {tab === 'baremes' && <TaxTab />}
       {tab === 'rubriques' && <ComponentsTab />}
       {tab === 'grilles' && <GradesTab />}
-      {tab === 'societe' && <CompanyTab />}
+      {tab === 'societe' && <><CompanyTab /><EmployeeNumberSetting /></>}
       {tab === 'modeles' && <DocumentTemplatesTab />}
     </>
   )
@@ -528,6 +528,35 @@ function CompanyTab() {
           hint="Valable 6 mois (Code du travail 2026, art. 291). Une alerte s'affiche à J-30 tant que le module Gardiennage est actif." />
       </fieldset>
       <div className="mt-3"><ErrorNote error={company.error || save.error} /></div>
+    </Section>
+  )
+}
+
+/* RPR-14 : numérotation des matricules (préfixe et nombre de chiffres) ; modifiable par l'administrateur, visible par rh et paie */
+type NumberSettings = { prefix: string; width: number; next: number; example: string }
+function EmployeeNumberSetting() {
+  const { can } = useAuth()
+  const qc = useQueryClient()
+  const q = useQuery({ queryKey: ['employee_number_settings'], queryFn: async () => unwrap(await dataApi.rpc('get_employee_number_settings')) as unknown as NumberSettings, enabled: can('rh', 'paie') })
+  const [prefix, setPrefix] = useState('S')
+  const [width, setWidth] = useState('4')
+  const [next, setNext] = useState('')
+  useEffect(() => { if (q.data) { setPrefix(q.data.prefix); setWidth(String(q.data.width)) } }, [q.data])
+  const save = useMutation({
+    mutationFn: async () => unwrap(await dataApi.rpc('set_employee_number_settings', { p_prefix: prefix, p_width: Number(width), ...(next ? { p_next: Number(next) } : {}) })),
+    onSuccess: () => { setNext(''); qc.invalidateQueries({ queryKey: ['employee_number_settings'] }); qc.invalidateQueries({ queryKey: ['employee_number_preview'] }) },
+  })
+  if (!can('rh', 'paie')) return null
+  return (
+    <Section title="Numérotation des matricules"
+      actions={can('admin') && <Button size="sm" variant="primary" icon={<Save className="h-3.5 w-3.5" />} loading={save.isPending} onClick={() => save.mutate()}>Enregistrer</Button>}>
+      <p className="mb-3 max-w-prose text-xs text-ink-muted">Le matricule est attribué automatiquement à la création d'une fiche : préfixe en majuscules, puis un numéro complété de zéros. Les matricules déjà attribués ne changent pas ; un numéro déjà pris est toujours sauté.</p>
+      <fieldset disabled={!can('admin')} className="grid gap-3 sm:grid-cols-3">
+        <TextField label="Préfixe (1 à 6 lettres)" value={prefix} onChange={(e) => setPrefix(e.target.value.toUpperCase())} />
+        <TextField label="Nombre de chiffres" type="number" value={width} onChange={(e) => setWidth(e.target.value)} />
+        <TextField label="Prochain numéro (facultatif)" type="number" value={next} onChange={(e) => setNext(e.target.value)} hint={q.data ? `Prochain matricule : ${q.data.example}` : undefined} />
+      </fieldset>
+      <div className="mt-3"><ErrorNote error={q.error || save.error} /></div>
     </Section>
   )
 }

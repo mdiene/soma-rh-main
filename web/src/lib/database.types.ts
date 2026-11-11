@@ -1634,6 +1634,31 @@ export type Database = {
           },
         ]
       }
+      employee_number_settings: {
+        Row: {
+          id: boolean
+          prefix: string
+          updated_at: string
+          updated_by: string | null
+          width: number
+        }
+        ComputedFields: never
+        Insert: {
+          id?: boolean
+          prefix?: string
+          updated_at?: string
+          updated_by?: string | null
+          width?: number
+        }
+        Update: {
+          id?: boolean
+          prefix?: string
+          updated_at?: string
+          updated_by?: string | null
+          width?: number
+        }
+        Relationships: []
+      }
       employee_representatives: {
         Row: {
           created_at: string
@@ -5917,6 +5942,10 @@ export type Database = {
         Args: { p_employee_id: string }
         Returns: number
       }
+      get_employee_number_settings: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
       get_loan_max_rate: { Args: Record<PropertyKey, never>; Returns: number }
       grant_waiver: {
         Args: {
@@ -6624,6 +6653,10 @@ export type Database = {
       set_employee_loan_cap: {
         Args: { p_employee_id: string; p_rate: number; p_reason: string }
         Returns: number
+      }
+      set_employee_number_settings: {
+        Args: { p_next?: number; p_prefix: string; p_width: number }
+        Returns: Json
       }
       set_loan_max_rate: { Args: { p_rate: number }; Returns: number }
       set_parameter: {
