@@ -13,7 +13,9 @@ const { Client } = createRequire(new URL('../../api/package.json', import.meta.u
 const db = new Client({ connectionString: `postgres://soma:${read('../../.env').POSTGRES_PASSWORD}@127.0.0.1:5432/soma_rh` })
 await db.connect()
 
-const A = 'verrou-a@verrou.test.invalid', B = 'verrou-b@verrou.test.invalid', PW = 'Mot-de-passe-de-test-1'
+// identifiants uniques à chaque exécution : le verrou de la passerelle est en mémoire et survit entre deux exécutions
+const RUN = Date.now().toString(36)
+const A = `ve${RUN}a@verrou.test.invalid`, B = `ve${RUN}b@verrou.test.invalid`, PW = 'Mot-de-passe-de-test-1'
 const cleanup = async () => {
   await db.query('delete from auth.users where email = any($1)', [[A, B]])
   await db.query(`delete from public.audit_events where action = 'verrouillage_connexion' and after_data->>'account' like '%@verrou.test.invalid'`)
@@ -44,7 +46,7 @@ test('le compte B, depuis la même adresse, se connecte normalement', async () =
 })
 
 test('un identifiant inconnu est traité comme un compte réel (même réponse, même verrou)', async () => {
-  const inconnu = 'inconnu@verrou.test.invalid'
+  const inconnu = `in${RUN}@verrou.test.invalid`
   for (let i = 0; i < 5; i++) assert.equal((await login(inconnu, 'x')).status, 400)
   assert.equal((await login(inconnu, 'x')).status, 429)
 })
