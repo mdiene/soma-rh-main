@@ -106,3 +106,20 @@ Constats nouveaux : (1) `run_payroll_batch` avale les erreurs de calcul ; (2) la
 | RPR-08 | corrigée | migration `20261214130000` (+ retour) : plafond global 1/3 (app_parameters et valeur de référence du catalogue), modifiable par admin/rh/paie ; surcharge par salarié (`employee_loan_caps`, motif obligatoire) ; journal `audit_events` (ancienne et nouvelle valeur) ; `create_loan` lit la surcharge. Écrans : Paramètres (rôles rh et paie autorisés) et champ « Plafond de retenue sur prêt » sur la fiche. Tests : `rpr08_plafond_pret`, `l2b_validation_admin` et `d30` alignés sur la décision |
 
 Points ouverts : le circuit « demande de modification de constante » (`request_parameter_change`) existe toujours pour `loan_max_rate` dans le catalogue ; la décision demande de ne plus l'utiliser pour ce plafond, à retirer du catalogue si vous le confirmez. Types web régénérés (`database.types.ts`), `p_rate` de `set_employee_loan_cap` accepte `null` côté base mais le type généré l'ignore (cast commenté).
+
+### Mise à jour du 11/11/2026 (soir) : RPR-01 à 15 traitées
+| Fiche | Statut | Détail |
+|---|---|---|
+| RPR-01 | corrigée | refus d'envoi en revue (liste des salariés sans bulletin) + bandeau permanent sur la page d'une paie (`payroll_missing_employees`, migration `20261214140000`) |
+| RPR-02 | corrigée | approbation admin et rôle paie ; test SQL. Parcours Playwright à écrire sur un mois ouvert |
+| RPR-03 | corrigée | verrou par compte + adresse, limite par adresse 120/15 min, **alerte administrateur** (`security_alerts`, journal `verrouillage_connexion`, tableau de bord). Reste : verrou en mémoire (perdu au redémarrage de la passerelle) |
+| RPR-04 à 09 | corrigées | voir mises à jour précédentes |
+| RPR-10 | corrigée | Paramètres > Référentiels RH : gestion des départements ; champ Département sur la fiche ; `/planning` ne dépend plus de `shift_types` ni `work_posts` |
+| RPR-11 | corrigée (partiel) | Entrée valide les référentiels ; plus de débordement à 1280 px ; texte d'accès exact ; lien « Créer un compte » masqué sauf `VITE_SIGNUP_ENABLED=true` (D-40) ; catégorie à 0 F affichée « minimum non renseigné ». **Données à compléter (source datée requise)** : catégorie PRESTATION (Prestations de services) et 3 catégories 1ère, 2ème, 3ème de Transports Routiers Hydrocarbures à 0 F. Les conventions sont toutes actives en base |
+| RPR-12 | corrigée | refus avec code, nombre et exemple par contrôle bloquant ; fenêtre d'avertissement avant « Envoyer en revue » |
+| RPR-13 | corrigée | bandeau « déclaration d'embauche non référencée » sur la fiche |
+| RPR-14 | corrigée | numérotation paramétrable (préfixe, chiffres, prochain numéro), Paramètres > Société, défaut S + 4 chiffres inchangé |
+| RPR-15 | corrigée | mesures : écriture de 200 lignes 130 ms en base, 40 lignes 1,3 s au navigateur, page variables 0,6 à 1,8 s ; les lenteurs de la campagne venaient du serveur de développement. Ajouts : message de progression, une seule lecture des rôles par navigation (3 à 4 requêtes avant). Incident de mesure : un serveur Vite oublié sur le port 5174 consommait le processeur (arrêté) |
+
+Contrôles du 11/11 : tests unitaires 44/44 ; API 11/11 ; SQL 11 échecs de données manquantes (inchangés) ; e2e menu et accessibilité 19/19 ; simulation 20-roles 17/17.
+Décision du propriétaire du 11/11 : `loan_max_rate` reste dans le circuit de demande de constante (non retiré du catalogue).

@@ -1,7 +1,8 @@
 import { test } from '@playwright/test'
 
 // Suivi des fiches du dossier de reprise (docs/recette/simulation-200/DOSSIER_DE_REPRISE.md).
-// État au 10/11/2026 : aucun correctif RPR n'est commité (git log sans message RPR).
+// État au 11/11/2026 : RPR-01 à 15 sont corrigées (voir DOSSIER_DE_REPRISE.md) ; ces entrées restent `fixme` tant que leur parcours Playwright n'est pas écrit.
+// Couverture actuelle : tests SQL (tests/sql/rpr*.sql, alertes_verrouillage_paie_incomplete), tests API (tests/api/login.lock.test.mjs), contrôles manuels scriptés.
 // RPR-09 corrigée le 10/11/2026 : test SQL tests/sql/rpr09_prorata.sql (le parcours Playwright reste à écrire sur un mois ouvert).
 // Quand une fiche est corrigée : écrire le parcours, retirer `.fixme` et passer la fiche au vert dans le dossier de reprise.
 const FICHES: [string, string][] = [
