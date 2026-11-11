@@ -10,6 +10,7 @@ import { useAuth, type Role } from '../lib/auth'
 import { useAgreements, useCompany, useComponents, useEmployees, useGrades } from '../lib/queries'
 import { date, fcfa, num, pct } from '../lib/format'
 import { DataTable } from '../components/DataTable'
+import { DepartmentsManager } from '../components/DepartmentsManager'
 import { DocumentTemplatesTab } from '../components/DocumentTemplatesTab'
 import { PhoneAccessAdmin } from '../components/PhoneAccessAdmin'
 import { AuditLogView, ReferentialManager, type RefConfig, type RefTable } from '../components/ReferentialManager'
@@ -439,6 +440,7 @@ function ReferentialsTab() {
   }
   const order: RefTable[] = ['designations', 'contract_types', 'collective_agreements', 'employee_grades', 'payment_modes']
   return (
+    <>
     <div className="grid gap-4 lg:grid-cols-[13rem_1fr]">
       <nav aria-label="Référentiels" className="flex flex-row flex-wrap gap-1 lg:flex-col">
         {order.map((t) => (
@@ -451,6 +453,8 @@ function ReferentialsTab() {
       </nav>
       {which === 'employee_grades' && agreements.isLoading ? <Spinner /> : <ReferentialManager key={which} config={configs[which]} />}
     </div>
+    <DepartmentsManager />
+    </>
   )
 }
 

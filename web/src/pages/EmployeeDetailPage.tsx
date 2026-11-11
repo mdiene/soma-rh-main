@@ -45,6 +45,8 @@ export default function EmployeeDetailPage() {
     queryFn: async () => unwrap(await dataApi.rpc('employee_phone_access_status', { p_employee_id: id! })) as string,
   })
   const [form, setForm] = useState<Partial<Emp>>(EMPTY)
+  // RPR-10 : département choisi sur la fiche (géré dans Paramètres > Référentiels RH)
+  const departments = useQuery({ queryKey: ['departments'], queryFn: async () => unwrap(await dataApi.from('departments').select('id, name').order('name')) })
   useEffect(() => { if (emp.data) setForm(emp.data) }, [emp.data])
   const grades = useGrades(form.agreement_code)
   const exitReasons = useQuery({
@@ -180,6 +182,10 @@ export default function EmployeeDetailPage() {
             </SelectField>
             <SelectField label="Type de contrat" value={form.employment_type ?? 'CDI'} onChange={set('employment_type')}>
               {selectable(contractTypes.data, (c) => c.code === form.employment_type).map((c) => <option key={c.code} value={c.code}>{c.code} — {c.label}{c.is_active ? '' : ' (désactivé)'}</option>)}
+            </SelectField>
+            <SelectField label="Département" value={form.department_id ?? ''} onChange={(e) => setForm((f) => ({ ...f, department_id: e.target.value || null }))} hint={departments.data && departments.data.length === 0 ? 'Aucun département défini : à créer dans Paramètres > Référentiels RH.' : undefined}>
+              <option value="">— aucun —</option>
+              {(departments.data ?? []).map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}
             </SelectField>
             <SelectField label="Convention collective" className="sm:col-span-2" value={form.agreement_code ?? ''} onChange={(e) => setForm((f) => ({ ...f, agreement_code: e.target.value || null, grade_id: null }))}>
               <option value="">—</option>
