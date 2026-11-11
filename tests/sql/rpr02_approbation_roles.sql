@@ -56,6 +56,8 @@ begin
   r := pg_temp.try(format('select public.transition_payroll_entry(%L, ''Approuvée'')', e));
   -- la paie du test est vide : le contrôle des anomalies peut la refuser, mais pas pour une question de rôle ni de séparation
   if r <> 'OK' and r not like 'Validation impossible%contrôle%' then raise exception '4 : un autre compte paie devait être accepté par les règles de rôle : %', r; end if;
+  -- RPR-12 : le refus par les contrôles dit lesquels bloquent (code, nombre, exemple)
+  if r <> 'OK' and r not like '%sans_bulletin (%' then raise exception '4 : le refus ne détaille pas les contrôles bloquants : %', r; end if;
 
   -- 5. l'administrateur approuve
   e := pg_temp.new_entry(c.company, c.paie_a, '2030-02-01');
