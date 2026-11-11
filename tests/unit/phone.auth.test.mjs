@@ -71,3 +71,10 @@ test('verrouillage progressif : 5 échecs = 1 min, puis 2, 4… plafonné ; par 
   l.success(A)
   assert.equal(l.retryAfter(A), 0)
 })
+
+test('adresse du client : X-Forwarded-For ignoré sans proxy de confiance, entrée de droite sinon', () => {
+  assert.equal(srv.clientAddress('10.0.0.1', '1.2.3.4', false), '10.0.0.1')
+  assert.equal(srv.clientAddress('10.0.0.1', '6.6.6.6, 1.2.3.4', true), '1.2.3.4') // « 6.6.6.6 » vient du client
+  assert.equal(srv.clientAddress('10.0.0.1', undefined, true), '10.0.0.1')
+  assert.equal(srv.clientAddress(undefined, undefined, false), 'unknown')
+})

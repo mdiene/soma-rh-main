@@ -78,3 +78,15 @@ export function createLoginLimiter({ maxFailures = 5, baseMs = 60_000, capMs = 3
     success(key) { store.delete(key) },
   }
 }
+
+/**
+ * Adresse du client. Derrière un proxy de confiance (TRUST_PROXY=1), l'entrée de DROITE de X-Forwarded-For est celle
+ * que le proxy a vue : les entrées de gauche sont fournies par le client et falsifiables. Sans proxy déclaré, l'en-tête est ignoré.
+ */
+export function clientAddress(socketIp, forwardedFor, trustProxy) {
+  if (trustProxy && forwardedFor) {
+    const last = String(forwardedFor).split(',').map((s) => s.trim()).filter(Boolean).pop()
+    if (last) return last
+  }
+  return socketIp || 'unknown'
+}

@@ -9,7 +9,7 @@ import { PDFDocument, StandardFonts, rgb } from 'pdf-lib'
 import { createDocumentThumbnail } from './thumbnail.mjs'
 import {
   NEUTRAL_OPEN_MESSAGE, NEUTRAL_REQUEST_MESSAGE, createLoginLimiter, emailToPhone, hashIp, hashToken,
-  isPhoneEmail, parseBirthDate, passwordProblem, phoneToEmail,
+  clientAddress, isPhoneEmail, parseBirthDate, passwordProblem, phoneToEmail,
 } from './phone.mjs'
 
 // Store for rate limiting and brute force tracking (in-memory for simplicity;
@@ -24,7 +24,7 @@ const refreshTokenStore = new Map()
 
 // Adresse du client : request.ip n'existe pas sur http.IncomingMessage, d'où un compteur commun à tous (D-017)
 function clientIp(request) {
-  return request.socket?.remoteAddress || 'unknown'
+  return clientAddress(request.socket?.remoteAddress, request.headers['x-forwarded-for'], process.env.TRUST_PROXY === '1')
 }
 
 // Simple rate limiter middleware factory
