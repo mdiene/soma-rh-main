@@ -123,3 +123,5 @@ Points ouverts : le circuit « demande de modification de constante » (`request
 
 Contrôles du 11/11 : tests unitaires 44/44 ; API 11/11 ; SQL 11 échecs de données manquantes (inchangés) ; e2e menu et accessibilité 19/19 ; simulation 20-roles 17/17.
 Décision du propriétaire du 11/11 : `loan_max_rate` reste dans le circuit de demande de constante (non retiré du catalogue).
+
+Prompt de reprise pour poursuivre le chantier : `docs/recette/PROMPT_REPRISE_2026-11-11.md`.
