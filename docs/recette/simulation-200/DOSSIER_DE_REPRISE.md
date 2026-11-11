@@ -131,3 +131,5 @@ Prompt de reprise pour poursuivre le chantier : `docs/recette/PROMPT_REPRISE_202
 - Bouton « Approuver » introuvable dans `/mon-equipe` : **pas un défaut**. Le salarié de test (S0291) n'avait aucun manager affecté ; l'étape manager est « Ignorée » et la demande attend à l'étape RH. `LeaveApprovals` ne s'affiche que s'il existe une demande à décider pour ce manager. Le congé de test (« eere r ») est supprimé.
 - Statut « Actif » après une date de sortie (S0450, sortie 23/10) : **conforme à la conception**. Le statut passe à « Left » par le processus de sortie (solde de tout compte), pas par l'enregistrement de la date sur la fiche.
 - `scripts/check-migrations.sh` signale des préfixes en double (20261204090000, 20261206090000, 20261207090000, 20261208090000) : antérieurs au chantier, à traiter ou à ajouter à la liste d'exceptions.
+
+Prompt pour rejouer la simulation sur une base remise à zéro, en parallèle : `docs/recette/PROMPT_PARALLELE_PALIER_10_PARTIE_2.md`.
