@@ -163,3 +163,19 @@ Base conservée (aucune remise à zéro). Sauvegarde préalable : `backups/soma-
 | P10-07 | Un congé annuel de test (S0291, 19 j du 14/11 au 02/12, motif « eere r ») était en attente avant ce palier : reste d'un test antérieur, à supprimer. | ORANGE |
 
 Non joué dans ce palier : CDD et intérim, réouverture motivée, ordres de virement et déclarations (IPRES/CSS, DGID), paiements par lot. Voir le rapport final.
+
+### Palier 10 — suites (11/11/2026)
+
+| Réf | Constat | Statut |
+|---|---|---|
+| P10-01 (suite) | Le statut « Actif » après la date de sortie est conforme à la conception : il passe à « Left » par le processus de sortie (solde de tout compte), pas par la fiche. | VERT (consigné) |
+| P10-02 (suite) | Bouton « Approuver » absent de `/mon-equipe` : S0291 n'avait aucun manager affecté, l'étape manager est « Ignorée », la demande attend à l'étape RH. Pas un défaut. | VERT (expliqué) |
+| P10-06 (suite) | Prorata D-56 appliqué (migration `20261214090000`) ; octobre 2026 rouvert, recalculé, reclôturé : S0450 retenue de prorata 18 331,96 F, net 63 403,18 F. | VERT |
+| P10-07 (suite) | Congé de test de S0291 (« eere r ») supprimé. | VERT |
+| P11-01 | Paie de novembre 2026 créée pour les parcours RPR (199 bulletins : S0450 est sorti), puis supprimée après retour à « Calculée » avec motif (règle de `delete_payroll_entry`). Spec `31-rpr-mutating.sim.spec.ts` : RPR-01/12, 02, 04, 06, 10, 14, 15/15 au vert en 54 s. Un échec isolé à la création de la paie, non reproduit. | VERT / ORANGE |
+| P11-02 | Connexion par téléphone, contrôle d'état : API 7/7, verrou 4/4, unitaires 45/45, SQL `connexion_telephone` OK, e2e `telephone.spec.ts` 7/7 (le salarié ne voit pas l'écran d'autorisation : un échec au 1er passage, dû au chargement lent juste après le redémarrage de la passerelle, vert au 2e). | VERT |
+| P11-03 | Amélioration : adresse du client derrière un proxy (`TRUST_PROXY=1`, entrée de droite de `X-Forwarded-For` ; en-tête ignoré sinon). Sans cela, derrière un proxy toutes les connexions partageraient la limite par adresse (120 / 15 min). Test unitaire ajouté. | VERT |
+| P11-04 | Les tests API partagent la limite par adresse de la passerelle : lancés ensemble ou après une campagne e2e, ils reçoivent 429. Redémarrer la passerelle avant chaque suite, une suite à la fois. | ORANGE (méthode) |
+| P11-05 | `scripts/check-migrations.sh` : préfixes en double 20261204090000, 20261206090000, 20261207090000, 20261208090000 (antérieurs au chantier). | ORANGE |
+
+Reste à jouer (palier 10, partie 2) : CDD et intérim, ordres de virement, états IPRES/CSS et DGID, journal comptable, rapport de clôture, paiements par lot, accès interdits par rôle, temps à 200 salariés.
