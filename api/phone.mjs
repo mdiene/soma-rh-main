@@ -90,3 +90,29 @@ export function clientAddress(socketIp, forwardedFor, trustProxy) {
   }
   return socketIp || 'unknown'
 }
+
+/**
+ * Verrou de connexion persistant : mêmes règles que createLoginLimiter mais l'état vit en base (public.login_attempts) :
+ * il survit au redémarrage de la passerelle et se partage entre instances. La clé est hachée (aucun compte ni adresse en clair).
+ * Si la base répond mal, on se replie sur le verrou en mémoire (meilleur effort) et l'incident est tracé.
+ */
+export function createPersistentLimiter({ query, memory, prefix, maxFailures = 5, salt, log = console.error }) {
+  const k = (key) => createHash('sha256').update(`${prefix}|${salt()}|${key}`).digest('hex')
+  const guarded = async (sql, params, fromMemory) => {
+    try { return (await query(sql, params)).rows[0].r } catch (error) {
+      log('Verrou de connexion : base indisponible, repli sur la mémoire :', error.message)
+      return fromMemory()
+    }
+  }
+  return {
+    retryAfter: (key) => guarded('select public.login_lock_retry_after($1) as r', [k(key)], () => memory.retryAfter(key)),
+    fail: async (key) => {
+      const local = memory.fail(key)
+      return guarded('select public.login_lock_fail($1, $2) as r', [k(key), maxFailures], () => local)
+    },
+    success: async (key) => {
+      memory.success(key)
+      await guarded('select public.login_lock_success($1) as r', [k(key)], () => null)
+    },
+  }
+}

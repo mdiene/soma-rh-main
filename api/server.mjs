@@ -8,7 +8,7 @@ import pg from 'pg'
 import { PDFDocument, StandardFonts, rgb } from 'pdf-lib'
 import { createDocumentThumbnail } from './thumbnail.mjs'
 import {
-  NEUTRAL_OPEN_MESSAGE, NEUTRAL_REQUEST_MESSAGE, createLoginLimiter, emailToPhone, hashIp, hashToken,
+  NEUTRAL_OPEN_MESSAGE, NEUTRAL_REQUEST_MESSAGE, createLoginLimiter, createPersistentLimiter, emailToPhone, hashIp, hashToken,
   clientAddress, isPhoneEmail, parseBirthDate, passwordProblem, phoneToEmail,
 } from './phone.mjs'
 
@@ -384,8 +384,12 @@ function setCors(request, response) {
 }
 
 // Connexion par téléphone : verrouillage progressif par couple numéro + adresse (jamais par adresse seule, RPR-03)
-const phoneLoginLimiter = createLoginLimiter()
-const emailLoginLimiter = createLoginLimiter({ maxFailures: SECURITY.bruteForceMax })
+// État en base (survit au redémarrage, partagé entre instances), repli en mémoire si la base est indisponible
+const persistent = (prefix, maxFailures) => createPersistentLimiter({
+  query: (sql, params) => pool.query(sql, params), memory: createLoginLimiter({ maxFailures }), prefix, maxFailures, salt: () => jwtSecret,
+})
+const phoneLoginLimiter = persistent('phone', 5)
+const emailLoginLimiter = persistent('email', SECURITY.bruteForceMax)
 
 // RPR-03 : chaque verrouillage de connexion est journalisé (compte masqué, adresse hachée) et remonte dans les alertes de l'administrateur
 const maskEmail = (email) => {
@@ -539,7 +543,7 @@ async function auth(request, response, pathname) {
     // RPR-03 : verrouillage progressif par couple compte + adresse (un poste ne bloque jamais les autres comptes ni les autres postes)
     const lockKey = `${hashIp(clientIp(request), ipSalt())}|${String(input.email ?? '').toLowerCase()}`
     if (!phoneLogin) {
-      const wait = emailLoginLimiter.retryAfter(lockKey)
+      const wait = await emailLoginLimiter.retryAfter(lockKey)
       if (wait) return json(response, 429, { message: `Trop d'échecs pour ce compte depuis ce poste, réessayez dans ${wait} secondes` })
     }
     const result = await pool.query('select id, email, encrypted_password, created_at, updated_at from auth.users where email = lower($1)', [input.email])
@@ -547,7 +551,7 @@ async function auth(request, response, pathname) {
     if (phoneLogin) {
       // Compte téléphone : verrouillage progressif par couple numéro + adresse, compte actif obligatoire
       const key = `${clientIp(request)}|${String(input.email).toLowerCase()}`
-      const wait = phoneLoginLimiter.retryAfter(key)
+      const wait = await phoneLoginLimiter.retryAfter(key)
       if (wait) return json(response, 429, { message: `Trop d'échecs, réessayez dans ${wait} secondes` })
       // bcrypt est toujours exécuté (hachage factice si le numéro n'a pas de compte) : le délai ne révèle pas les comptes existants
       const passwordOk = await bcrypt.compare(input.password, user?.encrypted_password ?? DUMMY_HASH)
@@ -555,11 +559,11 @@ async function auth(request, response, pathname) {
         && (await phoneDb('phone_access_account_status($1)', [user.id])) === 'active'
       const phone = emailToPhone(input.email)
       if (!valid) {
-        const locked = phoneLoginLimiter.fail(key)
+        const locked = await phoneLoginLimiter.fail(key)
         await logPhoneLogin(phone, locked ? 'verrouillage de connexion' : 'connexion échouée')
         return json(response, 400, { error: 'invalid_credentials', error_description: 'Numéro ou mot de passe invalide' })
       }
-      phoneLoginLimiter.success(key)
+      await phoneLoginLimiter.success(key)
       await logPhoneLogin(phone, 'connexion réussie')
       const refresh = await rotateRefreshToken(user.id, input.email)
       return json(response, 200, {
@@ -569,10 +573,10 @@ async function auth(request, response, pathname) {
     }
     const emailPasswordOk = await bcrypt.compare(input.password, user?.encrypted_password ?? DUMMY_HASH)
     if (!user || !emailPasswordOk) {
-      if (emailLoginLimiter.fail(lockKey)) await logLoginLock(input.email, lockKey.split('|')[0])
+      if (await emailLoginLimiter.fail(lockKey)) await logLoginLock(input.email, lockKey.split('|')[0])
       return json(response, 400, { error: 'invalid_credentials', error_description: 'Adresse ou mot de passe invalide' })
     }
-    emailLoginLimiter.success(lockKey)
+    await emailLoginLimiter.success(lockKey)
     // Rotate refresh token : ancien invalide, nouveau créé
     const newRefreshToken = await rotateRefreshToken(user.id, input.email)
     return json(response, 200, {

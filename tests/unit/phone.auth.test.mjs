@@ -78,3 +78,18 @@ test('adresse du client : X-Forwarded-For ignoré sans proxy de confiance, entr�
   assert.equal(srv.clientAddress('10.0.0.1', undefined, true), '10.0.0.1')
   assert.equal(srv.clientAddress(undefined, undefined, false), 'unknown')
 })
+
+test('verrou persistant : clé hachée, état en base, repli en mémoire si la base tombe', async () => {
+  const calls = []
+  const db = { ok: true }
+  const limiter = srv.createPersistentLimiter({
+    query: async (sql, params) => { calls.push(params[0]); if (!db.ok) throw new Error('base coupée'); return { rows: [{ r: sql.includes('retry_after') ? 42 : true }] } },
+    memory: srv.createLoginLimiter({ maxFailures: 2 }), prefix: 'phone', salt: () => 's', log: () => {},
+  })
+  assert.equal(await limiter.retryAfter('1.2.3.4|+221771234567'), 42)
+  assert.ok(calls.every((c) => /^[0-9a-f]{64}$/.test(c)), 'clé hachée, ni adresse ni numéro en clair')
+  db.ok = false // la base tombe : le verrou en mémoire prend le relais
+  assert.equal(await limiter.fail('k'), false)
+  assert.equal(await limiter.fail('k'), true)
+  assert.ok((await limiter.retryAfter('k')) > 0)
+})
