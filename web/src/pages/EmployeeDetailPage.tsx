@@ -351,7 +351,38 @@ function SalaryAssignment({ employee }: { employee: Emp }) {
           <ErrorNote error={q.error || save.error || solve.error} />
         </fieldset>
       )}
+      {can('rh', 'paie') && <LoanCapField employeeId={employee.id} />}
     </Section>
+  )
+}
+
+/* RPR-08 : plafond de retenue sur prêt propre au salarié (vide = plafond global des Paramètres) */
+function LoanCapField({ employeeId }: { employeeId: string }) {
+  const qc = useQueryClient()
+  const own = useQuery({
+    queryKey: ['loan_cap', employeeId],
+    queryFn: async () => (unwrap(await dataApi.from('employee_loan_caps').select('rate').eq('employee_id', employeeId)) as { rate: number }[])[0]?.rate ?? null,
+  })
+  const global = useQuery({ queryKey: ['loan_max_rate'], queryFn: async () => unwrap(await dataApi.rpc('get_loan_max_rate')) as number })
+  const [v, setV] = useState('')
+  const [reason, setReason] = useState('')
+  useEffect(() => { if (own.data !== undefined) setV(own.data == null ? '' : String(own.data)) }, [own.data])
+  const save = useMutation({
+    mutationFn: async () => unwrap(await dataApi.rpc('set_employee_loan_cap', { p_employee_id: employeeId, p_rate: (v === '' ? null : Number(v)) as number, p_reason: reason })),
+    onSuccess: () => { setReason(''); qc.invalidateQueries({ queryKey: ['loan_cap', employeeId] }) },
+  })
+  return (
+    <div className="mt-4 rounded border border-line bg-paper p-3">
+      <p className="text-sm font-medium">Plafond de retenue sur prêt</p>
+      <p className="mb-2 text-xs text-ink-soft">Part du brut qu'une retenue mensuelle de prêt ne peut pas dépasser. Laissez vide pour appliquer le plafond global ({global.data != null ? `${Math.round(global.data * 1000) / 10} %` : '…'}). Le net ne devient jamais négatif.</p>
+      <div className="flex flex-wrap items-end gap-2">
+        <TextField label="Plafond propre au salarié (0,4 = 40 %)" type="number" step="0.01" value={v} onChange={(e) => setV(e.target.value)} className="w-56" />
+        <TextField label="Motif (obligatoire, 5 caractères minimum)" value={reason} onChange={(e) => setReason(e.target.value)} className="w-72" />
+        <Button loading={save.isPending} disabled={reason.trim().length < 5} onClick={() => save.mutate()}>Enregistrer le plafond</Button>
+      </div>
+      {save.isSuccess && <p role="status" className="mt-2 text-xs text-river-dark">Plafond enregistré (journalisé).</p>}
+      <div className="mt-2"><ErrorNote error={own.error || save.error} /></div>
+    </div>
   )
 }
 

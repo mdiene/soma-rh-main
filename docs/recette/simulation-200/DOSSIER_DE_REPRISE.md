@@ -95,3 +95,14 @@ Dépôt : `C:\IT-Mozaic\SOMA-RH-local`. Migrations : `docker cp` + `psql -f`, pu
 | RPR-04 à RPR-08, RPR-10 à RPR-15 | à faire | |
 
 Constats nouveaux : (1) `run_payroll_batch` avale les erreurs de calcul ; (2) la ligne `RET_PRORATA` devait exister dans `salary_components` (clé étrangère) ; (3) la passerelle de test sur le port 8001 doit pointer `POSTGREST_URL=http://localhost:3001` quand elle tourne hors Docker.
+
+### Mise à jour du 11/11/2026 : RPR-04, 06, 07, 08
+| Fiche | Statut | Détail |
+|---|---|---|
+| RPR-04 | corrigée | page d'une paie : motif de dérogation toujours demandé, champ vide, bouton désactivé tant qu'il est vide (`PayrollEntryPage.tsx`). Le dialogue de la page Gouvernance était déjà conforme. Pas de test Playwright (aucun mois ouvert à valider) |
+| RPR-05 | corrigée | voir plus haut |
+| RPR-06 | corrigée (partiel) | structure salariale : message de lecture seule pour rh, enregistrement bloqué avant chargement, erreur lisible à la place de `structure_id`, confirmation avec `role="status"`. Le message « Fiche enregistrée » reste un état d'écran (disparaît au prochain enregistrement) |
+| RPR-07 | corrigée | date d'effet par défaut = date d'entrée ; avertissement si elle est postérieure à aujourd'hui |
+| RPR-08 | corrigée | migration `20261214130000` (+ retour) : plafond global 1/3 (app_parameters et valeur de référence du catalogue), modifiable par admin/rh/paie ; surcharge par salarié (`employee_loan_caps`, motif obligatoire) ; journal `audit_events` (ancienne et nouvelle valeur) ; `create_loan` lit la surcharge. Écrans : Paramètres (rôles rh et paie autorisés) et champ « Plafond de retenue sur prêt » sur la fiche. Tests : `rpr08_plafond_pret`, `l2b_validation_admin` et `d30` alignés sur la décision |
+
+Points ouverts : le circuit « demande de modification de constante » (`request_parameter_change`) existe toujours pour `loan_max_rate` dans le catalogue ; la décision demande de ne plus l'utiliser pour ce plafond, à retirer du catalogue si vous le confirmez. Types web régénérés (`database.types.ts`), `p_rate` de `set_employee_loan_cap` accepte `null` côté base mais le type généré l'ignore (cast commenté).

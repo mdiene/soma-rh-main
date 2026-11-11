@@ -1417,6 +1417,53 @@ export type Database = {
           },
         ]
       }
+      employee_loan_caps: {
+        Row: {
+          employee_id: string
+          rate: number
+          reason: string
+          updated_at: string
+          updated_by: string | null
+        }
+        ComputedFields: never
+        Insert: {
+          employee_id: string
+          rate: number
+          reason: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          employee_id?: string
+          rate?: number
+          reason?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_loan_caps_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: true
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_loan_caps_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: true
+            referencedRelation: "v_conformite_embauche"
+            referencedColumns: ["employee_id"]
+          },
+          {
+            foreignKeyName: "employee_loan_caps_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: true
+            referencedRelation: "v_leave_balances"
+            referencedColumns: ["employee_id"]
+          },
+        ]
+      }
       employee_manager_assignments: {
         Row: {
           created_at: string
@@ -3691,12 +3738,6 @@ export type Database = {
           },
         ]
       }
-      phone_access_settings: {
-        Row: { authorization_hours: number; id: boolean; second_factor: boolean; updated_at: string; validation: string }
-        Insert: { authorization_hours?: number; id?: boolean; second_factor?: boolean; updated_at?: string; validation?: string }
-        Update: { authorization_hours?: number; id?: boolean; second_factor?: boolean; updated_at?: string; validation?: string }
-        Relationships: []
-      }
       payroll_settings: {
         Row: {
           allowance_absence_basis: string
@@ -3844,6 +3885,204 @@ export type Database = {
             columns: ["payroll_entry_id"]
             isOneToOne: true
             referencedRelation: "payroll_entries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      phone_access_accounts: {
+        Row: {
+          created_at: string
+          employee_id: string
+          phone_e164: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        ComputedFields: never
+        Insert: {
+          created_at?: string
+          employee_id: string
+          phone_e164: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          employee_id?: string
+          phone_e164?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "phone_access_accounts_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: true
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "phone_access_accounts_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: true
+            referencedRelation: "v_conformite_embauche"
+            referencedColumns: ["employee_id"]
+          },
+          {
+            foreignKeyName: "phone_access_accounts_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: true
+            referencedRelation: "v_leave_balances"
+            referencedColumns: ["employee_id"]
+          },
+        ]
+      }
+      phone_access_attempts: {
+        Row: {
+          id: number
+          ip_hash: string | null
+          kind: string
+          occurred_at: string
+          phone_e164: string | null
+        }
+        ComputedFields: never
+        Insert: {
+          id?: never
+          ip_hash?: string | null
+          kind: string
+          occurred_at?: string
+          phone_e164?: string | null
+        }
+        Update: {
+          id?: never
+          ip_hash?: string | null
+          kind?: string
+          occurred_at?: string
+          phone_e164?: string | null
+        }
+        Relationships: []
+      }
+      phone_access_requests: {
+        Row: {
+          decided_at: string | null
+          decided_by: string | null
+          decision_note: string | null
+          employee_id: string | null
+          expires_at: string | null
+          id: string
+          phone_e164: string
+          purpose: string
+          repeat_count: number
+          requested_at: string
+          status: string
+          used_at: string | null
+        }
+        ComputedFields: never
+        Insert: {
+          decided_at?: string | null
+          decided_by?: string | null
+          decision_note?: string | null
+          employee_id?: string | null
+          expires_at?: string | null
+          id?: string
+          phone_e164: string
+          purpose: string
+          repeat_count?: number
+          requested_at?: string
+          status?: string
+          used_at?: string | null
+        }
+        Update: {
+          decided_at?: string | null
+          decided_by?: string | null
+          decision_note?: string | null
+          employee_id?: string | null
+          expires_at?: string | null
+          id?: string
+          phone_e164?: string
+          purpose?: string
+          repeat_count?: number
+          requested_at?: string
+          status?: string
+          used_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "phone_access_requests_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "phone_access_requests_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "v_conformite_embauche"
+            referencedColumns: ["employee_id"]
+          },
+          {
+            foreignKeyName: "phone_access_requests_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "v_leave_balances"
+            referencedColumns: ["employee_id"]
+          },
+        ]
+      }
+      phone_access_settings: {
+        Row: {
+          authorization_hours: number
+          id: boolean
+          second_factor: boolean
+          updated_at: string
+          validation: string
+        }
+        ComputedFields: never
+        Insert: {
+          authorization_hours?: number
+          id?: boolean
+          second_factor?: boolean
+          updated_at?: string
+          validation?: string
+        }
+        Update: {
+          authorization_hours?: number
+          id?: boolean
+          second_factor?: boolean
+          updated_at?: string
+          validation?: string
+        }
+        Relationships: []
+      }
+      phone_access_tokens: {
+        Row: {
+          expires_at: string
+          request_id: string
+          token_hash: string
+          used_at: string | null
+        }
+        ComputedFields: never
+        Insert: {
+          expires_at: string
+          request_id: string
+          token_hash: string
+          used_at?: string | null
+        }
+        Update: {
+          expires_at?: string
+          request_id?: string
+          token_hash?: string
+          used_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "phone_access_tokens_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "phone_access_requests"
             referencedColumns: ["id"]
           },
         ]
@@ -5285,24 +5524,6 @@ export type Database = {
         Args: { p_employee_id: string; p_user_id: string }
         Returns: undefined
       }
-      phone_access_alerts: {
-        Args: Record<PropertyKey, never>
-        Returns: { code: string; due_date: string; employee_id: string; employee_name: string; employee_number: string; message: string; severity: string }[]
-      }
-      admin_phone_access_accounts: {
-        Args: Record<PropertyKey, never>
-        Returns: { created_at: string; employee_id: string; employee_name: string; employee_number: string; phone_masked: string; status: string }[]
-      }
-      admin_phone_access_decide: {
-        Args: { p_authorize: boolean; p_note?: string; p_request_id: string }
-        Returns: undefined
-      }
-      admin_phone_access_requests: {
-        Args: Record<PropertyKey, never>
-        Returns: { decided_at: string; department: string; employee_id: string; employee_name: string; employee_number: string; expires_at: string; has_birth_date: boolean; id: string; phone_masked: string; purpose: string; repeat_count: number; requested_at: string; status: string }[]
-      }
-      admin_phone_access_revoke: { Args: { p_employee_id: string }; Returns: undefined }
-      employee_phone_access_status: { Args: { p_employee_id: string }; Returns: string }
       admin_list_users: {
         Args: Record<PropertyKey, never>
         Returns: {
@@ -5314,6 +5535,43 @@ export type Database = {
           roles: string[]
           user_id: string
         }[]
+      }
+      admin_phone_access_accounts: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          created_at: string
+          employee_id: string
+          employee_name: string
+          employee_number: string
+          phone_masked: string
+          status: string
+        }[]
+      }
+      admin_phone_access_decide: {
+        Args: { p_authorize: boolean; p_note?: string; p_request_id: string }
+        Returns: undefined
+      }
+      admin_phone_access_requests: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          decided_at: string
+          department: string
+          employee_id: string
+          employee_name: string
+          employee_number: string
+          expires_at: string
+          has_birth_date: boolean
+          id: string
+          phone_masked: string
+          purpose: string
+          repeat_count: number
+          requested_at: string
+          status: string
+        }[]
+      }
+      admin_phone_access_revoke: {
+        Args: { p_employee_id: string }
+        Returns: undefined
       }
       apply_period_adjustments: {
         Args: { p_payroll_entry_id: string }
@@ -5629,6 +5887,10 @@ export type Database = {
         Args: { p_headcount: number; p_month: string }
         Returns: string
       }
+      employee_phone_access_status: {
+        Args: { p_employee_id: string }
+        Returns: string
+      }
       escalate_overdue_leave_steps: {
         Args: Record<PropertyKey, never>
         Returns: number
@@ -5651,6 +5913,10 @@ export type Database = {
       }
       gen_random_uuid: { Args: Record<PropertyKey, never>; Returns: string }
       gen_salt: { Args: { "": string }; Returns: string }
+      get_employee_loan_cap: {
+        Args: { p_employee_id: string }
+        Returns: number
+      }
       get_loan_max_rate: { Args: Record<PropertyKey, never>; Returns: number }
       grant_waiver: {
         Args: {
@@ -6002,6 +6268,7 @@ export type Database = {
           meal_allowance_factor: number
           monthly_hours: number
           precarity_rate: number
+          proration_basis: string
           seniority_min_years: number
           severance_basis: string
           severance_min_months: number
@@ -6027,6 +6294,71 @@ export type Database = {
         Args: { "": string }
         Returns: Record<string, unknown>[]
       }
+      phone_access_account_status: {
+        Args: { p_user_id: string }
+        Returns: string
+      }
+      phone_access_alerts: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          code: string
+          due_date: string
+          employee_id: string
+          employee_name: string
+          employee_number: string
+          message: string
+          severity: string
+        }[]
+      }
+      phone_access_audit: {
+        Args: { p_action: string; p_data?: Json; p_employee_id: string }
+        Returns: undefined
+      }
+      phone_access_complete: {
+        Args: { p_token_hash: string; p_user_id: string }
+        Returns: string
+      }
+      phone_access_disable: {
+        Args: { p_employee_id: string; p_reason: string; p_status: string }
+        Returns: undefined
+      }
+      phone_access_expire: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      phone_access_log_login: {
+        Args: { p_event: string; p_phone: string }
+        Returns: undefined
+      }
+      phone_access_open: {
+        Args: {
+          p_ip_hash: string
+          p_phone: string
+          p_second: string
+          p_token_hash: string
+        }
+        Returns: boolean
+      }
+      phone_access_peek: {
+        Args: { p_token_hash: string }
+        Returns: {
+          date_of_birth: string
+          employee_id: string
+          employee_number: string
+          first_name: string
+          last_name: string
+          phone_e164: string
+          purpose: string
+          request_id: string
+          user_id: string
+        }[]
+      }
+      phone_access_request: {
+        Args: { p_ip_hash: string; p_phone: string }
+        Returns: undefined
+      }
+      phone_mask: { Args: { p_phone: string }; Returns: string }
+      phone_normalize: { Args: { p_phone: string }; Returns: string }
       plafond_retenues: {
         Args: { p_assiette: number; p_cap?: number }
         Returns: number
@@ -6062,6 +6394,48 @@ export type Database = {
       reference_usage: {
         Args: { p_key: string; p_table: string }
         Returns: Json
+      }
+      register_employee_document: {
+        Args: {
+          p_checksum?: string
+          p_employee_id: string
+          p_file_name: string
+          p_mime_type: string
+          p_requirement_code: string
+          p_size_bytes: number
+          p_slot: number
+          p_storage_path: string
+        }
+        Returns: {
+          archived_at: string | null
+          archived_by: string | null
+          checksum: string | null
+          created_at: string
+          created_by: string
+          current_version: number
+          document_slot: number
+          document_type: string
+          employee_id: string
+          file_name: string
+          id: string
+          mime_type: string
+          rejection_reason: string | null
+          requirement_code: string | null
+          size_bytes: number
+          status: string
+          storage_path: string
+          submitted_at: string | null
+          thumbnail_path: string | null
+          title: string
+          validated_at: string | null
+          validated_by: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "employee_documents"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
       reopen_payroll_entry: {
         Args: { p_payroll_entry_id: string; p_reason: string }
@@ -6103,42 +6477,6 @@ export type Database = {
           p_reason: string
         }
         Returns: undefined
-      }
-      register_employee_document: {
-        Args: {
-          p_checksum?: string; p_employee_id: string; p_file_name: string; p_mime_type: string
-          p_requirement_code: string; p_size_bytes: number; p_slot: number; p_storage_path: string
-        }
-        Returns: {
-          archived_at: string | null
-          archived_by: string | null
-          checksum: string | null
-          created_at: string
-          created_by: string
-          current_version: number
-          document_slot: number
-          document_type: string
-          employee_id: string
-          file_name: string
-          id: string
-          mime_type: string
-          rejection_reason: string | null
-          requirement_code: string | null
-          size_bytes: number
-          status: string
-          storage_path: string
-          submitted_at: string | null
-          thumbnail_path: string | null
-          title: string
-          validated_at: string | null
-          validated_by: string | null
-        }
-        SetofOptions: {
-          from: "*"
-          to: "employee_documents"
-          isOneToOne: true
-          isSetofReturn: false
-        }
       }
       review_employee_document: {
         Args: { p_document_id: string; p_reason?: string; p_status: string }
@@ -6263,6 +6601,10 @@ export type Database = {
           locked: boolean
           nb_lines: number
         }[]
+      }
+      set_employee_loan_cap: {
+        Args: { p_employee_id: string; p_rate: number; p_reason: string }
+        Returns: number
       }
       set_loan_max_rate: { Args: { p_rate: number }; Returns: number }
       set_parameter: {

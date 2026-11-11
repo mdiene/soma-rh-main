@@ -267,9 +267,9 @@ function LoanCapSetting() {
       <h3 className="mb-1 mt-6 text-sm font-semibold">Prêts et acomptes</h3>
       <p className="mb-3 max-w-prose text-xs text-ink-muted">La retenue mensuelle d'un prêt ne peut pas dépasser cette part du brut du salarié. Un bulletin ne peut jamais avoir un net négatif.</p>
       <div className="flex max-w-md items-end gap-3">
-        <TextField label="Plafond de retenue (part du brut)" type="number" step="0.01" value={v} disabled={!can('admin')}
+        <TextField label="Plafond de retenue (part du brut)" type="number" step="0.01" value={v} disabled={!can('rh', 'paie')}
           hint={pct(Number(v))} onChange={(e) => setV(e.target.value)} />
-        {can('admin') && <Button size="sm" variant="primary" icon={<Save className="h-3.5 w-3.5" />} loading={save.isPending} onClick={() => save.mutate()}>Enregistrer</Button>}
+        {can('rh', 'paie') && <Button size="sm" variant="primary" icon={<Save className="h-3.5 w-3.5" />} loading={save.isPending} onClick={() => save.mutate()}>Enregistrer</Button>}
       </div>
       <div className="mt-3"><ErrorNote error={q.error || save.error} /></div>
     </>

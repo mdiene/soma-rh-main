@@ -186,3 +186,31 @@
 {"uc":"UC-INTERDIT-sal_1-/journal","status":"VERT","note":"","at":"2026-11-10T21:15:13.580Z"}
 {"uc":"UC-INTERDIT-sal_1-/mon-equipe","status":"VERT","note":"","at":"2026-11-10T21:15:15.779Z"}
 {"uc":"UC-ISOLATION-sal_1","status":"VERT","note":"10 bulletins visibles","at":"2026-11-10T21:15:32.378Z"}
+{"uc":"UC-ROLE-admin-/salaries","status":"VERT","note":"","at":"2026-11-11T12:38:05.255Z"}
+{"uc":"UC-ROLE-admin-/paie","status":"VERT","note":"","at":"2026-11-11T12:38:07.855Z"}
+{"uc":"UC-ROLE-admin-/paie/gouvernance","status":"VERT","note":"","at":"2026-11-11T12:38:09.208Z"}
+{"uc":"UC-ROLE-admin-/parametres","status":"VERT","note":"","at":"2026-11-11T12:38:11.089Z"}
+{"uc":"UC-ROLE-admin-/journal","status":"VERT","note":"","at":"2026-11-11T12:38:13.203Z"}
+{"uc":"UC-ROLE-admin-/centre-conformite","status":"VERT","note":"","at":"2026-11-11T12:38:14.888Z"}
+{"uc":"UC-ROLE-rh-/salaries","status":"VERT","note":"","at":"2026-11-11T12:38:17.025Z"}
+{"uc":"UC-ROLE-rh-/conges","status":"VERT","note":"","at":"2026-11-11T12:38:18.423Z"}
+{"uc":"UC-ROLE-rh-/dossiers-salaries","status":"VERT","note":"","at":"2026-11-11T12:38:19.762Z"}
+{"uc":"UC-ROLE-rh-/equipes","status":"VERT","note":"","at":"2026-11-11T12:38:21.099Z"}
+{"uc":"UC-ROLE-paie-/paie","status":"VERT","note":"","at":"2026-11-11T12:38:24.121Z"}
+{"uc":"UC-ROLE-paie-/paie/variables","status":"VERT","note":"","at":"2026-11-11T12:38:26.609Z"}
+{"uc":"UC-ROLE-paie-/paie/gouvernance","status":"VERT","note":"","at":"2026-11-11T12:38:29.165Z"}
+{"uc":"UC-ROLE-paie-/etats","status":"VERT","note":"","at":"2026-11-11T12:38:33.190Z"}
+{"uc":"UC-ROLE-mgr_1-/mon-equipe","status":"VERT","note":"","at":"2026-11-11T12:38:36.036Z"}
+{"uc":"UC-ROLE-mgr_1-/demandes","status":"VERT","note":"","at":"2026-11-11T12:38:37.369Z"}
+{"uc":"UC-ROLE-mgr_1-/conges","status":"VERT","note":"","at":"2026-11-11T12:38:38.658Z"}
+{"uc":"UC-ROLE-sal_1-/mon-espace","status":"VERT","note":"","at":"2026-11-11T12:38:40.956Z"}
+{"uc":"UC-ROLE-sal_1-/mes-bulletins","status":"VERT","note":"","at":"2026-11-11T12:38:42.092Z"}
+{"uc":"UC-INTERDIT-mgr_1-/paie","status":"VERT","note":"","at":"2026-11-11T12:38:44.887Z"}
+{"uc":"UC-INTERDIT-mgr_1-/parametres","status":"VERT","note":"","at":"2026-11-11T12:38:45.987Z"}
+{"uc":"UC-INTERDIT-mgr_1-/journal","status":"VERT","note":"","at":"2026-11-11T12:38:47.257Z"}
+{"uc":"UC-INTERDIT-sal_1-/salaries","status":"VERT","note":"","at":"2026-11-11T12:38:49.772Z"}
+{"uc":"UC-INTERDIT-sal_1-/paie","status":"VERT","note":"","at":"2026-11-11T12:38:50.904Z"}
+{"uc":"UC-INTERDIT-sal_1-/parametres","status":"VERT","note":"","at":"2026-11-11T12:38:52.189Z"}
+{"uc":"UC-INTERDIT-sal_1-/journal","status":"VERT","note":"","at":"2026-11-11T12:38:53.425Z"}
+{"uc":"UC-INTERDIT-sal_1-/mon-equipe","status":"VERT","note":"","at":"2026-11-11T12:38:54.678Z"}
+{"uc":"UC-ISOLATION-sal_1","status":"VERT","note":"10 bulletins visibles","at":"2026-11-11T12:38:55.828Z"}
