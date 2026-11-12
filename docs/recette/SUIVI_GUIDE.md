@@ -6,7 +6,7 @@ Mis à jour et commité à la fin de chaque étape. Les miniatures (120 px) renv
 |---|---|---|---|---|---|
 | A. Environnement et base | fait | — | 0 | — | voir `git log` |
 | B. Helper de capture | fait | 1 pass (`capture.mask.test.mjs`) ; `npm run check` 0 erreur | 0 | — | voir `git log` |
-| C. Rejeu complet (blocs A à J) | en cours | 05-demarrer 1/1 ; 10-croissance (paliers 5-9) 5/5 pass | 0 | ![](../guide-utilisateur/captures/referentiels-emplois-liste.png){width=120} | voir `git log` |
+| C. Rejeu complet (blocs A à J) | en cours : parcours existants rejoués (tous verts), parcours manquants à écrire | 05 1/1 · 06 2/2 · 10 5/5 · 11 4/4 · 12 1/1 · 20 8/8 · 30 7 fixme · 31 6/6 · 32 6/6 · menu 9/9 · a11y 7/7 · conformité 7/7 · téléphone 4/4 | 0 | <img src="../guide-utilisateur/captures/acces-fiches-reliees.png" width="120"> | voir `git log` |
 | D. Matrices et dossier de reprise | à faire | | | | |
 | E. Rédaction du guide | à faire | | | | |
 | F. Vérifications | à faire | | | | |
@@ -32,3 +32,19 @@ Sur base remise à zéro, le référentiel « Emplois » est vide : 23 emplois c
 - Base : 200 salariés, 200 affectations de structure.
 - **ORANGE à confirmer (intermittent)** : sur la page d'un salarié neuf, la section « Structure salariale » n'apparaît parfois pas dans les 8 s (3 occurrences sur ~200 embauches), ou la page reste blanche. Cause non établie (lenteur du serveur de développement ou chargement paresseux). Délai du test porté à 20 s ; aucune correction de l'application.
 - Problèmes de test corrigés (sans effet sur l'application) : sélecteur « Enregistrer » ambigu avec « Enregistrer la fiche » ; emplois à recréer après remise à zéro.
+
+### Parcours existants rejoués (base remise à zéro) — aucun ROUGE, aucune régression par rapport au palier 10
+| Fichier | Résultat | Remarque |
+|---|---|---|
+| 06-comptes (nouveau) | 2/2 VERT | comptes reliés aux fiches, équipe de  (captures acces-*, equipes-*) |
+| 11-octobre | 4/4 VERT | sortie D-56, congé, prêt (plafond 1/3 refusé : « Retenue mensuelle trop élevée… »), calcul et clôture d'octobre |
+| 12-reouverture | VERT | réouverture motivée, recalcul (1 ligne RET_PRORATA), reclôture |
+| 20-roles | 8/8 VERT | pages autorisées par rôle, refus pour manager et salarié, isolation des bulletins |
+| 30-rpr | 7 fixme | RPR-03, 05, 07, 08, 11, 13, 15 : couvertes par SQL/API/unitaires, pas par Playwright (NON REJOUÉ) |
+| 31-rpr-mutating | 6/6 VERT | RPR-01/12, 02, 04, 06, 10, 14 |
+| 32-telephone | 6/6 VERT | demande, autorisation admin, usage unique, 5 dates fausses, réinitialisation/révocation, refus |
+| e2e menu / a11y / conformité / téléphone | 12 / 10 / 10 / 7 VERT | comptes QA régénérés depuis les comptes SIM |
+
+**Constat ORANGE du palier 10 (étape manager des congés) : TRANCHÉ.** Rejoué :  approuve l'étape 1 (« Mon équipe »),  l'étape 2 ; état final « Approuvée ». Plus d'ORANGE.
+
+**Outillage** :  échoue (403, l'inscription publique est fermée) ;  (hors Git) régénéré depuis . Matricules des tests décalés (+433) après la remise à zéro.

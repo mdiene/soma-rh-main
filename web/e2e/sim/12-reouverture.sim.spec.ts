@@ -3,7 +3,7 @@ import { as, govStep, record, rows, shot } from './sim-helpers'
 
 // Réouverture motivée d'octobre 2026 (admin), recalcul (RPR-05) avec le prorata de sortie (RPR-09), puis nouvelle clôture.
 // Idempotent : si octobre est déjà recalculé avec prorata, le test se limite à la vérification.
-const SORTANT = 'S0450'
+const SORTANT = 'S0883'
 
 test('réouverture d’octobre, recalcul et nouvelle clôture', async ({ browser }) => {
   const admin = await as(browser, 'admin')
@@ -21,7 +21,7 @@ test('réouverture d’octobre, recalcul et nouvelle clôture', async ({ browser
     const section = admin.locator('section, div').filter({ hasText: /^Octobre 2026/ }).filter({ has: admin.getByRole('button', { name: 'Rouvrir' }) }).last()
     await section.getByRole('button', { name: 'Rouvrir' }).click()
     const dlg = admin.getByRole('dialog')
-    await dlg.getByLabel(/Motif/).fill('Prorata de sortie D-56 (S0450) non appliqué au premier calcul')
+    await dlg.getByLabel(/Motif/).fill('Prorata de sortie D-56 (S0883) non appliqué au premier calcul')
     await shot(admin, 'reouverture-motif')
     await dlg.getByRole('button', { name: 'Rouvrir', exact: true }).click()
     await expect.poll(async () => (await rows<{ status: string }>(admin, `payroll_entries?select=status&id=eq.${entree.id}`))[0].status, { timeout: 30_000 }).toBe('Réouverte')

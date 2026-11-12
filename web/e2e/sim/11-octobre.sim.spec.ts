@@ -2,11 +2,11 @@ import { test, expect, type Page } from '@playwright/test'
 import { as, count, createAndCalculate, field, govStep, record, rows, shot } from './sim-helpers'
 
 // Palier 10 (octobre 2026, 200 salariés) : sortie, congé, prêt, heures supplémentaires, calcul et workflow.
-// Idempotent : chaque test regarde l'état en base avant d'agir. Données fictives uniquement (S0291 à S0490).
+// Idempotent : chaque test regarde l'état en base avant d'agir. Données fictives uniquement (S0724 à S0923 après la remise à zéro du 12/11/2026).
 const YM = '2026-10'
-const SORTANT = 'S0450' // démission, sortie le 23/10/2026
-const EMPRUNTEUR = 'S0455' // prêt de 300 000 F sur 6 échéances
-const CONGE_SAL = 'S0295' // sal_1 (équipe de mgr_1)
+const SORTANT = 'S0883' // démission, sortie le 23/10/2026
+const EMPRUNTEUR = 'S0888' // prêt de 300 000 F sur 6 échéances
+const CONGE_SAL = 'S0728' // sal_1 (équipe de mgr_1)
 
 test.describe.configure({ mode: 'serial' })
 

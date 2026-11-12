@@ -382,3 +382,59 @@
 {"uc":"UC-EMB-P9","status":"VERT","note":"25 embauches créées par le compte RH","at":"2026-11-12T16:09:15.645Z"}
 {"uc":"UC-CALC-P9","status":"VERT","note":"200 bulletin(s) calculé(s).","at":"2026-11-12T16:09:36.189Z"}
 {"uc":"UC-WORKFLOW-P9","status":"VERT","note":"état Clôturée","at":"2026-11-12T16:09:51.914Z"}
+{"uc":"UC-SORTIE","status":"VERT","note":"statut Active, motif DEMISSION","at":"2026-11-12T16:12:39.606Z"}
+{"uc":"UC-CONGE-DOT","status":"VERT","note":"dotation de 24 jours ouvrables","at":"2026-11-12T16:12:44.986Z"}
+{"uc":"UC-CONGE-DEMANDE","status":"ROUGE","note":"état undefined","at":"2026-11-12T16:12:47.362Z"}
+{"uc":"UC-A-LIAISON-COMPTES","status":"VERT","note":"4 comptes reliés à une fiche par l'interface","at":"2026-11-12T16:15:50.928Z"}
+{"uc":"UC-I-EQUIPE","status":"VERT","note":"2 affectation(s) manager enregistrée(s)","at":"2026-11-12T16:15:55.785Z"}
+{"uc":"UC-SORTIE","status":"VERT","note":"statut Active, motif DEMISSION","at":"2026-11-12T16:18:38.373Z"}
+{"uc":"UC-CONGE-DOT","status":"VERT","note":"dotation de 24 jours ouvrables","at":"2026-11-12T16:18:41.263Z"}
+{"uc":"UC-CONGE-DEMANDE","status":"VERT","note":"état Ouverte","at":"2026-11-12T16:18:43.591Z"}
+{"uc":"UC-CONGE-VALIDATION","status":"VERT","note":"état final : Approuvée","at":"2026-11-12T16:18:49.722Z"}
+{"uc":"UC-PRET-PLAFOND","status":"VERT","note":"Retenue mensuelle trop élevée : 50000 F (dont 0 F de prêts en cours) pour un plafond de 46170 F (33.3 % du brut de 138513 F). Augmentez le nombre d'échéances ou","at":"2026-11-12T16:18:52.574Z"}
+{"uc":"UC-PRET","status":"VERT","note":"1 prêt(s) pour S0888","at":"2026-11-12T16:18:54.920Z"}
+{"uc":"UC-CALC-OCT","status":"VERT","note":"200 bulletin(s) calculé(s). en 4 s","at":"2026-11-12T16:19:14.323Z"}
+{"uc":"UC-WORKFLOW-OCT","status":"VERT","note":"état Clôturée","at":"2026-11-12T16:19:29.214Z"}
+{"uc":"UC-RECALCUL-PRORATA","status":"VERT","note":"ligne RET_PRORATA du bulletin d'octobre de S0883 : 1","at":"2026-11-12T16:20:46.133Z"}
+{"uc":"UC-ROLE-admin-/salaries","status":"VERT","note":"","at":"2026-11-12T16:21:23.926Z"}
+{"uc":"UC-ROLE-admin-/paie","status":"VERT","note":"","at":"2026-11-12T16:21:24.832Z"}
+{"uc":"UC-ROLE-admin-/paie/gouvernance","status":"VERT","note":"","at":"2026-11-12T16:21:25.844Z"}
+{"uc":"UC-ROLE-admin-/parametres","status":"VERT","note":"","at":"2026-11-12T16:21:27.114Z"}
+{"uc":"UC-ROLE-admin-/journal","status":"VERT","note":"","at":"2026-11-12T16:21:28.682Z"}
+{"uc":"UC-ROLE-admin-/centre-conformite","status":"VERT","note":"","at":"2026-11-12T16:21:29.982Z"}
+{"uc":"UC-ROLE-rh-/salaries","status":"VERT","note":"","at":"2026-11-12T16:21:32.305Z"}
+{"uc":"UC-ROLE-rh-/conges","status":"VERT","note":"","at":"2026-11-12T16:21:33.356Z"}
+{"uc":"UC-ROLE-rh-/dossiers-salaries","status":"VERT","note":"","at":"2026-11-12T16:21:34.322Z"}
+{"uc":"UC-ROLE-rh-/equipes","status":"VERT","note":"","at":"2026-11-12T16:21:35.354Z"}
+{"uc":"UC-ROLE-paie-/paie","status":"VERT","note":"","at":"2026-11-12T16:21:37.316Z"}
+{"uc":"UC-ROLE-paie-/paie/variables","status":"VERT","note":"","at":"2026-11-12T16:21:38.379Z"}
+{"uc":"UC-ROLE-paie-/paie/gouvernance","status":"VERT","note":"","at":"2026-11-12T16:21:39.932Z"}
+{"uc":"UC-ROLE-paie-/etats","status":"VERT","note":"","at":"2026-11-12T16:21:41.782Z"}
+{"uc":"UC-ROLE-mgr_1-/mon-equipe","status":"VERT","note":"","at":"2026-11-12T16:21:44.750Z"}
+{"uc":"UC-ROLE-mgr_1-/demandes","status":"VERT","note":"","at":"2026-11-12T16:21:46.063Z"}
+{"uc":"UC-ROLE-mgr_1-/conges","status":"VERT","note":"","at":"2026-11-12T16:21:47.633Z"}
+{"uc":"UC-ROLE-sal_1-/mon-espace","status":"VERT","note":"","at":"2026-11-12T16:21:50.313Z"}
+{"uc":"UC-ROLE-sal_1-/mes-bulletins","status":"VERT","note":"","at":"2026-11-12T16:21:51.815Z"}
+{"uc":"UC-INTERDIT-mgr_1-/paie","status":"VERT","note":"","at":"2026-11-12T16:21:54.100Z"}
+{"uc":"UC-INTERDIT-mgr_1-/parametres","status":"VERT","note":"","at":"2026-11-12T16:21:55.066Z"}
+{"uc":"UC-INTERDIT-mgr_1-/journal","status":"VERT","note":"","at":"2026-11-12T16:21:55.958Z"}
+{"uc":"UC-INTERDIT-sal_1-/salaries","status":"VERT","note":"","at":"2026-11-12T16:21:57.992Z"}
+{"uc":"UC-INTERDIT-sal_1-/paie","status":"VERT","note":"","at":"2026-11-12T16:21:58.948Z"}
+{"uc":"UC-INTERDIT-sal_1-/parametres","status":"VERT","note":"","at":"2026-11-12T16:21:59.984Z"}
+{"uc":"UC-INTERDIT-sal_1-/journal","status":"VERT","note":"","at":"2026-11-12T16:22:01.044Z"}
+{"uc":"UC-INTERDIT-sal_1-/mon-equipe","status":"VERT","note":"","at":"2026-11-12T16:22:02.098Z"}
+{"uc":"UC-ISOLATION-sal_1","status":"VERT","note":"6 bulletins visibles","at":"2026-11-12T16:22:03.972Z"}
+{"uc":"UC-NOVEMBRE-CALCUL","status":"VERT","note":"paie de novembre créée pour les parcours RPR : 199 bulletin(s) calculé(s).","at":"2026-11-12T16:23:07.627Z"}
+{"uc":"UC-RPR-01","status":"VERT","note":"bandeau et refus d'envoi en revue citant S0724","at":"2026-11-12T16:23:12.433Z"}
+{"uc":"UC-RPR-04","status":"VERT","note":"motif obligatoire, bouton désactivé tant que le champ est vide","at":"2026-11-12T16:23:15.356Z"}
+{"uc":"UC-RPR-02","status":"VERT","note":"approuvée par paie2 ; refus de rh et de la personne qui a préparé","at":"2026-11-12T16:23:36.106Z"}
+{"uc":"UC-RPR-06","status":"VERT","note":"message de lecture seule pour rh","at":"2026-11-12T16:23:37.875Z"}
+{"uc":"UC-RPR-10","status":"VERT","note":"département créé, visible sur la fiche, supprimé","at":"2026-11-12T16:23:41.031Z"}
+{"uc":"UC-RPR-14","status":"VERT","note":"préfixe et chiffres paramétrables par l’admin, désactivés pour rh","at":"2026-11-12T16:23:42.153Z"}
+{"uc":"UC-TEL-AUTORISATION","status":"VERT","note":"demande visible chez l’administrateur ; rh sans case d’autorisation","at":"2026-11-12T16:25:04.610Z"}
+{"uc":"UC-TEL-CONNEXION","status":"VERT","note":"activation et connexion ; /paie, /salaries, /parametres inaccessibles","at":"2026-11-12T16:25:10.063Z"}
+{"uc":"UC-TEL-REUTILISATION","status":"VERT","note":"seconde ouverture sans nouvelle autorisation refusée","at":"2026-11-12T16:25:11.548Z"}
+{"uc":"UC-TEL-MAUVAISES-DATES","status":"VERT","note":"après 5 mauvaises dates, la bonne date est refusée","at":"2026-11-12T16:25:17.525Z"}
+{"uc":"UC-TEL-REINIT","status":"VERT","note":"mot de passe réinitialisé par une nouvelle demande autorisée","at":"2026-11-12T16:25:25.627Z"}
+{"uc":"UC-TEL-REVOCATION","status":"VERT","note":"après révocation, la connexion est refusée","at":"2026-11-12T16:25:30.865Z"}
+{"uc":"UC-TEL-REFUS","status":"VERT","note":"demande refusée : activation fermée","at":"2026-11-12T16:25:36.090Z"}
