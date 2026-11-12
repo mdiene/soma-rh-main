@@ -1182,6 +1182,46 @@ export type Database = {
           },
         ]
       }
+      employee_document_receipts: {
+        Row: {
+          created_at: string
+          employee_id: string
+          noted_by: string | null
+          received_on: string
+          requirement_code: string
+        }
+        ComputedFields: never
+        Insert: {
+          created_at?: string
+          employee_id: string
+          noted_by?: string | null
+          received_on?: string
+          requirement_code: string
+        }
+        Update: {
+          created_at?: string
+          employee_id?: string
+          noted_by?: string | null
+          received_on?: string
+          requirement_code?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_document_receipts_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_document_receipts_requirement_code_fkey"
+            columns: ["requirement_code"]
+            isOneToOne: false
+            referencedRelation: "document_requirements"
+            referencedColumns: ["code"]
+          },
+        ]
+      }
       employee_documents: {
         Row: {
           archived_at: string | null
@@ -6649,6 +6689,14 @@ export type Database = {
           message: string
           severity: string
         }[]
+      }
+      create_employee_from_wizard: {
+        Args: { p_employee: Json; p_assignment?: Json; p_receipts?: string[] }
+        Returns: Json
+      }
+      simulate_net_for_draft: {
+        Args: { p_employee: Json; p_assignment: Json; p_target_net: number; p_period_start?: string }
+        Returns: Json
       }
       set_employee_loan_cap: {
         Args: { p_employee_id: string; p_rate: number; p_reason: string }

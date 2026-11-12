@@ -113,6 +113,7 @@ async function pick(page: Page, label: string, text: string) {
 /** Création d'un salarié par le formulaire, puis déclaration d'embauche et structure salariale (chaîne complète). */
 export async function createEmployeeUI(page: Page, e: NewEmployee, assign = true): Promise<string> {
   await page.goto('/salaries/nouveau')
+  await page.getByRole('button', { name: 'Saisie complète' }).click()
   await field(page, 'Sexe').selectOption(e.sex)
   await field(page, 'Prénom').fill(e.fn)
   await field(page, 'Nom').fill(e.ln)

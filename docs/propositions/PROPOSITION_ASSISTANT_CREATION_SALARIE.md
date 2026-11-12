@@ -102,3 +102,22 @@ Après le choix des composants : un plan détaillé par phase (`/ecc:plan`), la 
 5. Restent à trancher : création en une seule opération en base (E3, migration) et étape rémunération déléguée à la paie pour le RH (F1).
 
 Impact sur le phasage : la phase 1 inclut désormais **A4** (choix du type de saisie) et **B8 en liste cochable** ; **H1** s'ajoute à la phase 2 (avec B7). Effort supplémentaire : A4 ≈ 1 j, B8 liste ≈ 1 j, H1 ≈ 3 j.
+
+## 13. Réalisé le 12/11/2026 (branche `feat/assistant-creation-salarie`, non fusionnée)
+Décisions du propriétaire du soir : création en une seule opération (E3) **oui** ; le RH sans rôle paie ne peut pas affecter la structure (F1) **oui**.
+
+| Composant | État |
+|---|---|
+| A1 fenêtre par section, A2 retour sur étape validée, A4 choix avec/sans assistant (mémorisable) | fait |
+| B1 à B9 (identité, coordonnées, famille, contrat, paiement, déclarations, rémunération, pièces, revue) | fait |
+| C1 questions selon le contrat (CDD, stage, apprentissage : dates obligatoires ; prestation ; journalier) | fait |
+| D1 validation par étape, D3 contrôles de format (avertissements) | fait |
+| E3 création atomique (`create_employee_from_wizard`), E4 trace au journal d'audit | fait (migration `20261217090000`) |
+| F1 rémunération réservée au rôle paie ; RH seul : fiche créée sans structure et message de délégation | fait ; **pas de notification dédiée** (le salarié reste signalé par le bandeau « sans bulletin » de la paie) |
+| H1 calcul du sursalaire à partir du net en fenêtre, repris dans la saisie | fait (`simulate_net_for_draft`, matricule non consommé) |
+| B8 pièces : liste cochable | fait (table `employee_document_receipts`) ; téléversement inchangé |
+| G1 à G4 tests, accessibilité, guide | fait (SQL, unitaires 9, e2e 4, a11y, page du guide) |
+| Non réalisés | C2 parts fiscales proposées, C3 à C6, D2 doublons, D4, D5, E1 brouillon navigateur, E2, E5, F2 à F4, A3 plein écran |
+
+Constats : le calcul du net exige un salarié existant côté base (le solveur lit la fiche) : la simulation insère puis annule dans une sous-transaction. Les textes d'aide des champs passent de `ink-muted` à `ink-soft` (contraste) dans toute l'application.
+**Avant déploiement en ligne** : appliquer la migration `20261217090000_assistant_creation_salarie.sql` sur Supabase, sinon l'assistant échoue (la saisie complète reste utilisable).

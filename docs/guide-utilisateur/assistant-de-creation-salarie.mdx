@@ -1,0 +1,66 @@
+---
+title: "Créer un salarié avec l'assistant"
+description: "Un parcours guidé, une fenêtre par section, avec revue avant la création et calcul du salaire à partir du net."
+---
+
+**Rôles concernés** : RH (création de la fiche), paie (structure salariale et calcul du net). Un compte qui cumule RH et paie fait tout en une fois. **Exemple** : une salariée fictive embauchée en CDD.
+
+## Choisir le type de saisie
+Menu **Salariés → Nouveau salarié**. L'écran demande « Comment voulez-vous saisir ce salarié ? » :
+- **Avec l'assistant** : une fenêtre par section, validée une à une.
+- **Saisie complète** : toute la fiche sur une seule page, comme auparavant.
+
+Cochez **Mémoriser mon choix sur ce poste** pour ne plus voir la question. Depuis la saisie complète, le bouton **Utiliser l'assistant** permet de changer.
+
+![Choix du type de saisie](/guide-utilisateur/captures/assistant-choix-saisie.png)
+
+## Les étapes
+Une barre d'étapes en haut de la fenêtre indique où vous en êtes ; une étape déjà validée est cliquable pour la corriger. Chaque étape a un court texte d'explication. Le bouton **Valider et continuer** exige les champs obligatoires de l'étape ; **Précédent** revient en arrière ; **Annuler** demande une confirmation avant d'abandonner (rien n'est enregistré tant que le salarié n'est pas créé).
+
+1. **Identité** : prénom et nom obligatoires.
+
+   ![Étape Identité](/guide-utilisateur/captures/assistant-identite.png)
+2. **Coordonnées** : adresse, téléphones, e-mails, personne à prévenir. Un numéro trop court ou un e-mail mal formé s'affiche en avertissement, sans bloquer.
+3. **Famille et fiscalité** : situation de famille, enfants à charge, parts.
+4. **Contrat et classification** : le type de contrat, la date d'entrée, l'emploi, la convention et la catégorie. Les questions s'adaptent au contrat : pour un CDD, un stage ou un apprentissage, le début et la fin du contrat sont obligatoires.
+
+   ![Étape Contrat, cas d'un CDD](/guide-utilisateur/captures/assistant-contrat-cdd.png)
+5. **Paiement** : mode de paiement, banque, RIB.
+6. **Déclarations et affiliations** : référence et date de la déclaration d'embauche, date d'affiliation.
+7. **Rémunération** (compte paie ou administrateur seulement) : date d'effet, salaire de base, sursalaire, honoraires, transport.
+
+   ![Étape Rémunération](/guide-utilisateur/captures/assistant-remuneration.png)
+8. **Pièces du dossier** : la liste des pièces attendues ; cochez celles déjà reçues. Cocher ne téléverse rien : les fichiers s'ajoutent ensuite dans **Dossiers administratifs**.
+
+   ![Étape Pièces du dossier](/guide-utilisateur/captures/assistant-pieces.png)
+9. **Revue et sauvegarde** : toutes les sections sont récapitulées, avec un lien **Modifier** pour chacune. Les erreurs à corriger sont listées avec un lien **Corriger**.
+
+   ![Revue avant la création](/guide-utilisateur/captures/assistant-revue.png)
+
+## Calculer le sursalaire à partir du net
+À l'étape **Rémunération**, cliquez sur **Calculer le sursalaire à partir du net…**. Dans la fenêtre : saisissez le **Net à payer souhaité (F CFA)**, vérifiez le **Mois de référence** (choisissez un mois complet, une entrée en cours de mois est payée au prorata), puis **Calculer**. La fenêtre affiche le sursalaire, le brut et le net. **Valider et reprendre dans la saisie** place le sursalaire dans la fiche en cours. Rien n'est enregistré par le calcul.
+
+![Calcul du sursalaire à partir du net](/guide-utilisateur/captures/assistant-calcul-net.png)
+
+## Créer le salarié
+À la revue, **Créer le salarié** enregistre tout en une seule opération : la fiche, la structure salariale (si l'étape Rémunération a été remplie) et les pièces reçues. Si une erreur survient, rien n'est créé. L'écran suivant donne le **matricule** et propose **Ouvrir la fiche**, **Créer un autre salarié** ou **Aller à la liste**.
+
+![Salarié créé](/guide-utilisateur/captures/assistant-salarie-cree.png)
+
+## Compte RH sans rôle paie
+Le compte RH ne voit pas l'étape Rémunération : l'affectation de la structure salariale relève de la paie. La fiche est créée sans structure et l'écran final le rappelle. La paie l'affecte ensuite sur la fiche, section **Structure salariale**. Sans structure, le salarié n'a pas de bulletin.
+
+![Création sans structure salariale](/guide-utilisateur/captures/assistant-cree-sans-structure.png)
+
+## Erreurs fréquentes
+- **« Le prénom est obligatoire. »** (et messages semblables) : l'étape ne se valide pas tant que le champ n'est pas rempli.
+
+  ![Champ obligatoire](/guide-utilisateur/captures/assistant-champ-obligatoire.png)
+- **« Droits insuffisants : l'affectation de la structure salariale relève de la paie ou d'un administrateur »** : un compte RH seul a tenté d'affecter la structure.
+- **« Net cible invalide »** : le net souhaité doit être supérieur à zéro.
+
+## Règle de gestion
+Les avertissements (téléphone, e-mail, RIB, catégorie absente) ne bloquent jamais ; seules les erreurs certaines (champ obligatoire, date incohérente) bloquent. Les paramètres fiscaux et sociaux proposés restent ceux de l'application (statut ◐ à confirmer, voir le [Glossaire](/guide-utilisateur/glossaire)).
+
+## Voir aussi
+[Embaucher un salarié](/guide-utilisateur/embaucher-un-salarie) · [Simulateur net / brut](/guide-utilisateur/simulateur-net-brut) · [Rôles et droits](/guide-utilisateur/roles-et-droits)

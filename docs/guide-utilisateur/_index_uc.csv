@@ -135,3 +135,7 @@ UC-E-REGULARISATIONS,temps-de-travail.mdx,web/e2e/sim (campagne 2),VERT
 UC-H-DEMANDE,demandes-du-salarie.mdx,web/e2e/sim (campagne 2),VERT
 UC-B-EMBAUCHE-APPRENTISSAGE,embaucher-un-salarie.mdx,web/e2e/sim (campagne 2),VERT
 UC-I-SIMULATION-AJOUT,simuler-une-reorganisation.mdx,web/e2e/sim (campagne 2),VERT
+UC-B-ASSISTANT-COMPLET,assistant-de-creation-salarie.mdx,web/e2e/sim/60-assistant.sim.spec.ts,VERT
+UC-B-ASSISTANT-RH-SEUL,assistant-de-creation-salarie.mdx,web/e2e/sim/60-assistant.sim.spec.ts,VERT
+UC-B-ASSISTANT-OBLIGATOIRE,assistant-de-creation-salarie.mdx,web/e2e/sim/60-assistant.sim.spec.ts,VERT
+UC-B-SAISIE-COMPLETE,assistant-de-creation-salarie.mdx,web/e2e/sim/60-assistant.sim.spec.ts,VERT

@@ -25,6 +25,7 @@ for (const [i, [code, libelle, nom]] of TYPES.entries()) {
     }
     const e = makeEmployee(5000 + i, SECTORS[0], '2026-11-02')
     await rh.goto('/salaries/nouveau')
+    await rh.getByRole('button', { name: 'Saisie complète' }).click()
     await field(rh, 'Sexe').selectOption(e.sex)
     await field(rh, 'Prénom').fill(`Sim${code}`)
     await field(rh, 'Nom').fill(e.ln)
