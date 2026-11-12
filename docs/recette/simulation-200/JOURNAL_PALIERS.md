@@ -256,3 +256,6 @@ Revues base de données et sécurité du commit `e68ddcf` (migration `2026121609
 | COT-06 | Retour arrière laissait les versements de synchronisation | suppression des lignes « Suivi des versements par caisse » | VERT |
 | COT-07 | Nom de caisse libre : une faute de frappe crée une ligne orpheline | non corrigé : liste fermée non ajoutée (valeurs à confirmer avec le propriétaire) | ORANGE |
 Contrôles : SQL 63 tests, mêmes 12 échecs de données manquantes, `cotisations_corrections` et `cotisations_versements` OK ; types et build OK ; menu et accessibilité 19/19 (un premier passage a échoué parce que le serveur de développement s'était arrêté ; relancé, 19/19).
+
+### Mise en ligne des migrations cotisations (12/11/2026)
+Migrations `20261216090000` et `20261216100000` appliquées en ligne par le propriétaire. Vérifié en lecture seule : table et vue présentes, vue filtrée par rôle, verrou par mois dans la synchronisation, 2 contraintes de longueur, vue non lisible par `anon` ; 27 salariés, 0 versement, 0 ligne de suivi (aucune donnée touchée). Toutes les migrations de la branche sont désormais appliquées en ligne.
