@@ -5,7 +5,7 @@ Mis à jour et commité à la fin de chaque étape. Les miniatures (120 px) renv
 | Étape | Statut | Tests joués (pass/fail) | Pages écrites | Captures | Dernier commit |
 |---|---|---|---|---|---|
 | A. Environnement et base | fait | — | 0 | — | voir `git log` |
-| B. Helper de capture | à faire | | | | |
+| B. Helper de capture | fait | 1 pass (`capture.mask.test.mjs`) ; `npm run check` 0 erreur | 0 | — | voir `git log` |
 | C. Rejeu complet (blocs A à J) | à faire | | | | |
 | D. Matrices et dossier de reprise | à faire | | | | |
 | E. Rédaction du guide | à faire | | | | |
