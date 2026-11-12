@@ -218,3 +218,18 @@ Contrôles : SQL 60 tests, 12 échecs (tous de données manquantes), `revue_corr
 | MEL-02 | Alertes de sécurité Supabase : 4 (INFO RLS sans politique ; WARN extension dans `public` ; WARN fonctions `security definer` appelables par un compte connecté, 133 sur 160, aucune par `anon` ; WARN protection contre les mots de passe compromis désactivée). Le détail par objet n'est pas fourni par l'outil. | ORANGE |
 | MEL-03 | Fonction Edge `phone-auth` déployée (version 1, `verify_jwt` désactivé). **Défaut trouvé et corrigé avant déploiement** : la pré-vérification CORS répondait `204` avec un corps, ce que Deno refuse ; sans correction, le téléphone en ligne n'aurait jamais fonctionné depuis le navigateur. Vérifié en ligne : OPTIONS 204 avec en-têtes CORS, corps invalide 400, GET 405. | VERT |
 | MEL-04 | Reste à faire par le propriétaire : secret `PHONE_AUTH_PEPPER`, réinitialisation du mot de passe de la base, URL de redirection, protection contre les mots de passe compromis, `scripts/vercel-deploy.ps1`. Tant que le secret n'est pas posé, les routes `login` et `set-password` échouent ; ne pas annoncer la fonctionnalité aux salariés. Test réel de bout en bout contre Supabase : à faire après le secret. | À FAIRE |
+
+### Test réel de bout en bout contre Supabase (12/11/2026, accord du propriétaire)
+Fiche synthétique « Tel E2E » (numéro fictif), fonction Edge `phone-auth` en ligne, secret `PHONE_AUTH_PEPPER` posé par le propriétaire.
+
+| Réf | Constat | Statut |
+|---|---|---|
+| MEL-05 | Demande : numéro connu et inconnu, réponse identique (200). | VERT |
+| MEL-06 | Ouverture : mauvaise date refusée (message neutre), bonne date : jeton. Mot de passe trivial refusé (422), valide accepté, jeton réutilisé refusé (400). Création du compte par l'API admin avec le mot de passe dérivé de 64 caractères : fonctionne. | VERT |
+| MEL-07 | Connexion : mauvais mot de passe 400, bon mot de passe : jetons de session. | VERT |
+| MEL-08 | Isolation avec le jeton du compte téléphone : ne voit que sa fiche, 0 paie, 0 bulletin, rôle `salarie` seul ; RPC d'autorisation refusée (« Réservé aux administrateurs ») ; `next_employee_number` et `login_lock_fail` : 403. | VERT |
+| MEL-09 | Révocation : compte banni, rôles retirés, fiche déliée ; l'ancien jeton, encore valide, ne lit plus ni la fiche ni les rôles (coupure immédiate). | VERT |
+| MEL-10 | **Défaut trouvé** : `banned_until = 'infinity'` fait échouer le service d'authentification de Supabase (« unsupported Scan … banned_until ») : toute connexion du compte révoqué renvoyait 503 « Service indisponible » au lieu de 400, et la réactivation risquait d'échouer. Corrigé : migration `20261215110000_phone_ban_date_finie.sql` (date lointaine finie, 100 ans) ; hypothèse vérifiée en ligne sur le compte de test (400 normal après correction manuelle de la date). Migration à appliquer en ligne. | ROUGE → corrigé (à appliquer) |
+| MEL-11 | Réinitialisation après révocation : nouvelle demande (objet `reset`), autorisation, ouverture, nouveau mot de passe : l'ancien est refusé (400), le nouveau fonctionne. | VERT |
+| MEL-12 | L'autorisation par l'administrateur a été simulée en SQL (l'écran admin n'est pas joignable sans session admin en ligne) ; le parcours d'écran est couvert en local. | ORANGE |
+| MEL-13 | **Nettoyage en ligne refusé** par le système de permissions (suppressions) : la fiche TEL-E1, le compte `221700005100@tel.soma-rh.invalid`, ses demandes et tentatives restent en ligne. À supprimer par le propriétaire (SQL fourni). | À FAIRE |
