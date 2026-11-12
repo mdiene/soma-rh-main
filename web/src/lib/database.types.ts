@@ -6694,6 +6694,18 @@ export type Database = {
         Args: { p_employee: Json; p_assignment?: Json; p_receipts?: string[] }
         Returns: Json
       }
+      structure_pending_alerts: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          code: string
+          due_date: string
+          employee_id: string
+          employee_name: string
+          employee_number: string
+          message: string
+          severity: string
+        }[]
+      }
       simulate_net_for_draft: {
         Args: { p_employee: Json; p_assignment: Json; p_target_net: number; p_period_start?: string }
         Returns: Json

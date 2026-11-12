@@ -82,3 +82,37 @@ test('premier mois complet pour la simulation du net', () => {
   assert.equal(w.firstFullMonth('2026-11-02'), '2026-12-01')
   assert.equal(w.firstFullMonth('2026-12-15'), '2027-01-01')
 })
+
+test('parts : aucune proposition sans règle ; calcul plafonné avec une règle d’essai', () => {
+  assert.equal(w.PARTS_RULE, null)
+  assert.equal(w.proposeParts(null, 'Marié(e)', 2), null)
+  const rule = { base: 1, married: 1, perChild: 0.5, max: 5, trimfFollowsIr: true } // valeurs d'essai, sans rapport avec la loi
+  assert.deepEqual(w.proposeParts(rule, 'Célibataire', 0), { ir: 1, trimf: 1 })
+  assert.deepEqual(w.proposeParts(rule, 'Marié(e)', 3), { ir: 3.5, trimf: 3.5 })
+  assert.equal(w.proposeParts(rule, 'Marié(e)', 20).ir, 5)
+  assert.equal(w.proposeParts({ ...rule, trimfFollowsIr: false }, 'Marié(e)', 1).trimf, null)
+})
+
+test('doublons : nom, prénom et date de naissance, ou numéro de pièce', () => {
+  const a = { first_name: 'Aïssatou', last_name: 'CISSÉ', date_of_birth: '1990-05-12', id_document_number: '1 234 567' }
+  assert.ok(w.isLikelyDuplicate(a, { first_name: 'aissatou', last_name: 'Cissé', date_of_birth: '1990-05-12' }))
+  assert.ok(w.isLikelyDuplicate(a, { first_name: 'Aissatou', last_name: 'Cissé', date_of_birth: null }))
+  assert.ok(!w.isLikelyDuplicate(a, { first_name: 'Aissatou', last_name: 'Cissé', date_of_birth: '1985-01-01' }))
+  assert.ok(!w.isLikelyDuplicate(a, { first_name: 'Mariama', last_name: 'Cissé', date_of_birth: '1990-05-12' }))
+  assert.ok(w.isLikelyDuplicate({ id_document_number: '1234567' }, { first_name: 'X', last_name: 'Y', id_document_number: '1 234 567' }))
+  assert.ok(!w.isLikelyDuplicate({ first_name: '', last_name: '' }, { first_name: '', last_name: '' }))
+})
+
+test('brouillon : contenu minimal, expiration et formes invalides', () => {
+  assert.equal(w.draftHasContent({ employment_type: 'CDI' }), false)
+  assert.equal(w.draftHasContent({ first_name: 'A' }), true)
+  const base = { draft: { first_name: 'A' }, assign: {}, receipts: ['x'], index: 2, reached: 3, withPayroll: true }
+  const now = 1_000_000_000_000
+  const raw = w.serializeDraft(base, now)
+  assert.deepEqual(w.parseDraft(raw, now + 1000)?.draft, { first_name: 'A' })
+  assert.equal(w.parseDraft(raw, now + w.DRAFT_TTL_MS + 1), null)
+  assert.equal(w.parseDraft('pas du json', now), null)
+  assert.equal(w.parseDraft(null, now), null)
+  assert.equal(w.parseDraft(JSON.stringify({ v: 2 }), now), null)
+  assert.equal(w.parseDraft(raw, now - 10 * 60_000), null)
+})

@@ -520,3 +520,12 @@
 {"uc":"UC-B-ASSISTANT-RH-SEUL","status":"VERT","note":"création sans structure, message de délégation à la paie","at":"2026-11-12T19:40:34.581Z"}
 {"uc":"UC-B-ASSISTANT-OBLIGATOIRE","status":"VERT","note":"étape bloquée sans prénom ; abandon avec confirmation","at":"2026-11-12T19:40:37.631Z"}
 {"uc":"UC-B-SAISIE-COMPLETE","status":"VERT","note":"choix de la saisie complète, formulaire sur une page","at":"2026-11-12T19:40:39.957Z"}
+{"uc":"UC-B-ASSISTANT-DOUBLON","status":"VERT","note":"homonyme S0728 signalé, saisie non bloquée","at":"2026-11-12T20:48:52.255Z"}
+{"uc":"UC-B-ASSISTANT-BROUILLON","status":"VERT","note":"brouillon conservé, repris à la bonne étape, effacé à l'abandon","at":"2026-11-12T20:48:59.055Z"}
+{"uc":"UC-B-ASSISTANT-PARTS","status":"VERT","note":"note affichée : règle des parts non définie, saisie manuelle","at":"2026-11-12T20:49:02.511Z"}
+{"uc":"UC-B-ASSISTANT-MOBILE","status":"VERT","note":"fenêtre en plein écran à 390 px, boutons visibles","at":"2026-11-12T20:49:05.369Z"}
+{"uc":"UC-E-ALERTE-STRUCTURE","status":"VERT","note":"alerte « structure à affecter » visible pour le compte paie","at":"2026-11-12T20:49:10.297Z"}
+{"uc":"UC-B-ASSISTANT-COMPLET","status":"VERT","note":"salarié S0957 créé par l'assistant avec structure et calcul du net","at":"2026-11-12T20:55:26.091Z"}
+{"uc":"UC-B-ASSISTANT-RH-SEUL","status":"VERT","note":"création sans structure, message de délégation à la paie","at":"2026-11-12T20:55:30.694Z"}
+{"uc":"UC-B-ASSISTANT-OBLIGATOIRE","status":"VERT","note":"étape bloquée sans prénom ; abandon avec confirmation","at":"2026-11-12T20:55:33.474Z"}
+{"uc":"UC-B-SAISIE-COMPLETE","status":"VERT","note":"choix de la saisie complète, formulaire sur une page","at":"2026-11-12T20:55:35.099Z"}

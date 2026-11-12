@@ -7,7 +7,7 @@ import type { Json } from '../lib/database.types'
 import { selectable, useAgreements, useContractTypes, useDesignations, useGrades, usePaymentModes } from '../lib/queries'
 import { useAuth } from '../lib/auth'
 import { fcfa } from '../lib/format'
-import { contractQuestions, firstFullMonth, reviewIssues, softWarnings, stepsFor, toPayload, validateStep, type Draft } from '../lib/employeeWizard'
+import { contractQuestions, draftHasContent, firstFullMonth, isLikelyDuplicate, parseDraft, PARTS_RULE, proposeParts, reviewIssues, serializeDraft, softWarnings, stepsFor, toPayload, validateStep, type Draft, type SavedDraft } from '../lib/employeeWizard'
 import { Button, ErrorNote, Modal, SelectField, Spinner, TextField } from './ui'
 
 const INITIAL: Draft = {
@@ -42,9 +42,10 @@ const num = (v: unknown, d: string | number = ''): string | number => (v === nul
 
 type CreateResult = { id: string; employee_number: string; structure_assigned: boolean; sursalaire: number | null; gross_pay: string | null; net_pay: string | null }
 type Sim = { sursalaire: number; gross_pay: string; net_pay: string }
+type DupRow = { id: string; employee_number: string; first_name: string; last_name: string; date_of_birth: string | null; id_document_number: string | null }
 
 export function EmployeeWizard({ open, onClose }: { open: boolean; onClose: () => void }) {
-  const { can } = useAuth()
+  const { can, session } = useAuth()
   const canPayroll = can('paie')
   const nav = useNavigate()
   const qc = useQueryClient()
@@ -80,6 +81,50 @@ export function EmployeeWizard({ open, onClose }: { open: boolean; onClose: () =
 
   useEffect(() => { heading.current?.focus() }, [index, result])
 
+  /* brouillon dans le navigateur : conservé 7 jours sur ce poste, effacé à la création et à l'abandon */
+  const draftKey = `soma.assistant-salarie.brouillon.${session?.user.id ?? 'anonyme'}`
+  const [saved, setSaved] = useState<SavedDraft | null>(null)
+  useEffect(() => {
+    if (!open) return
+    try { setSaved(parseDraft(localStorage.getItem(draftKey))) } catch { setSaved(null) }
+  }, [open, draftKey])
+  useEffect(() => {
+    if (!open || result || saved || !draftHasContent(draft)) return
+    const t = setTimeout(() => {
+      try { localStorage.setItem(draftKey, serializeDraft({ draft, assign, receipts, index, reached, withPayroll })) } catch { /* brouillon non conservé */ }
+    }, 400)
+    return () => clearTimeout(t)
+  }, [open, result, saved, draft, assign, receipts, index, reached, withPayroll, draftKey])
+  const clearDraft = () => { try { localStorage.removeItem(draftKey) } catch { /* rien à effacer */ } }
+  function resumeDraft() {
+    if (!saved) return
+    const i = Math.min(saved.index, steps.length - 1)
+    setDraft(saved.draft); setAssign(saved.assign); setReceipts(saved.receipts); setWithPayroll(saved.withPayroll)
+    setIndex(i); setReached(Math.min(Math.max(saved.reached, i), steps.length - 1)); setSaved(null)
+  }
+  function discardDraft() { clearDraft(); setSaved(null) }
+
+  /* doublons probables : même numéro de pièce, ou mêmes nom, prénom et date de naissance (avertissement, jamais bloquant) */
+  const dupFirst = String(draft.first_name ?? '').trim()
+  const dupLast = String(draft.last_name ?? '').trim()
+  const dupDoc = String(draft.id_document_number ?? '').trim()
+  const dups = useQuery({
+    queryKey: ['wizard-duplicates', dupFirst, dupLast, draft.date_of_birth, dupDoc],
+    enabled: open && (step.id === 'identite' || step.id === 'revue') && ((dupFirst.length >= 2 && dupLast.length >= 2) || dupDoc.length >= 4),
+    queryFn: async () => {
+      const cols = 'id, employee_number, first_name, last_name, date_of_birth, id_document_number'
+      const found = new Map<string, DupRow>()
+      if (dupFirst.length >= 2 && dupLast.length >= 2) {
+        const prefix = dupLast.replace(/[%,()*_]/g, ' ').trim().slice(0, 2)
+        for (const r of unwrap(await dataApi.from('employees').select(cols).ilike('last_name', `${prefix}%`).limit(200)) as DupRow[]) found.set(r.id, r)
+      }
+      if (dupDoc.length >= 4) {
+        for (const r of unwrap(await dataApi.from('employees').select(cols).eq('id_document_number', dupDoc).limit(10)) as DupRow[]) found.set(r.id, r)
+      }
+      return [...found.values()].filter((x) => isLikelyDuplicate(draft, x))
+    },
+  })
+
   const set = (k: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const v = e.target.type === 'number' ? (e.target.value === '' ? null : Number(e.target.value)) : e.target.value
     setDraft((d) => ({ ...d, [k]: v }))
@@ -96,7 +141,9 @@ export function EmployeeWizard({ open, onClose }: { open: boolean; onClose: () =
   function reset() {
     setDraft(INITIAL); setAssign(INITIAL_ASSIGN); setReceipts([]); setIndex(0); setReached(0); setTried(false); setResult(null); setWithPayroll(true); setConfirmCancel(false)
   }
-  function close() { reset(); onClose() }
+  function close() { clearDraft(); reset(); onClose() }
+  // la croix de l'en-tête garde le brouillon pour une reprise ; « Abandonner » l'efface
+  function leave() { reset(); onClose() }
   function next() {
     setTried(true)
     if (issues.length > 0) return
@@ -112,7 +159,7 @@ export function EmployeeWizard({ open, onClose }: { open: boolean; onClose: () =
       p_assignment: (payrollRequested ? toPayload(effectiveAssign) : null) as unknown as Json,
       p_receipts: receipts,
     })) as unknown as CreateResult,
-    onSuccess: (r) => { setResult(r); qc.invalidateQueries({ queryKey: ['employees'] }); qc.invalidateQueries({ queryKey: ['next-employee-number'] }) },
+    onSuccess: (r) => { clearDraft(); setResult(r); qc.invalidateQueries({ queryKey: ['employees'] }); qc.invalidateQueries({ queryKey: ['next-employee-number'] }) },
   })
 
   const label = (k: string, v: unknown): string => {
@@ -155,6 +202,28 @@ export function EmployeeWizard({ open, onClose }: { open: boolean; onClose: () =
 
   /* ------------------------------------------------------------------- étapes */
   const fieldErrors = tried ? issues : []
+  const parts = proposeParts(PARTS_RULE, draft.marital_status, draft.children_count)
+  const partsBlock = parts
+    ? <div className="sm:col-span-3"><Button size="sm" onClick={() => setDraft((d) => ({ ...d, ir_parts: parts.ir, ...(parts.trimf !== null ? { trimf_parts: parts.trimf } : {}) }))}>Appliquer la proposition : {parts.ir} part(s) IR</Button></div>
+    : <p role="note" className="text-xs text-ink-soft sm:col-span-3">Le calcul automatique des parts n’est pas encore défini dans l’application : saisissez-les à la main.</p>
+  const banner = saved && (
+    <div role="status" className="mb-3 flex flex-wrap items-center gap-2 rounded border border-river/30 bg-river-light px-3 py-2 text-sm text-river-dark">
+      <span>Un brouillon du {new Date(saved.savedAt).toLocaleString('fr-FR')} est disponible ({String(saved.draft.first_name ?? '')} {String(saved.draft.last_name ?? '')}).</span>
+      <Button size="sm" variant="primary" onClick={resumeDraft}>Reprendre</Button>
+      <Button size="sm" onClick={discardDraft}>Repartir de zéro</Button>
+    </div>
+  )
+  const dupPanel = (step.id === 'identite' || step.id === 'revue') && (dups.data ?? []).length > 0 && (
+    <div role="note" className="mb-3 rounded border border-phosphate bg-phosphate-light px-3 py-2 text-sm text-ink">
+      <p className="font-medium">Un salarié semble déjà exister :</p>
+      <ul className="mt-1 list-disc pl-5">
+        {(dups.data ?? []).map((x) => (
+          <li key={x.id}>{x.employee_number} {x.first_name} {x.last_name}{x.date_of_birth ? ` (né(e) le ${x.date_of_birth})` : ''} — <a className="underline" href={`/salaries/${x.id}`} target="_blank" rel="noreferrer">ouvrir la fiche (nouvel onglet)</a></li>
+        ))}
+      </ul>
+      <p className="mt-1 text-xs">Vérifiez avant de continuer : il peut s’agir d’un homonyme.</p>
+    </div>
+  )
   const body = () => {
     switch (step.id) {
       case 'identite': return (
@@ -193,6 +262,7 @@ export function EmployeeWizard({ open, onClose }: { open: boolean; onClose: () =
           <TextField label="Enfants à charge" type="number" min={0} value={num(draft.children_count, 0)} onChange={set('children_count')} />
           <TextField label="Parts TRIMF" type="number" step="0.5" min={1} value={num(draft.trimf_parts, 1)} onChange={set('trimf_parts')} />
           <TextField label="Parts IR (quotient familial)" type="number" step="0.5" min={1} max={5} value={num(draft.ir_parts, 1)} onChange={set('ir_parts')} hint="De 1 à 5 parts" />
+          {partsBlock}
         </div>)
       case 'contrat': return (
         <div className="grid gap-3 sm:grid-cols-2">
@@ -320,7 +390,7 @@ export function EmployeeWizard({ open, onClose }: { open: boolean; onClose: () =
   const isLast = index === steps.length - 1
   return (
     <>
-      <Modal open={open} onClose={close} persistent wide title="Nouveau salarié — assistant de saisie"
+      <Modal open={open} onClose={leave} persistent wide fullscreenOnMobile title="Nouveau salarié — assistant de saisie"
         footer={<>
           {confirmCancel ? (
             <>
@@ -352,6 +422,8 @@ export function EmployeeWizard({ open, onClose }: { open: boolean; onClose: () =
         </nav>
         <h3 ref={heading} tabIndex={-1} className="text-base font-semibold outline-none">{index + 1}. {step.title}</h3>
         <p className="mb-3 text-sm text-ink-soft">{step.help}</p>
+        {banner}
+        {dupPanel}
         {fieldErrors.length > 0 && (
           <div role="alert" className="mb-3 rounded border border-signal/30 bg-signal-light px-3 py-2 text-sm text-signal">
             <ul className="list-disc pl-4">{fieldErrors.map((i) => <li key={i.field + i.message}>{i.message}</li>)}</ul>
