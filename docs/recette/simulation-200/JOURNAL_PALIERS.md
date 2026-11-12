@@ -233,3 +233,12 @@ Fiche synthétique « Tel E2E » (numéro fictif), fonction Edge `phone-auth` en
 | MEL-11 | Réinitialisation après révocation : nouvelle demande (objet `reset`), autorisation, ouverture, nouveau mot de passe : l'ancien est refusé (400), le nouveau fonctionne. | VERT |
 | MEL-12 | L'autorisation par l'administrateur a été simulée en SQL (l'écran admin n'est pas joignable sans session admin en ligne) ; le parcours d'écran est couvert en local. | ORANGE |
 | MEL-13 | **Nettoyage en ligne refusé** par le système de permissions (suppressions) : la fiche TEL-E1, le compte `221700005100@tel.soma-rh.invalid`, ses demandes et tentatives restent en ligne. À supprimer par le propriétaire (SQL fourni). | À FAIRE |
+
+### Clôture de l'étape 9 (12/11/2026)
+Actions du propriétaire confirmées : migration `20261215110000` appliquée en ligne, données de test supprimées, mot de passe de la base changé, URL de redirection saisie, `scripts/vercel-deploy.ps1` terminé sans erreur.
+Vérifié en lecture seule : en ligne, 27 salariés, 0 fiche de test, 0 compte téléphone, 0 demande, 0 tentative, 0 compte banni avec `infinity`, fonction `phone_access_disable` à jour (bannissement à 100 ans), 0 paie ; `https://soma-rh.vercel.app` répond 200 et son bundle contient l'URL de la fonction `phone-auth` et le projet Supabase, aucune clé `service_role`.
+| Réf | Constat | Statut |
+|---|---|---|
+| MEL-14 | Mise en ligne : base, fonction Edge et site Vercel cohérents ; test réel de bout en bout validé (MEL-05 à MEL-11). | VERT |
+| MEL-15 | Protection contre les mots de passe compromis : non confirmée par le propriétaire (alerte Supabase `auth_leaked_password_protection`). | À CONFIRMER |
+| MEL-16 | Parcours téléphone joué depuis le site en ligne, dans un navigateur : non fait (seul l'appel direct à la fonction a été testé). Revue des 133 fonctions `security definer` appelables par un compte connecté : non faite une à une. | À FAIRE |

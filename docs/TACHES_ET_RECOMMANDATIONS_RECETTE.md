@@ -278,3 +278,9 @@ Spécification : `docs/modules/MODULES_METIER_VERTICAUX_SOMA_RH.md` (v2) ; manif
 
 - [ ] **CC-01** Après « Enregistrer et relancer le scan », la fiche du constat se ferme quand le constat est résolu. Décider s'il faut plutôt enchaîner sur le constat suivant de la liste (`FindingsTab.tsx`, état `openId`).
 - [ ] **CC-02** `run_compliance_scan` est global : mesurer la durée de l'enregistrement sur une base volumineuse ; si elle gêne, prévoir un rescan limité au salarié modifié.
+
+### Suivi des cotisations par caisse (2026-11-12)
+
+- [ ] **CC-03** Paiement partiel d'une caisse : le montant payé est enregistré égal au montant dû. Ajouter un champ « montant versé » (la colonne `amount_paid` existe déjà dans `contribution_payment_lines`) dans la fenêtre « Marquer payé » de `PayrollContributionsPage.tsx`, et l'afficher dans le détail et l'historique.
+- [ ] **CC-04** Régénérer `web/src/lib/database.types.ts` : la génération a été interrompue, le fichier ne contient ni `contribution_payment_lines` ni `v_contribution_follow`. La page utilise le client sans types (`dataApi as unknown as ApiClient`), à remplacer par le client typé après régénération.
+- [ ] **CC-05** Lancer `menu.spec.ts` et `a11y.spec.ts` (nouvelle page `/paie/cotisations`, nouvelle entrée de menu) et vérifier à l'écran la fiche du constat, la surbrillance et le retour au constat.
