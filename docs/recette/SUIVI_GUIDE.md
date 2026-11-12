@@ -36,7 +36,7 @@ Sur base remise à zéro, le référentiel « Emplois » est vide : 23 emplois c
 ### Parcours existants rejoués (base remise à zéro) — aucun ROUGE, aucune régression par rapport au palier 10
 | Fichier | Résultat | Remarque |
 |---|---|---|
-| 06-comptes (nouveau) | 2/2 VERT | comptes reliés aux fiches, équipe de  (captures acces-*, equipes-*) |
+| 06-comptes (nouveau) | 2/2 VERT | comptes reliés aux fiches, équipe de `sim-mgr-1` (captures acces-*, equipes-*) |
 | 11-octobre | 4/4 VERT | sortie D-56, congé, prêt (plafond 1/3 refusé : « Retenue mensuelle trop élevée… »), calcul et clôture d'octobre |
 | 12-reouverture | VERT | réouverture motivée, recalcul (1 ligne RET_PRORATA), reclôture |
 | 20-roles | 8/8 VERT | pages autorisées par rôle, refus pour manager et salarié, isolation des bulletins |
@@ -45,6 +45,6 @@ Sur base remise à zéro, le référentiel « Emplois » est vide : 23 emplois c
 | 32-telephone | 6/6 VERT | demande, autorisation admin, usage unique, 5 dates fausses, réinitialisation/révocation, refus |
 | e2e menu / a11y / conformité / téléphone | 12 / 10 / 10 / 7 VERT | comptes QA régénérés depuis les comptes SIM |
 
-**Constat ORANGE du palier 10 (étape manager des congés) : TRANCHÉ.** Rejoué :  approuve l'étape 1 (« Mon équipe »),  l'étape 2 ; état final « Approuvée ». Plus d'ORANGE.
+**Constat ORANGE du palier 10 (étape manager des congés) : TRANCHÉ.** Rejoué : `sim-mgr-1` approuve l'étape 1 (« Mon équipe »), `sim-rh` l'étape 2 ; état final « Approuvée ». Plus d'ORANGE.
 
-**Outillage** :  échoue (403, l'inscription publique est fermée) ;  (hors Git) régénéré depuis . Matricules des tests décalés (+433) après la remise à zéro.
+**Outillage** : `qa-create-users.ps1` échoue (403, l'inscription publique est fermée) ; `tests/.env.qa` (hors Git) régénéré depuis `tests/.env.qa-sim`. Matricules des tests décalés (+433) après la remise à zéro.
