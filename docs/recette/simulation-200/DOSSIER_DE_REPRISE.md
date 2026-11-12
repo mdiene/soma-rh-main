@@ -133,3 +133,26 @@ Prompt de reprise pour poursuivre le chantier : `docs/recette/PROMPT_REPRISE_202
 - `scripts/check-migrations.sh` signale des préfixes en double (20261204090000, 20261206090000, 20261207090000, 20261208090000) : antérieurs au chantier, à traiter ou à ajouter à la liste d'exceptions.
 
 Prompt pour rejouer la simulation sur une base remise à zéro, en parallèle : `docs/recette/PROMPT_PARALLELE_PALIER_10_PARTIE_2.md`.
+
+## Rejeu du 12/11/2026 sur base remise à zéro (palier 11)
+
+Tous les parcours existants ont été rejoués : aucun ROUGE, aucune régression par rapport au palier 10. L'étape manager des congés est confirmée (manager affecté : `sim-mgr-1` approuve l'étape 1, `sim-rh` l'étape 2), ce qui clôt l'ORANGE du palier 10.
+
+### RPR-16 — Section « Structure salariale » parfois absente sur une fiche neuve (ORANGE, à confirmer)
+```
+ID : RPR-16   Lien : nouveau (voisin de P1-07 / UC-STRUCT-RACE)
+Gravité / Statut : Mineur / ORANGE (intermittent, non reproduit à la demande)   Module : Salariés   Rôle(s) : paie
+Écran : /salaries/:id — section « Structure salariale »
+Reproduction : après création d'un salarié par le compte rh, ouvrir sa fiche avec le compte paie ; sur environ 200 embauches, 3 fois la section n'est pas apparue dans les 8 s (page blanche une fois).
+Attendu : la section se charge à chaque ouverture.
+Obtenu : élément introuvable après 8 s ; le test a été relancé avec 20 s et est passé.
+Cause probable : lenteur du serveur de développement ou chargement paresseux ; non établie.
+Correctif proposé : mesurer le temps de chargement (React Query) ; indicateur de chargement visible si la section tarde.
+Test d'acceptation : 200 ouvertures de fiche à la suite, section visible en moins de 8 s.
+Effort : S     Priorité : P3
+```
+
+### Outillage
+- `tests/fixtures/sim/reset-zero.sql` : tables `employee_loan_caps`, `phone_access_accounts`, `phone_access_requests`, `phone_access_tokens` ajoutées à la liste (corrigé).
+- `scripts/qa-create-users.ps1` échoue (403 : l'inscription publique est fermée) ; non corrigé. `tests/.env.qa` régénéré à partir des comptes SIM.
+- `scripts/check-migrations.sh` : préfixes en double toujours signalés (déjà noté).
