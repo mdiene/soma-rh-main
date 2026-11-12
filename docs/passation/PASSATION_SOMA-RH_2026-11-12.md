@@ -20,3 +20,16 @@ Branche `docs/guide-utilisateur-complet` (issue de `fix/rpr-09-prorata`), **non 
 2. Donner l'accès au guide à tous les rôles (entrée « Aide » dans `nav.ts`, qui touche `menu.spec.ts` et `a11y.spec.ts`) ? Aujourd'hui salariés et managers n'ont pas les Paramètres.
 3. Rejouer les parcours non joués (heures supplémentaires, absences exceptionnelles, versements de cotisations, ordres de virement…) dans une seconde campagne ?
 4. Trancher les questions de `QUESTIONS_LEGALES_OUVERTES.md`.
+
+## Mise à jour du soir (12/11/2026) — publication, Aide et campagne 2
+- **Fusionné et poussé** : `docs/guide-utilisateur-complet` puis `test/guide-campagne-2` dans `main` (commits f1e4127 et 843cbba). `main` = `origin/main`.
+- **Guide ouvert à tous les rôles** : entrée « Aide et guide utilisateur » (`/aide`, `web/src/pages/HelpPage.tsx`, `nav.ts`, route dans `App.tsx`) pour salarié, manager, rh, paie (admin passe partout). Tests : `menu.spec.ts`, `a11y.spec.ts`, `guide.spec.ts` (aide en salarié et manager).
+- **Déployé en production** : https://soma-rh.vercel.app (`scripts/vercel-deploy.ps1`, deux déploiements, état READY). `.vercelignore` autorise désormais `docs/docs.json` et `docs/guide-utilisateur/` (le build les lit) ; le reste de `docs/` reste exclu. Penser à déclarer l'adresse dans Supabase (Authentication > URL Configuration).
+- **Campagne 2** (cas non testés) : verts = congés maladie, maternité, permission exceptionnelle, absence non payée ; présences avec heures supplémentaires, report en variables, planning ; variables du mois ; demande de profil traitée par la RH ; embauche en apprentissage ; ajout à la simulation de réorganisation. Guide passé à **28 pages**.
+- **RPR-18** (ORANGE, décision produit) : après approbation sans dotation, les soldes de ces congés deviennent négatifs. Question Q6 ajoutée dans `QUESTIONS_LEGALES_OUVERTES.md`.
+
+## Reste à jouer (troisième passe, libellés d'écran à relever d'abord)
+Vacations et heures de nuit (saisie) · saisie des versements de cotisations · ordres de virement et rapport de clôture · paiements par lot (BLOQUÉ, fonction absente) · ayants droit, documents, avenant, mutation · application effective d'une réorganisation · saisie des régularisations et des éléments récurrents · 7 fiches RPR `fixme` (03, 05, 07, 08, 11, 13, 15).
+
+## Nouveau chantier (à instruire)
+Assistant de création d'un salarié (wizard) : proposition dans `docs/propositions/PROPOSITION_ASSISTANT_CREATION_SALARIE.md`, sélection interactive des composants dans l'artefact lié à la conversation. Aucune ligne de code de l'application n'a encore été écrite pour ce chantier.
