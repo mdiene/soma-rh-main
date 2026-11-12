@@ -156,3 +156,13 @@ Effort : S     Priorité : P3
 - `tests/fixtures/sim/reset-zero.sql` : tables `employee_loan_caps`, `phone_access_accounts`, `phone_access_requests`, `phone_access_tokens` ajoutées à la liste (corrigé).
 - `scripts/qa-create-users.ps1` échoue (403 : l'inscription publique est fermée) ; non corrigé. `tests/.env.qa` régénéré à partir des comptes SIM.
 - `scripts/check-migrations.sh` : préfixes en double toujours signalés (déjà noté).
+
+### RPR-17 — Images du guide en 403 sur le serveur de développement (corrigée le 12/11/2026)
+```
+ID : RPR-17   Lien : nouveau (onglet « Documentation utilisateur »)
+Gravité / Statut : Mineur / corrigée avec l'accord du propriétaire   Module : Paramètres   Rôle(s) : tous ceux qui ouvrent l'onglet
+Écran : /parametres?onglet=documentation
+Obtenu : toutes les images du guide, anciennes comprises, répondaient HTTP 403 (Vite ne sert pas docs/, hors de web/) ; images cassées en développement. Le build de production n'était pas concerné.
+Correctif : web/vite.config.ts, server.fs.allow: ['..'] (développement seulement).
+Test d'acceptation : web/e2e/guide.spec.ts (24 pages, aucune image cassée) — VERT.
+```

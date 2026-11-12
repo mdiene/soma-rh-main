@@ -4,13 +4,15 @@ Mis à jour et commité à la fin de chaque étape. Les miniatures (120 px) renv
 
 | Étape | Statut | Tests joués (pass/fail) | Pages écrites | Captures | Dernier commit |
 |---|---|---|---|---|---|
-| A. Environnement et base | fait | — | 0 | — | voir `git log` |
-| B. Helper de capture | fait | 1 pass (`capture.mask.test.mjs`) ; `npm run check` 0 erreur | 0 | — | voir `git log` |
-| C. Rejeu complet (blocs A à J) | en cours : parcours existants rejoués (tous verts), parcours manquants à écrire | 05 1/1 · 06 2/2 · 10 5/5 · 11 4/4 · 12 1/1 · 20 8/8 · 30 7 fixme · 31 6/6 · 32 6/6 · menu 9/9 · a11y 7/7 · conformité 7/7 · téléphone 4/4 | 0 | <img src="../guide-utilisateur/captures/acces-fiches-reliees.png" width="120"> | voir `git log` |
-| D. Matrices et dossier de reprise | à faire | | | | |
-| E. Rédaction du guide | à faire | | | | |
-| F. Vérifications | à faire | | | | |
-| G. Clôture | à faire | | | | |
+| A. Environnement et base | fait | — | 0 | — | f760d21 |
+| B. Helper de capture | fait | 1 pass (capture.mask) ; check 0 erreur | 0 | — | a9e56f7 |
+| C. Rejeu complet (blocs A à J) | fait (parcours non joués listés) | sim 05/06/10/11/12/20/31/32/40/41/42/43 tous pass ; 30-rpr 7 fixme ; e2e menu 12, a11y 10, conformité 10, téléphone 7 pass | 0 | 64 dans captures/ | 514e19e |
+| D. Matrices et dossier de reprise | fait | — | 0 | — | 3278348 |
+| E. Rédaction du guide | fait | guide.test.mjs 7/7 | 24 (17 nouvelles, 4 mises à jour, index) | 64 | 3d08462 |
+| F. Vérifications | fait | unitaires 54/54, check/build OK, menu 12/12, a11y 10/10, onglet 2/2 ; SQL 14 échecs (données de scénario) ; verify-payroll écart attendu ; Mintlify NON TESTÉ (CLI `mint` absent) | 0 | onglet : <img src="simulation-200/capture-onglet-documentation.png" width="120"> | voir `git log` |
+| G. Clôture | fait | — | 0 | — | voir `git log` |
+
+Miniatures : <img src="../guide-utilisateur/captures/referentiels-emplois-liste.png" width="120"> <img src="../guide-utilisateur/captures/acces-fiches-reliees.png" width="120"> <img src="../guide-utilisateur/captures/embauche-cdd.png" width="120"> <img src="../guide-utilisateur/captures/salarie-certificat-de-travail.png" width="120"> <img src="../guide-utilisateur/captures/etat-livre-de-paie.png" width="120"> <img src="../guide-utilisateur/captures/simulateur-net-brut.png" width="120"> <img src="../guide-utilisateur/captures/paie-traitements.png" width="120"> <img src="../guide-utilisateur/captures/mes-bulletins.png" width="120">
 
 ## Étape A — notes
 - Branche `docs/guide-utilisateur-complet` créée depuis `fix/rpr-09-prorata` ; un premier commit isole l'onglet « Documentation utilisateur » (travail préexistant non commité).
@@ -48,3 +50,9 @@ Sur base remise à zéro, le référentiel « Emplois » est vide : 23 emplois c
 **Constat ORANGE du palier 10 (étape manager des congés) : TRANCHÉ.** Rejoué : `sim-mgr-1` approuve l'étape 1 (« Mon équipe »), `sim-rh` l'étape 2 ; état final « Approuvée ». Plus d'ORANGE.
 
 **Outillage** : `qa-create-users.ps1` échoue (403, l'inscription publique est fermée) ; `tests/.env.qa` (hors Git) régénéré depuis `tests/.env.qa-sim`. Matricules des tests décalés (+433) après la remise à zéro.
+
+## Étapes D à G — résumé
+- Matrice : 136 lignes (124 VERT, 0 ORANGE, 0 ROUGE, 1 BLOQUÉ paiements par lot, 11 NON JOUÉ). Fiches RPR-16 (ORANGE intermittent) et RPR-17 (corrigée, images 403 en développement).
+- Correction faite avec l'accord du propriétaire : `web/vite.config.ts` (`server.fs.allow`). Aucune autre correction de l'application.
+- Mintlify : NON TESTÉ, la commande `mint` n'est pas installée.
+- Risque : aucune des corrections RPR ouvertes n'a été faite pendant la campagne.

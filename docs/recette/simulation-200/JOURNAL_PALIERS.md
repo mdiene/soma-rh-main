@@ -259,3 +259,22 @@ Contrôles : SQL 63 tests, mêmes 12 échecs de données manquantes, `cotisation
 
 ### Mise en ligne des migrations cotisations (12/11/2026)
 Migrations `20261216090000` et `20261216100000` appliquées en ligne par le propriétaire. Vérifié en lecture seule : table et vue présentes, vue filtrée par rôle, verrou par mois dans la synchronisation, 2 contraintes de longueur, vue non lisible par `anon` ; 27 salariés, 0 versement, 0 ligne de suivi (aucune donnée touchée). Toutes les migrations de la branche sont désormais appliquées en ligne.
+
+## Palier 11 — rejeu complet sur base remise à zéro et guide utilisateur (12/11/2026)
+Base remise à zéro (sauvegarde `backups/soma-rh-20261112-153339.dump`), 20 comptes `sim-*` recréés, puis tout rejoué avec captures. Résultats : `resultats-playwright.jsonl` (lignes du 12/11), `MATRICE_UC.md`, `matrice.csv`.
+
+| Bloc | Parcours | Résultat |
+|---|---|---|
+| A | Emplois (23), écran de connexion, liaison comptes/fiches | VERT |
+| B | Embauche CDI/CDD/COD/STAGE/PRESTATION, RIB, sortie et certificat de travail | VERT (APPRENTISSAGE non rejoué) |
+| D | Congé : dotation, demande, étape manager (`sim-mgr-1`) puis RH | VERT — ORANGE du palier 10 clos |
+| E | Paliers 5 à 9 (100 → 200 salariés), octobre, prêt (plafond refusé puis accordé), réouverture et recalcul (1 ligne RET_PRORATA), simulateur | VERT |
+| F | Livre de paie, résumé des cotisations, charges patronales, écritures comptables, suivi des cotisations (lecture) | VERT |
+| G | Conformité (e2e 7/7, sans captures dédiées) | VERT |
+| I, J | 41 écrans par rôle ; pages autorisées et refusées ; isolation du salarié | VERT |
+| A (phone) | Accès par téléphone : demande, autorisation, usage unique, 5 dates fausses, réinitialisation, refus | VERT 6/6 |
+
+Non joué : heures supplémentaires et vacations, planning (saisie), absences exceptionnelles/maladie/maternité, saisie des versements, ordres de virement, paiements par lot (BLOQUÉ : fonction absente), ayants droit/avenant/mutation, simulation de réorganisation, 7 fiches RPR en `fixme`.
+
+Aucun ROUGE, aucune régression par rapport au palier 10. Intermittence ORANGE : section « Structure salariale » parfois absente (RPR-16). Défaut corrigé avec accord du propriétaire : images du guide en 403 sur le serveur de développement (RPR-17).
+Contrôles : unitaires 54/54, `npm run check` 0 erreur, build OK, menu 12/12, accessibilité 10/10, onglet Documentation 2/2. SQL : 63 tests, 14 échecs dont la majorité de données de scénario absentes (la dernière campagne en comptait 12 sur l'ancienne base) : à rejouer sur un scénario QA. `verify-payroll.ps1` : écart attendu (référence de 26 bulletins, base à 175/200), référence non réenregistrée.
