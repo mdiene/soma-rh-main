@@ -37,7 +37,7 @@ export function TextField({ label, hint, className, ...rest }: FieldProps & Inpu
     <label className={clsx('block', className)}>
       <span className="label">{label}</span>
       <input className="field" {...rest} />
-      {hint && <span className="mt-1 block text-xs text-ink-muted">{hint}</span>}
+      {hint && <span className="mt-1 block text-xs text-ink-soft">{hint}</span>}
     </label>
   )
 }
@@ -47,7 +47,7 @@ export function SelectField({ label, hint, className, children, ...rest }: Field
     <label className={clsx('block', className)}>
       <span className="label">{label}</span>
       <select className="field" {...rest}>{children}</select>
-      {hint && <span className="mt-1 block text-xs text-ink-muted">{hint}</span>}
+      {hint && <span className="mt-1 block text-xs text-ink-soft">{hint}</span>}
     </label>
   )
 }

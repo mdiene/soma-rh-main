@@ -47,6 +47,7 @@ test('B · embauche en apprentissage', async ({ browser }) => {
   if (deja.length) { record('UC-B-EMBAUCHE-APPRENTISSAGE', deja[0].employment_type === 'APPRENTISSAGE' ? 'VERT' : 'ROUGE', 'déjà créé'); return }
   const e = makeEmployee(5010, SECTORS[0], '2026-11-02')
   await rh.goto('/salaries/nouveau')
+  await rh.getByRole('button', { name: 'Saisie complète' }).click()
   await field(rh, 'Sexe').selectOption(e.sex)
   await field(rh, 'Prénom').fill('SimAPPRENTISSAGE')
   await field(rh, 'Nom').fill(e.ln)

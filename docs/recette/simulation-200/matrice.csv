@@ -146,3 +146,7 @@ bloc,role,parcours,test,statut,preuve
 "H","salarié/rh","UC-H-DEMANDE","web/e2e/sim/52-divers.sim.spec.ts","VERT","attestation de travail approuvée"
 "B","rh","UC-B-EMBAUCHE-APPRENTISSAGE","web/e2e/sim/52-divers.sim.spec.ts","VERT","type APPRENTISSAGE enregistré"
 "I","rh","UC-I-SIMULATION-AJOUT","web/e2e/sim/52-divers.sim.spec.ts","VERT","changement ajouté à la simulation (application effective non jouée)"
+"B","rh/paie","UC-B-ASSISTANT-COMPLET","web/e2e/sim/60-assistant.sim.spec.ts","VERT","salarié créé par l'assistant avec structure et calcul du net"
+"B","rh","UC-B-ASSISTANT-RH-SEUL","web/e2e/sim/60-assistant.sim.spec.ts","VERT","création sans structure, délégation à la paie"
+"B","rh","UC-B-ASSISTANT-OBLIGATOIRE","web/e2e/sim/60-assistant.sim.spec.ts","VERT","étape bloquée sans prénom ; abandon avec confirmation"
+"B","rh","UC-B-SAISIE-COMPLETE","web/e2e/sim/60-assistant.sim.spec.ts","VERT","formulaire complet conservé"

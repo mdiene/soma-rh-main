@@ -42,3 +42,16 @@ for (const [role, route] of [['admin', '/'], ['admin', '/modules'], ['admin', '/
     })
   })
 }
+
+test('assistant de création d\'un salarié : aucune violation dans la fenêtre', async ({ page }) => {
+  await start(page, '/salaries/nouveau')
+  await page.getByRole('button', { name: 'Avec l’assistant' }).click()
+  const dlg = page.getByRole('dialog', { name: /assistant de saisie/ })
+  await expect(dlg).toBeVisible()
+  expect(resume((await scan(page).include('[role="dialog"]').analyze()).violations)).toEqual([])
+  await dlg.getByLabel('Prénom', { exact: true }).fill('Axe')
+  await dlg.getByLabel('Nom', { exact: true }).fill('Test')
+  await dlg.getByRole('button', { name: 'Valider et continuer' }).click()
+  await expect(dlg.getByRole('heading', { name: /Coordonnées/ })).toBeVisible()
+  expect(resume((await scan(page).include('[role="dialog"]').analyze()).violations)).toEqual([])
+})

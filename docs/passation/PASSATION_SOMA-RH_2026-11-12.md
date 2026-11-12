@@ -33,3 +33,9 @@ Vacations et heures de nuit (saisie) · saisie des versements de cotisations · 
 
 ## Nouveau chantier (à instruire)
 Assistant de création d'un salarié (wizard) : proposition dans `docs/propositions/PROPOSITION_ASSISTANT_CREATION_SALARIE.md`, sélection interactive des composants dans l'artefact lié à la conversation. Aucune ligne de code de l'application n'a encore été écrite pour ce chantier.
+
+## Assistant de création d'un salarié — réalisé (branche `feat/assistant-creation-salarie`, non fusionnée, non déployée)
+- Migration locale appliquée : `db/migrations/20261217090000_assistant_creation_salarie.sql` (+ retour arrière) : table `employee_document_receipts`, fonctions `create_employee_from_wizard` (atomique) et `simulate_net_for_draft` ; test SQL `tests/sql/assistant_creation_salarie.sql` vert.
+- Interface : `web/src/components/EmployeeWizard.tsx`, règles `web/src/lib/employeeWizard.ts` (9 tests unitaires), choix du type de saisie sur `/salaries/nouveau`, `Modal` avec option `persistent`.
+- Tests : `web/e2e/sim/60-assistant.sim.spec.ts` (4/4), accessibilité de la fenêtre, menu 12/12, guide 7/7 ; page du guide « Créer un salarié avec l'assistant » (29 pages).
+- **Pour mettre en ligne** : appliquer la migration sur Supabase (`scripts/supabase-appliquer.ps1`), puis fusionner et déployer. Sans la migration, seule la saisie complète fonctionne en ligne.

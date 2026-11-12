@@ -272,7 +272,7 @@ export function EmployeeWizard({ open, onClose }: { open: boolean; onClose: () =
                   <label className="flex items-center gap-3 px-3 py-2 text-sm">
                     <input type="checkbox" checked={receipts.includes(r.code)} onChange={(e) => setReceipts((x) => e.target.checked ? [...x, r.code] : x.filter((c) => c !== r.code))} />
                     <span className="flex-1">{r.title}</span>
-                    <span className="text-xs text-ink-muted">{r.required ? 'requise' : 'facultative'}</span>
+                    <span className="text-xs text-ink-soft">{r.required ? 'requise' : 'facultative'}</span>
                   </label>
                 </li>
               ))}
@@ -353,14 +353,14 @@ export function EmployeeWizard({ open, onClose }: { open: boolean; onClose: () =
         <h3 ref={heading} tabIndex={-1} className="text-base font-semibold outline-none">{index + 1}. {step.title}</h3>
         <p className="mb-3 text-sm text-ink-soft">{step.help}</p>
         {fieldErrors.length > 0 && (
-          <ul role="alert" className="mb-3 list-disc rounded border border-signal/30 bg-signal-light py-2 pl-7 pr-3 text-sm text-signal">
-            {fieldErrors.map((i) => <li key={i.field + i.message}>{i.message}</li>)}
-          </ul>
+          <div role="alert" className="mb-3 rounded border border-signal/30 bg-signal-light px-3 py-2 text-sm text-signal">
+            <ul className="list-disc pl-4">{fieldErrors.map((i) => <li key={i.field + i.message}>{i.message}</li>)}</ul>
+          </div>
         )}
         {warnings.length > 0 && step.id !== 'revue' && (
-          <ul role="note" className="mb-3 list-disc rounded border border-phosphate bg-phosphate-light py-2 pl-7 pr-3 text-xs text-ink">
-            {warnings.map((i) => <li key={i.field + i.message}>{i.message}</li>)}
-          </ul>
+          <div role="note" className="mb-3 rounded border border-phosphate bg-phosphate-light px-3 py-2 text-xs text-ink">
+            <ul className="list-disc pl-4">{warnings.map((i) => <li key={i.field + i.message}>{i.message}</li>)}</ul>
+          </div>
         )}
         {body()}
       </Modal>
