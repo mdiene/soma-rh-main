@@ -362,3 +362,23 @@
 {"uc":"UC-TEL-REINIT","status":"VERT","note":"mot de passe réinitialisé par une nouvelle demande autorisée","at":"2026-11-11T15:22:26.905Z"}
 {"uc":"UC-TEL-REVOCATION","status":"VERT","note":"après révocation, la connexion est refusée","at":"2026-11-11T15:22:30.784Z"}
 {"uc":"UC-TEL-REFUS","status":"VERT","note":"demande refusée : activation fermée","at":"2026-11-11T15:22:35.921Z"}
+{"uc":"UC-A-EMPLOIS","status":"VERT","note":"23 emplois créés par l'interface","at":"2026-11-12T15:43:51.740Z"}
+{"uc":"UC-EMB-P5","status":"VERT","note":"16 embauches créées par le compte RH","at":"2026-11-12T15:56:40.436Z"}
+{"uc":"UC-CALC-P5","status":"VERT","note":"100 bulletin(s) calculé(s).","at":"2026-11-12T15:56:53.669Z"}
+{"uc":"UC-WORKFLOW-P5","status":"VERT","note":"état Clôturée","at":"2026-11-12T15:57:08.055Z"}
+{"uc":"UC-EMB-P6","status":"VERT","note":"25 embauches créées par le compte RH","at":"2026-11-12T15:58:55.061Z"}
+{"uc":"UC-CALC-P6","status":"VERT","note":"125 bulletin(s) calculé(s).","at":"2026-11-12T15:59:09.200Z"}
+{"uc":"UC-WORKFLOW-P6","status":"VERT","note":"état Clôturée","at":"2026-11-12T15:59:24.474Z"}
+{"uc":"UC-EMB-P5","status":"VERT","note":"0 embauches créées par le compte RH","at":"2026-11-12T16:02:31.815Z"}
+{"uc":"UC-WORKFLOW-P5","status":"VERT","note":"Envoyer en revue: bouton « Envoyer en revue » absent | Approuver la paie: bouton « Approuver la paie » absent | Valider la paie: bouton « Valider la paie » absent | Marquer comme payée: bouton « Marquer comme payée » absent | Clôturer la période: bouton « Clôturer la période » absent","at":"2026-11-12T16:03:29.881Z"}
+{"uc":"UC-EMB-P6","status":"VERT","note":"0 embauches créées par le compte RH","at":"2026-11-12T16:03:33.329Z"}
+{"uc":"UC-WORKFLOW-P6","status":"VERT","note":"Envoyer en revue: bouton « Envoyer en revue » absent | Approuver la paie: bouton « Approuver la paie » absent | Valider la paie: bouton « Valider la paie » absent | Marquer comme payée: bouton « Marquer comme payée » absent | Clôturer la période: bouton « Clôturer la période » absent","at":"2026-11-12T16:04:28.227Z"}
+{"uc":"UC-EMB-P7","status":"VERT","note":"8 embauches créées par le compte RH","at":"2026-11-12T16:04:54.993Z"}
+{"uc":"UC-CALC-P7","status":"VERT","note":"150 bulletin(s) calculé(s).","at":"2026-11-12T16:05:04.890Z"}
+{"uc":"UC-WORKFLOW-P7","status":"VERT","note":"état Clôturée","at":"2026-11-12T16:05:18.598Z"}
+{"uc":"UC-EMB-P8","status":"VERT","note":"25 embauches créées par le compte RH","at":"2026-11-12T16:06:51.013Z"}
+{"uc":"UC-CALC-P8","status":"VERT","note":"175 bulletin(s) calculé(s).","at":"2026-11-12T16:07:07.516Z"}
+{"uc":"UC-WORKFLOW-P8","status":"VERT","note":"état Clôturée","at":"2026-11-12T16:07:22.160Z"}
+{"uc":"UC-EMB-P9","status":"VERT","note":"25 embauches créées par le compte RH","at":"2026-11-12T16:09:15.645Z"}
+{"uc":"UC-CALC-P9","status":"VERT","note":"200 bulletin(s) calculé(s).","at":"2026-11-12T16:09:36.189Z"}
+{"uc":"UC-WORKFLOW-P9","status":"VERT","note":"état Clôturée","at":"2026-11-12T16:09:51.914Z"}

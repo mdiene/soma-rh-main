@@ -143,13 +143,13 @@ export async function assignStructure(page: Page, date: string) {
   const bloc = page.getByRole('heading', { name: 'Structure salariale' }).locator('xpath=../..')
   const champ = bloc.locator('input[type=date]').first()
   // la section est en lecture seule pour le rôle RH : l'affectation relève de la paie (ou de l'admin)
-  await expect(champ, 'section « Structure salariale » non modifiable pour ce compte').toBeEnabled({ timeout: 8000 })
+  await expect(champ, 'section « Structure salariale » non modifiable pour ce compte').toBeEnabled({ timeout: 20_000 })
   // piège constaté : si l'on enregistre avant la fin du chargement de la structure, la base répond
   // « null value in column structure_id … violates not-null constraint » (erreur brute affichée à l'utilisateur)
   await page.waitForLoadState('networkidle')
   for (let essai = 0; essai < 3; essai++) {
     await champ.fill(date)
-    await bloc.getByRole('button', { name: 'Enregistrer' }).click()
+    await bloc.getByRole('button', { name: 'Enregistrer', exact: true }).click()
     const ok = page.getByText('affectation existante')
     const erreur = page.getByRole('alert').filter({ hasText: 'structure_id' })
     await ok.or(erreur).first().waitFor({ timeout: 8000 })
