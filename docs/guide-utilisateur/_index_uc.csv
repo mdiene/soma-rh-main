@@ -122,3 +122,16 @@ UC-ROLE-rh-/equipes,roles-et-droits.mdx,web/e2e/sim (palier 11),VERT
 UC-ROLE-rh-/salaries,roles-et-droits.mdx,web/e2e/sim (palier 11),VERT
 UC-ROLE-sal_1-/mes-bulletins,roles-et-droits.mdx,web/e2e/sim (palier 11),VERT
 UC-ROLE-sal_1-/mon-espace,roles-et-droits.mdx,web/e2e/sim (palier 11),VERT
+UC-D-MALADIE,conges-speciaux.mdx,web/e2e/sim (campagne 2),VERT
+UC-D-PERMISSION,conges-speciaux.mdx,web/e2e/sim (campagne 2),VERT
+UC-D-ABSENCE-NON-PAYEE,conges-speciaux.mdx,web/e2e/sim (campagne 2),VERT
+UC-D-MATERNITE,conges-speciaux.mdx,web/e2e/sim (campagne 2),VERT
+UC-D-SOLDES-ECRITURES,conges-speciaux.mdx,web/e2e/sim (campagne 2),VERT
+UC-C-PRESENCES-SAISIE,temps-de-travail.mdx,web/e2e/sim (campagne 2),VERT
+UC-C-PRESENCES-REPORT,temps-de-travail.mdx,web/e2e/sim (campagne 2),VERT
+UC-C-PLANNING-REPORT,temps-de-travail.mdx,web/e2e/sim (campagne 2),VERT
+UC-E-VARIABLES-SAISIE,temps-de-travail.mdx,web/e2e/sim (campagne 2),VERT
+UC-E-REGULARISATIONS,temps-de-travail.mdx,web/e2e/sim (campagne 2),VERT
+UC-H-DEMANDE,demandes-du-salarie.mdx,web/e2e/sim (campagne 2),VERT
+UC-B-EMBAUCHE-APPRENTISSAGE,embaucher-un-salarie.mdx,web/e2e/sim (campagne 2),VERT
+UC-I-SIMULATION-AJOUT,simuler-une-reorganisation.mdx,web/e2e/sim (campagne 2),VERT

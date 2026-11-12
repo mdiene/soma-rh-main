@@ -513,3 +513,6 @@
 {"uc":"UC-C-PRESENCES-REPORT","status":"VERT","note":"report effectué ; message : aucun","at":"2026-11-12T18:12:38.984Z"}
 {"uc":"UC-E-VARIABLES-SAISIE","status":"VERT","note":"enregistrement sans erreur ; message : aucun","at":"2026-11-12T18:12:56.062Z"}
 {"uc":"UC-E-REGULARISATIONS","status":"VERT","note":"onglets Régularisations et Éléments récurrents affichés (saisie non jouée)","at":"2026-11-12T18:13:01.290Z"}
+{"uc":"UC-H-DEMANDE","status":"VERT","note":"type « Attestation de travail », état final : Approuvée","at":"2026-11-12T18:15:46.607Z"}
+{"uc":"UC-B-EMBAUCHE-APPRENTISSAGE","status":"VERT","note":"type enregistré : APPRENTISSAGE","at":"2026-11-12T18:15:51.119Z"}
+{"uc":"UC-I-SIMULATION-AJOUT","status":"VERT","note":"changement ajouté à la simulation","at":"2026-11-12T18:17:32.714Z"}

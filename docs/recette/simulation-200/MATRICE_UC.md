@@ -142,3 +142,8 @@ Source : `matrice.csv` (une ligne par UC). Base remise à zéro puis rejouée ; 
 | J | rh | UC-ROLE-rh-/salaries | VERT |  |
 | J | sal_1 | UC-ROLE-sal_1-/mes-bulletins | VERT |  |
 | J | sal_1 | UC-ROLE-sal_1-/mon-espace | VERT |  |
+
+## Campagne 2 (12/11/2026) — cas non testés lors de la première passe
+Joués et VERT : congés maladie, permission exceptionnelle, absence non payée, maternité (RPR-18 : soldes négatifs, ORANGE de décision) ; présences et heures supplémentaires, report en variables, planning ; variables du mois ; demande de profil traitée par la RH ; embauche en apprentissage ; ajout à la simulation de réorganisation.
+Toujours NON JOUÉS : vacations et heures de nuit (saisie), saisie des versements de cotisations, ordres de virement et rapport de clôture, paiements par lot (BLOQUÉ), ayants droit, documents, avenant, mutation, application effective d'une réorganisation, saisie des régularisations et éléments récurrents, 7 fiches RPR en `fixme`.
+Détail des lignes : `matrice.csv` (en fin de fichier).

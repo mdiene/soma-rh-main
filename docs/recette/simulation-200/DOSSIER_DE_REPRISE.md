@@ -166,3 +166,16 @@ Obtenu : toutes les images du guide, anciennes comprises, répondaient HTTP 403 
 Correctif : web/vite.config.ts, server.fs.allow: ['..'] (développement seulement).
 Test d'acceptation : web/e2e/guide.spec.ts (24 pages, aucune image cassée) — VERT.
 ```
+
+### RPR-18 — Soldes de congé négatifs après approbation sans dotation (ORANGE, décision produit)
+```
+ID : RPR-18   Lien : campagne 2 (UC-D-MALADIE, UC-D-PERMISSION, UC-D-ABSENCE-NON-PAYEE, UC-D-MATERNITE)
+Gravité / Statut : Mineur / ORANGE   Module : Congés   Rôle(s) : salarié, manager, rh
+Écran : /mon-espace (bloc « Congés »), /conges (onglet Soldes)
+Reproduction : salariée S0728 sans dotation pour maladie, permission, absence non payée et maternité ; demandes de 2, 2, 1 et 5 jours approuvées par le manager puis la RH.
+Attendu : à décider : refus sans dotation, ou solde négatif assumé pour les absences non plafonnées.
+Obtenu : approbation acceptée ; « Congé maladie : -2 j », « Permission exceptionnelle : -2 j », « Absence non payée : -1 j », « Congé de maternité : -5 j ».
+Correctif proposé : selon la décision : blocage à la demande, ou affichage d'un « jours pris » sans signe négatif pour les types sans dotation.
+Test d'acceptation : web/e2e/sim/50-conges-types.sim.spec.ts + contrôle du solde affiché.
+Effort : S     Priorité : P3
+```
