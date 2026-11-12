@@ -516,3 +516,7 @@
 {"uc":"UC-H-DEMANDE","status":"VERT","note":"type « Attestation de travail », état final : Approuvée","at":"2026-11-12T18:15:46.607Z"}
 {"uc":"UC-B-EMBAUCHE-APPRENTISSAGE","status":"VERT","note":"type enregistré : APPRENTISSAGE","at":"2026-11-12T18:15:51.119Z"}
 {"uc":"UC-I-SIMULATION-AJOUT","status":"VERT","note":"changement ajouté à la simulation","at":"2026-11-12T18:17:32.714Z"}
+{"uc":"UC-B-ASSISTANT-COMPLET","status":"VERT","note":"salarié S0954 créé par l'assistant avec structure et calcul du net","at":"2026-11-12T19:40:29.710Z"}
+{"uc":"UC-B-ASSISTANT-RH-SEUL","status":"VERT","note":"création sans structure, message de délégation à la paie","at":"2026-11-12T19:40:34.581Z"}
+{"uc":"UC-B-ASSISTANT-OBLIGATOIRE","status":"VERT","note":"étape bloquée sans prénom ; abandon avec confirmation","at":"2026-11-12T19:40:37.631Z"}
+{"uc":"UC-B-SAISIE-COMPLETE","status":"VERT","note":"choix de la saisie complète, formulaire sur une page","at":"2026-11-12T19:40:39.957Z"}

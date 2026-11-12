@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { ArrowLeft, FileText, Lock, Save, Target } from 'lucide-react'
+import { ArrowLeft, FileText, ListChecks, Lock, PencilLine, Save, Target } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { omit, dataApi, unwrap, type Tables } from '../lib/api'
@@ -10,9 +10,11 @@ import { checkBaseSalary } from '../lib/payrollGuards'
 import { Badge, Button, ErrorNote, Modal, PageHeader, Section, SelectField, Spinner, TextField } from '../components/ui'
 import { EmployeeFicheButton } from '../components/EmployeeFiche'
 import { AttestationModal } from '../components/AttestationModal'
+import { EmployeeWizard } from '../components/EmployeeWizard'
 import { ModuleSection } from '../components/ModuleSection'
 import { JobHistorySection } from '../components/JobHistorySection'
 
+const MODE_KEY = 'soma.nouveau-salarie.mode'
 type Emp = Tables<'employees'>
 type Assign = Tables<'salary_structure_assignments'>
 
@@ -67,6 +69,19 @@ export default function EmployeeDetailPage() {
   const created = (location.state as { createdNumber?: string } | null)?.createdNumber
   const [changing, setChanging] = useState(false)
   const [certificate, setCertificate] = useState(false)
+  // création : l'utilisateur choisit la saisie avec assistant ou la saisie complète (choix mémorisable)
+  const [mode, setMode] = useState<'assistant' | 'complete' | null>(() => {
+    if (!isNew) return null
+    try { const v = localStorage.getItem(MODE_KEY); return v === 'assistant' || v === 'complete' ? v : null } catch { return null }
+  })
+  const [wizardOpen, setWizardOpen] = useState(() => isNew && mode === 'assistant')
+  const [remember, setRemember] = useState(false)
+  function pick(m: 'assistant' | 'complete') {
+    if (remember) { try { localStorage.setItem(MODE_KEY, m) } catch { /* préférence non conservée */ } }
+    setMode(m)
+    setWizardOpen(m === 'assistant')
+  }
+  const showForm = !isNew || mode === 'complete'
 
   const save = useMutation({
     mutationFn: async () => {
@@ -98,9 +113,24 @@ export default function EmployeeDetailPage() {
           {!isNew && emp.data?.status === 'Left' && emp.data.relieving_date && can('rh') && (
             <Button icon={<FileText className="h-4 w-4" />} onClick={() => setCertificate(true)}>Certificat de travail</Button>
           )}
-          {!readOnly && <Button variant="primary" icon={<Save className="h-4 w-4" />} loading={save.isPending} onClick={() => save.mutate()}>{isNew ? 'Créer le salarié' : 'Enregistrer la fiche'}</Button>}
+          {isNew && mode === 'complete' && !readOnly && <Button icon={<ListChecks className="h-4 w-4" />} onClick={() => { setMode('assistant'); setWizardOpen(true) }}>Utiliser l’assistant</Button>}
+          {!readOnly && showForm && <Button variant="primary" icon={<Save className="h-4 w-4" />} loading={save.isPending} onClick={() => save.mutate()}>{isNew ? 'Créer le salarié' : 'Enregistrer la fiche'}</Button>}
         </>}
       />
+      {isNew && !showForm && (
+        <section aria-label="Choix du type de saisie" className="mb-6 rounded border border-line bg-white p-5">
+          <h2 className="text-base font-semibold">Comment voulez-vous saisir ce salarié ?</h2>
+          <p className="mt-1 text-sm text-ink-soft">L’assistant vous accompagne section par section, avec des questions et une revue avant la création. La saisie complète affiche toute la fiche sur une seule page.</p>
+          <div className="mt-4 flex flex-wrap gap-3">
+            <Button variant="primary" icon={<ListChecks className="h-4 w-4" />} disabled={readOnly} onClick={() => pick('assistant')}>Avec l’assistant</Button>
+            <Button icon={<PencilLine className="h-4 w-4" />} disabled={readOnly} onClick={() => pick('complete')}>Saisie complète</Button>
+          </div>
+          <label className="mt-3 flex items-center gap-2 text-xs text-ink-soft">
+            <input type="checkbox" checked={remember} onChange={(e) => setRemember(e.target.checked)} /> Mémoriser mon choix sur ce poste
+          </label>
+        </section>
+      )}
+      {isNew && !readOnly && <EmployeeWizard open={wizardOpen} onClose={() => setWizardOpen(false)} />}
       <ErrorNote error={emp.error || save.error} />
       {created && !save.isSuccess && <p className="mb-4 rounded border border-river/30 bg-river-light px-3 py-2 text-sm text-river-dark">Salarié créé avec le matricule <strong>{created}</strong>.</p>}
       {save.isSuccess && !isNew && <p role="status" className="mb-4 rounded border border-river/30 bg-river-light px-3 py-2 text-sm text-river-dark">Fiche enregistrée.</p>}
@@ -115,7 +145,7 @@ export default function EmployeeDetailPage() {
         <ChangeNumberModal open={changing} onClose={() => setChanging(false)} employeeId={emp.data.id} current={emp.data.employee_number} />
       )}
 
-      <fieldset disabled={readOnly} className="grid gap-6 xl:grid-cols-2">
+      <fieldset disabled={readOnly} className={`grid gap-6 xl:grid-cols-2${showForm ? '' : ' hidden'}`}>
         <Section title="Identité">
           <div className="grid gap-3 sm:grid-cols-2">
             <div>

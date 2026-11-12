@@ -136,18 +136,20 @@ export function Spinner({ label = 'Chargement…' }: { label?: string }) {
 }
 
 /* ------------------------------------------------------------------ Modale */
-export function Modal({ open, title, onClose, children, footer, wide }: {
+export function Modal({ open, title, onClose, children, footer, wide, persistent }: {
   open: boolean; title: string; onClose: () => void; children: ReactNode; footer?: ReactNode; wide?: boolean
+  /** Saisie à ne pas perdre (assistant) : ni clic extérieur ni Échap ne ferment la fenêtre ; seule la croix ou un bouton le fait. */
+  persistent?: boolean
 }) {
   useEffect(() => {
-    if (!open) return
+    if (!open || persistent) return
     const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose()
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [open, onClose])
+  }, [open, onClose, persistent])
   if (!open) return null
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-ink/40 p-4 pt-[8vh]" onMouseDown={onClose}>
+    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-ink/40 p-4 pt-[8vh]" onMouseDown={persistent ? undefined : onClose}>
       <div
         role="dialog"
         aria-modal="true"
