@@ -42,6 +42,7 @@ export const SPACES: NavSpace[] = [
     { to: '/paie/variables', label: 'Variables du mois', icon: SlidersHorizontal, roles: ['paie', 'rh'] },
     { to: '/paie/ajustements', label: 'Prêts et régularisations', icon: Banknote, roles: ['paie', 'rh'] },
     { to: '/paie', label: 'Traitements de paie', icon: Wallet, roles: ['paie', 'rh'], keywords: 'calcul bulletins salaire' },
+    { to: '/paie/cotisations', label: 'Suivi des cotisations', icon: Banknote, roles: ['paie', 'rh'], keywords: 'versement reçu virement chèque échéance payé' },
     { to: '/paie/gouvernance', label: 'Contrôle et clôture', icon: LockKeyhole, roles: ['paie', 'rh'] },
     { to: '/etats', label: 'États légaux et cotisations', icon: FileSpreadsheet, roles: ['paie', 'rh'], keywords: 'ipres css cfce ir trimf brs ipm livre de paie déclaration écritures comptables' },
     { to: '/paie/simulateur', label: 'Simulateur net / brut', icon: Calculator, roles: ['paie', 'rh'] },

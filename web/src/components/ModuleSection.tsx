@@ -21,21 +21,21 @@ export function ModuleForm({ fields, data, onChange, disabled }: {
         if (f.type === 'boolean') {
           return (
             <label key={f.key} className="flex items-center gap-2 text-sm sm:pt-6">
-              <input type="checkbox" checked={value === true} disabled={disabled} onChange={(e) => onChange(f.key, e.target.checked)} />
+              <input data-fix={f.key} type="checkbox" checked={value === true} disabled={disabled} onChange={(e) => onChange(f.key, e.target.checked)} />
               <span>{label}</span>
             </label>
           )
         }
         if (f.type === 'enum' && f.options?.length) {
           return (
-            <SelectField key={f.key} label={label} hint={hint} value={String(value ?? '')} disabled={disabled} onChange={(e) => onChange(f.key, e.target.value || null)}>
+            <SelectField key={f.key} data-fix={f.key} label={label} hint={hint} value={String(value ?? '')} disabled={disabled} onChange={(e) => onChange(f.key, e.target.value || null)}>
               <option value="">—</option>
               {f.options.map((o) => <option key={o}>{o}</option>)}
             </SelectField>
           )
         }
         return (
-          <TextField key={f.key} label={label} disabled={disabled}
+          <TextField key={f.key} data-fix={f.key} label={label} disabled={disabled}
             hint={f.type === 'enum' ? `${hint ? hint + ' · ' : ''}Liste non renseignée : saisie libre.` : hint}
             type={f.type === 'date' ? 'date' : f.type === 'number' ? 'number' : 'text'}
             value={String(value ?? '')}
@@ -84,7 +84,7 @@ function ModuleBlock({ m, fields, employeeId, editable }: { m: Mod; fields: Modu
     onSuccess: () => { setDraft(null); qc.invalidateQueries({ queryKey: key }) },
   })
   return (
-    <Section title={`Métier — ${m.name}`}>
+    <div data-fix={`module_${m.module_id}`}><Section title={`Métier — ${m.name}`}>
       <ModuleForm fields={fields} data={{ ...defaults, ...data }} disabled={!editable} onChange={(k, v) => setDraft({ ...data, [k]: v })} />
       <ErrorNote error={row.error ?? save.error} />
       {missing.length > 0 && <p className="mt-3 text-sm text-signal">À renseigner : {missing.map((f) => f.label).join(', ')}.</p>}
@@ -94,6 +94,6 @@ function ModuleBlock({ m, fields, employeeId, editable }: { m: Mod; fields: Modu
           {save.isSuccess && draft === null && <span className="text-xs text-river-dark">Enregistré.</span>}
         </div>
       )}
-    </Section>
+    </Section></div>
   )
 }

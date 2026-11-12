@@ -6,6 +6,8 @@ import { Suspense, useEffect, useState, useSyncExternalStore } from 'react'
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import { useAuth } from '../lib/auth'
 import { dataApi, unwrap, type ApiClient } from '../lib/api'
+import { useHighlight } from '../lib/useHighlight'
+import { ReturnToCompliance } from './ReturnToCompliance'
 import { MAX_FAVORITES, usePreferences } from '../lib/preferences'
 import { SPACES, matches, visibleItems, type NavItem } from '../lib/nav'
 import { CommandPalette, type PaletteEntry } from './CommandPalette'
@@ -84,6 +86,7 @@ function Tip({ children }: { children: string }) {
 export function Layout() {
   const { session, can, roles, signOut } = useAuth()
   const { pathname } = useLocation()
+  useHighlight()
   const desktop = useDesktop()
   const [open, setOpen] = useState(false)
   const [palette, setPalette] = useState(false)
@@ -325,6 +328,7 @@ export function Layout() {
         <main className="min-w-0 flex-1 px-4 py-6 sm:px-6 lg:px-10 lg:py-8">
           <Suspense fallback={<Spinner />}>
             <QueryErrorBanner />
+            <ReturnToCompliance />
             <Outlet />
           </Suspense>
         </main>

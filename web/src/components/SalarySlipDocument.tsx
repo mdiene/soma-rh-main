@@ -158,7 +158,7 @@ function Row({ k, v }: { k: string; v: React.ReactNode }) {
 function Line({ d }: { d: Detail }) {
   const showRate = (r: number | null) => (r === null || r === undefined ? '' : r === 1 ? '100 %' : pct(r))
   return (
-    <tr className="border-b border-ink/10">
+    <tr className="border-b border-ink/10" data-fix={d.section === 'retenue' ? 'retenues' : undefined}>
       <td className="text-ink-muted">{d.sort_order}</td>
       <td>{d.label}</td>
       <td className="text-right">{d.base !== null && d.base !== 0 ? num(d.base) : ''}</td>

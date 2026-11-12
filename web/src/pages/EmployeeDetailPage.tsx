@@ -139,9 +139,9 @@ export default function EmployeeDetailPage() {
             <TextField label="Date de naissance" type="date" value={form.date_of_birth ?? ''} onChange={set('date_of_birth')} />
             <TextField label="Lieu de naissance" value={form.place_of_birth ?? ''} onChange={set('place_of_birth')} />
             <TextField label="Nationalité" value={form.nationality ?? ''} onChange={set('nationality')} />
-            <TextField label="N° CNI ou passeport" value={form.id_document_number ?? ''} onChange={set('id_document_number')} />
+            <TextField data-fix="id_document_number" label="N° CNI ou passeport" value={form.id_document_number ?? ''} onChange={set('id_document_number')} />
             <TextField label="Délivrée le" type="date" value={form.id_issue_date ?? ''} onChange={set('id_issue_date')} />
-            <TextField label="Expire le" type="date" value={form.id_expiry_date ?? ''} onChange={set('id_expiry_date')} />
+            <TextField data-fix="id_expiry_date" label="Expire le" type="date" value={form.id_expiry_date ?? ''} onChange={set('id_expiry_date')} />
             <TextField label="Père" value={form.father_name ?? ''} onChange={set('father_name')} />
             <TextField label="Mère" value={form.mother_name ?? ''} onChange={set('mother_name')} />
           </div>
@@ -180,7 +180,7 @@ export default function EmployeeDetailPage() {
               <option value="">—</option>
               {selectable(designations.data, (d) => d.id === form.designation_id).map((d) => <option key={d.id} value={d.id}>{d.name}{d.is_active ? '' : ' (désactivé)'}</option>)}
             </SelectField>
-            <SelectField label="Type de contrat" value={form.employment_type ?? 'CDI'} onChange={set('employment_type')}>
+            <SelectField data-fix="employment_type" label="Type de contrat" value={form.employment_type ?? 'CDI'} onChange={set('employment_type')}>
               {selectable(contractTypes.data, (c) => c.code === form.employment_type).map((c) => <option key={c.code} value={c.code}>{c.code} — {c.label}{c.is_active ? '' : ' (désactivé)'}</option>)}
             </SelectField>
             <SelectField label="Département" value={form.department_id ?? ''} onChange={(e) => setForm((f) => ({ ...f, department_id: e.target.value || null }))} hint={departments.data && departments.data.length === 0 ? 'Aucun département défini : à créer dans Paramètres > Référentiels RH.' : undefined}>
@@ -197,19 +197,19 @@ export default function EmployeeDetailPage() {
                 <option key={g.id} value={g.id}>{g.code} — {g.staff_status}{g.grade_class ? ` (classe ${g.grade_class})` : ''} — {Number(g.base_salary) > 0 ? `${fcfa(g.base_salary)} F` : 'minimum non renseigné'}</option>
               ))}
             </SelectField>
-            <TextField label="Date d'entrée" type="date" required value={form.date_of_joining ?? ''} onChange={set('date_of_joining')} />
+            <TextField data-fix="date_of_joining" label="Date d'entrée" type="date" required value={form.date_of_joining ?? ''} onChange={set('date_of_joining')} />
             <TextField label="Date de retour de congé" type="date" value={form.leave_return_date ?? ''} onChange={set('leave_return_date')} />
-            <TextField label="Début du contrat en cours" type="date" value={form.contract_start ?? ''} onChange={set('contract_start')} />
-            <TextField label="Fin du contrat en cours" type="date" value={form.contract_end ?? ''} onChange={set('contract_end')} />
-            <TextField label="Date de sortie" type="date" value={form.relieving_date ?? ''} onChange={set('relieving_date')} />
+            <TextField data-fix="contract_start" label="Début du contrat en cours" type="date" value={form.contract_start ?? ''} onChange={set('contract_start')} />
+            <TextField data-fix="contract_end" label="Fin du contrat en cours" type="date" value={form.contract_end ?? ''} onChange={set('contract_end')} />
+            <TextField data-fix="relieving_date" label="Date de sortie" type="date" value={form.relieving_date ?? ''} onChange={set('relieving_date')} />
             <SelectField label="Motif de sortie" value={form.exit_reason ?? ''} onChange={set('exit_reason')}>
               <option value="">—</option>
               {exitReasons.isError && <option disabled>Motifs indisponibles</option>}
               {(exitReasons.data ?? []).filter((r) => !r.is_legacy || r.code === form.exit_reason).map((r) => <option key={r.code} value={r.code}>{r.label}</option>)}
             </SelectField>
-            <TextField label="Référence de la déclaration d'embauche" value={form.hire_declaration_ref ?? ''} onChange={set('hire_declaration_ref')} />
-            <TextField label="Date de la déclaration d'embauche" type="date" value={form.hire_declared_on ?? ''} onChange={set('hire_declared_on')} />
-            <TextField label="Date d'affiliation à la sécurité sociale" type="date" value={form.affiliation_date ?? ''} onChange={set('affiliation_date')} />
+            <TextField data-fix="hire_declaration_ref" label="Référence de la déclaration d'embauche" value={form.hire_declaration_ref ?? ''} onChange={set('hire_declaration_ref')} />
+            <TextField data-fix="hire_declared_on" label="Date de la déclaration d'embauche" type="date" value={form.hire_declared_on ?? ''} onChange={set('hire_declared_on')} />
+            <TextField data-fix="affiliation_date" label="Date d'affiliation à la sécurité sociale" type="date" value={form.affiliation_date ?? ''} onChange={set('affiliation_date')} />
             <SelectField label="État" value={form.status ?? 'Active'} onChange={set('status')}>
               <option value="Active">Actif</option><option value="Suspended">Suspendu</option><option value="Inactive">Inactif</option><option value="Left">Sorti</option>
             </SelectField>
@@ -338,7 +338,7 @@ function SalaryAssignment({ employee }: { employee: Emp }) {
           {save.isSuccess && <p role="status" className="rounded border border-river/30 bg-river-light px-3 py-2 text-xs text-river-dark">Structure salariale enregistrée.</p>}
           <div className="grid gap-3 sm:grid-cols-2">
             <TextField label="En vigueur à partir du" type="date" value={f.from_date ?? ''} onChange={(e) => setF((x) => ({ ...x, from_date: e.target.value }))} />
-            <TextField label="Salaire de base (vide = minimum de la catégorie)" type="number" value={f.base_salary ?? ''} onChange={num('base_salary')}
+            <TextField data-fix="base_salary" label="Salaire de base (vide = minimum de la catégorie)" type="number" value={f.base_salary ?? ''} onChange={num('base_salary')}
               hint={salaryWarning[0]?.message} />
             <TextField label="Sursalaire" type="number" step="0.01" value={f.sursalaire ?? 0} onChange={num('sursalaire')} />
             <TextField label="Honoraires (prestataires)" type="number" value={f.fees ?? 0} onChange={num('fees')} />
