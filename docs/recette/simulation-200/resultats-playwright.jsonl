@@ -507,3 +507,9 @@
 {"uc":"UC-D-ABSENCE-NON-PAYEE","status":"VERT","note":"état final : Approuvée","at":"2026-11-12T18:05:36.589Z"}
 {"uc":"UC-D-MATERNITE","status":"VERT","note":"état final : Approuvée","at":"2026-11-12T18:06:11.811Z"}
 {"uc":"UC-D-SOLDES-ECRITURES","status":"VERT","note":"onglets Soldes et Écritures affichés","at":"2026-11-12T18:06:15.388Z"}
+{"uc":"UC-C-PRESENCES-SAISIE","status":"VERT","note":"202 ligne(s) de présence en base ; message : 202 ligne(s) enregistrée(s) pour le 12/11/2026.","at":"2026-11-12T18:10:57.412Z"}
+{"uc":"UC-C-PRESENCES-REPORT","status":"VERT","note":"report effectué ; message : aucun","at":"2026-11-12T18:11:07.505Z"}
+{"uc":"UC-C-PLANNING-REPORT","status":"VERT","note":"planning affiché, report vers les variables effectué ; message : Report de Novembre 2026 : 0 présence(s) créée(s), 0 saisie(s) d'heures de nuit.","at":"2026-11-12T18:11:13.340Z"}
+{"uc":"UC-C-PRESENCES-REPORT","status":"VERT","note":"report effectué ; message : aucun","at":"2026-11-12T18:12:38.984Z"}
+{"uc":"UC-E-VARIABLES-SAISIE","status":"VERT","note":"enregistrement sans erreur ; message : aucun","at":"2026-11-12T18:12:56.062Z"}
+{"uc":"UC-E-REGULARISATIONS","status":"VERT","note":"onglets Régularisations et Éléments récurrents affichés (saisie non jouée)","at":"2026-11-12T18:13:01.290Z"}
