@@ -93,3 +93,12 @@ Les efforts sont des ordres de grandeur à affiner après le cadrage ; la phase 
 
 ## 11. Prochaine étape
 Après le choix des composants : un plan détaillé par phase (`/ecc:plan`), la migration éventuelle revue par `ecc:database-reviewer`, puis développement sur une branche dédiée avec un commit par étape.
+
+## 12. Décisions du propriétaire (12/11/2026)
+1. **Une fenêtre (modale) par section**, validée une à une jusqu'à la fin ; **assistant utilisable de bout en bout** (phase 1 de la section 7 comme base).
+2. **Calcul du salaire depuis la saisie** (nouveau composant **H1**) : dans l'étape Rémunération, le champ *Salaire net* ouvre par un clic une fenêtre de calcul (celle du simulateur net / brut : « Net à payer souhaité » → « Trouver le sursalaire »). Une fois calculé et validé, le résultat (sursalaire et brut obtenus) est **repris directement dans la fiche en cours de saisie**. Réutiliser la logique de `SimulatorPage` (même moteur que la paie, rien n'est enregistré par la simulation). Effort estimé : M (≈ 3 j). Dépend de B7 (étape Rémunération) et donc de F1 pour le rôle RH.
+3. **Saisie complète conservée (A4)** : à la création, l'utilisateur choisit le **type de saisie**, avec assistant ou sans assistant (formulaire actuel). Le choix est proposé à l'ouverture de « Nouveau salarié » (deux boutons) et mémorisé comme préférence de l'utilisateur.
+4. **Pièces du dossier (B8)** : dans un premier temps, l'assistant **liste les pièces et on les coche** (reçue / non reçue). Leur **téléversement** se fait ensuite par l'interface déjà opérationnelle (Dossiers administratifs), sans changement.
+5. Restent à trancher : création en une seule opération en base (E3, migration) et étape rémunération déléguée à la paie pour le RH (F1).
+
+Impact sur le phasage : la phase 1 inclut désormais **A4** (choix du type de saisie) et **B8 en liste cochable** ; **H1** s'ajoute à la phase 2 (avec B7). Effort supplémentaire : A4 ≈ 1 j, B8 liste ≈ 1 j, H1 ≈ 3 j.
