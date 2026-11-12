@@ -493,3 +493,9 @@
 {"uc":"UC-B-RIB","status":"VERT","note":"RIB enregistré sur la fiche","at":"2026-11-12T17:01:09.530Z"}
 {"uc":"UC-B-CERTIFICAT","status":"ORANGE","note":"bouton absent après une sortie au 10/11/2026 (statut Active)","at":"2026-11-12T17:01:14.209Z"}
 {"uc":"UC-B-CERTIFICAT","status":"VERT","note":"certificat affiché, statut Left","at":"2026-11-12T17:02:24.944Z"}
+{"uc":"UC-F-LIVRE","status":"VERT","note":"onglet « Livre de paie » affiché avec export CSV","at":"2026-11-12T17:08:06.916Z"}
+{"uc":"UC-F-RESUME","status":"VERT","note":"onglet « État résumé des cotisations » affiché avec export CSV","at":"2026-11-12T17:08:10.450Z"}
+{"uc":"UC-F-PATRONALES","status":"VERT","note":"onglet « Charges patronales » affiché avec export CSV","at":"2026-11-12T17:08:13.420Z"}
+{"uc":"UC-F-COMPTABLE","status":"VERT","note":"onglet « Écritures comptables » affiché avec export CSV","at":"2026-11-12T17:08:16.424Z"}
+{"uc":"UC-E-SIMULATEUR","status":"VERT","note":"simulateur affiché pour S0728","at":"2026-11-12T17:08:20.505Z"}
+{"uc":"UC-F-COTISATIONS-DETAIL","status":"VERT","note":"détail du mois affiché (saisie des versements : non jouée)","at":"2026-11-12T17:08:24.095Z"}
