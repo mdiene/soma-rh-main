@@ -486,3 +486,10 @@
 {"uc":"UC-H-CONGES","status":"VERT","note":"sal_1 /conges","at":"2026-11-12T16:42:00.573Z"}
 {"uc":"UC-H-BULLETINS","status":"VERT","note":"sal_1 /mes-bulletins","at":"2026-11-12T16:42:08.233Z"}
 {"uc":"UC-B-FICHE","status":"VERT","note":"fiche S0728","at":"2026-11-12T16:42:12.480Z"}
+{"uc":"UC-B-EMBAUCHE-CDD","status":"VERT","note":"déjà créé lors d'une exécution précédente","at":"2026-11-12T16:56:16.509Z"}
+{"uc":"UC-B-EMBAUCHE-STAGE","status":"VERT","note":"type enregistré : STAGE","at":"2026-11-12T16:56:19.775Z"}
+{"uc":"UC-B-EMBAUCHE-PRESTATION","status":"VERT","note":"type enregistré : PRESTATION","at":"2026-11-12T16:56:22.760Z"}
+{"uc":"UC-B-EMBAUCHE-COD","status":"VERT","note":"type enregistré : COD","at":"2026-11-12T16:56:25.895Z"}
+{"uc":"UC-B-RIB","status":"VERT","note":"RIB enregistré sur la fiche","at":"2026-11-12T17:01:09.530Z"}
+{"uc":"UC-B-CERTIFICAT","status":"ORANGE","note":"bouton absent après une sortie au 10/11/2026 (statut Active)","at":"2026-11-12T17:01:14.209Z"}
+{"uc":"UC-B-CERTIFICAT","status":"VERT","note":"certificat affiché, statut Left","at":"2026-11-12T17:02:24.944Z"}
