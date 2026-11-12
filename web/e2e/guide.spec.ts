@@ -44,3 +44,21 @@ test('un lien interne change de page', async ({ page }) => {
   await article.getByRole('button', { name: 'Rôles et droits' }).first().click()
   await expect(article.getByRole('heading', { level: 2 }).first()).toHaveText('Rôles et droits')
 })
+
+// Le guide est ouvert à tous les rôles par « Aide et guide utilisateur » (le salarié et le manager n'ont pas les Paramètres).
+for (const role of ['salarie', 'manager'] as const) {
+  test.describe(`aide · ${role}`, () => {
+    test.use({ storageState: stateFile(role) })
+    test('le menu propose l\'aide, la page s\'ouvre et les images se chargent', async ({ page }) => {
+      await page.goto('/')
+      await page.getByRole('navigation', { name: 'Navigation principale' }).getByRole('link', { name: 'Aide et guide utilisateur' }).click()
+      await expect(page).toHaveURL(/\/aide$/)
+      await expect(page.getByRole('heading', { level: 1, name: 'Aide et guide utilisateur' })).toBeVisible()
+      const sommaire = page.getByRole('navigation', { name: 'Pages du guide' })
+      await expect(sommaire.getByRole('button')).toHaveCount(slugs.length, { timeout: 30_000 })
+      await sommaire.getByRole('button', { name: 'Parcours du salarié', exact: true }).click()
+      const img = page.locator('article img').first()
+      await expect.poll(() => img.evaluate((el: HTMLImageElement) => el.complete && el.naturalWidth > 0)).toBe(true)
+    })
+  })
+}

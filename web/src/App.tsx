@@ -34,6 +34,7 @@ const SimulatorPage = lazy(() => import('./pages/SimulatorPage'))
 const ReportsPage = lazy(() => import('./pages/ReportsPage'))
 const SettingsPage = lazy(() => import('./pages/SettingsPage'))
 const MySlipsPage = lazy(() => import('./pages/MySlipsPage'))
+const HelpPage = lazy(() => import('./pages/HelpPage'))
 const ManagerPage = lazy(() => import('./pages/ManagerPage'))
 const ManagerAssignmentsPage = lazy(() => import('./pages/ManagerAssignmentsPage'))
 const OrganigrammePage = lazy(() => import('./pages/OrganigrammePage'))
@@ -110,6 +111,7 @@ export default function App() {
         <Route path="equipes/simulation" element={<RoleGuard to="/equipes/simulation"><ReorgSimulationPage /></RoleGuard>} />
         <Route path="demandes" element={<RoleGuard to="/demandes"><RequestsPage /></RoleGuard>} />
         <Route path="mes-bulletins" element={<MySlipsPage />} />
+        <Route path="aide" element={<HelpPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
     </Routes>

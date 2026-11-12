@@ -2,6 +2,11 @@
 /*
 !/web
 !/vercel.json
+# Le build lit docs/docs.json et docs/guide-utilisateur (onglet et page « Aide ») : on n'envoie que le guide, pas le reste de docs/.
+!/docs
+/docs/*
+!/docs/docs.json
+!/docs/guide-utilisateur
 /web/node_modules
 /web/dist
 /web/test-results
