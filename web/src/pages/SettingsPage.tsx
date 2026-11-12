@@ -13,6 +13,7 @@ import { DataTable } from '../components/DataTable'
 import { DepartmentsManager } from '../components/DepartmentsManager'
 import { DocumentTemplatesTab } from '../components/DocumentTemplatesTab'
 import { PhoneAccessAdmin } from '../components/PhoneAccessAdmin'
+import { UserGuideTab } from '../components/UserGuideTab'
 import { AuditLogView, ReferentialManager, type RefConfig, type RefTable } from '../components/ReferentialManager'
 import { Button, ErrorNote, Modal, PageHeader, Section, SelectField, Spinner, TextField } from '../components/ui'
 
@@ -26,6 +27,7 @@ const TABS = [
   { id: 'grilles', label: 'Grilles conventionnelles' },
   { id: 'societe', label: 'Société' },
   { id: 'modeles', label: 'Modèles de documents' },
+  { id: 'documentation', label: 'Documentation utilisateur' },
 ] as const
 type Tab = (typeof TABS)[number]['id']
 
@@ -52,6 +54,7 @@ export default function SettingsPage() {
       {tab === 'grilles' && <GradesTab />}
       {tab === 'societe' && <><CompanyTab /><EmployeeNumberSetting /></>}
       {tab === 'modeles' && <DocumentTemplatesTab />}
+      {tab === 'documentation' && <UserGuideTab />}
     </>
   )
 }
