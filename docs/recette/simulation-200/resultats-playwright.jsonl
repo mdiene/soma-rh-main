@@ -500,3 +500,5 @@
 {"uc":"UC-E-SIMULATEUR","status":"VERT","note":"simulateur affiché pour S0728","at":"2026-11-12T17:08:20.505Z"}
 {"uc":"UC-F-COTISATIONS-DETAIL","status":"VERT","note":"détail du mois affiché (saisie des versements : non jouée)","at":"2026-11-12T17:08:24.095Z"}
 {"uc":"UC-A-CONNEXION","status":"VERT","note":"formulaire e-mail et onglet Téléphone affichés","at":"2026-11-12T17:10:09.795Z"}
+{"uc":"UC-E-SIMULATEUR","status":"VERT","note":"simulateur affiché pour S0728","at":"2026-11-12T17:17:09.794Z"}
+{"uc":"UC-E-SIMULATEUR","status":"VERT","note":"simulateur affiché pour S0728","at":"2026-11-12T17:17:38.895Z"}

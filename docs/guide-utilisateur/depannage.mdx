@@ -1,0 +1,18 @@
+---
+title: "Dépannage"
+description: "Messages d'erreur rencontrés pendant les tests, leur cause et l'action à mener."
+---
+
+Les messages ci-dessous ont été relevés pendant la campagne de test du 12/11/2026 (données fictives).
+
+| Message ou symptôme | Cause | Action |
+|---|---|---|
+| Adresse ou mot de passe invalide | Identifiants faux. Après 5 échecs, le compte est bloqué 1 minute sur cet appareil, puis 2, 4… jusqu'à 30 minutes. | Attendre la fin du blocage, puis ressaisir ; demander une réinitialisation à l'administrateur. |
+| Impossible d'ouvrir l'activation pour le moment | Demande d'accès par téléphone non autorisée, expirée (48 h) ou date de naissance inexacte. | Voir [Se connecter et accéder par téléphone](/guide-utilisateur/connexion-et-acces-telephone). |
+| Retenue mensuelle trop élevée : … pour un plafond de … | La mensualité du prêt dépasse le plafond de retenue (1/3 du brut par défaut). | Augmenter le nombre d'échéances ou réduire le montant ([Accorder un prêt](/guide-utilisateur/accorder-un-pret)). |
+| null value in column structure_id … violates not-null constraint | Structure salariale enregistrée avant la fin du chargement de la section. | Attendre le chargement, puis recommencer. |
+| Section « Structure salariale » absente sur une fiche neuve | Chargement lent (constat intermittent, non reproduit à la demande). | Patienter quelques secondes, recharger la page. |
+| Bandeau « sans bulletin » et envoi en revue refusé | Des salariés actifs n'ont pas de bulletin (par exemple sans structure salariale). | Affecter la structure, recalculer, puis renvoyer en revue. |
+| Le bouton « Certificat de travail » est absent | Le salarié n'est pas à l'état « Sorti » ou n'a pas de date de sortie. | Passer l'État à Sorti et renseigner la date ([Certificat de travail](/guide-utilisateur/certificat-de-travail)). |
+| Could not find the function … in the schema cache | Fonction de base récente non encore connue de l'API. | À signaler à l'administrateur technique : recharger le schéma de l'API. |
+| Page blanche à l'ouverture d'un écran | Chargement interrompu. | Recharger la page ; si cela persiste, prévenir l'administrateur. |
