@@ -28,13 +28,15 @@ export function LegalAlerts() {
       const phone = can('admin') ? (unwrap(await dataApi.rpc('phone_access_alerts')) as Alert[]) : []
       // Verrouillages de connexion des dernières 24 h (RPR-03) : réservés à l'administrateur
       const security = can('admin') ? (unwrap(await dataApi.rpc('security_alerts')) as Alert[]) : []
-      return [...phone, ...security, ...legal]
+      // Salariés actifs sans structure salariale (créés par un compte RH seul) : à affecter par la paie
+      const structure = can('rh', 'paie') ? (unwrap(await dataApi.rpc('structure_pending_alerts')) as Alert[]) : []
+      return [...structure, ...phone, ...security, ...legal]
     },
   })
   const sorted = [...(q.data ?? [])].sort((a, b) => ORDER[a.severity] - ORDER[b.severity] || (a.due_date ?? '9999').localeCompare(b.due_date ?? '9999'))
   return (
     <Section title="Alertes réglementaires">
-      <p className="mb-3 text-xs text-ink-muted">Fins de CDD, salaires sous le SMIG paramétré, pièces d'identité à renouveler (horizon de 30 jours).</p>
+      <p className="mb-3 text-xs text-ink-muted">Fins de CDD, salaires sous le SMIG paramétré, pièces d'identité à renouveler (horizon de 30 jours), salariés sans structure salariale.</p>
       {q.isLoading ? <p className="text-sm text-ink-muted">Chargement…</p>
         : q.error ? <p role="alert" className="text-sm text-signal">Alertes indisponibles : {(q.error as Error).message}</p>
         : sorted.length === 0 ? <p className="text-sm text-ink-soft">Aucune alerte : contrats, salaires et pièces sont à jour.</p>

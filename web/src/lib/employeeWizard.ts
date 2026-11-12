@@ -130,3 +130,54 @@ export function firstFullMonth(date: string | null | undefined): string {
   const n = m === 12 ? [y + 1, 1] : [y, m + 1]
   return `${n[0]}-${String(n[1]).padStart(2, '0')}-01`
 }
+
+/* --------------------------------------------------------------------------------- parts fiscales proposées */
+/**
+ * Règle de calcul des parts : à fournir par le propriétaire. Aucune valeur légale n'est codée : tant que la règle vaut null,
+ * l'assistant n'affiche aucune proposition et les parts se saisissent à la main.
+ */
+export type PartsRule = { base: number; married: number; perChild: number; max: number; trimfFollowsIr: boolean }
+export const PARTS_RULE: PartsRule | null = null
+
+export function proposeParts(rule: PartsRule | null, marital: unknown, children: unknown): { ir: number; trimf: number | null } | null {
+  if (!rule) return null
+  const kids = Math.max(0, Number(children ?? 0))
+  const raw = rule.base + (String(marital ?? '') === 'Marié(e)' ? rule.married : 0) + rule.perChild * kids
+  const ir = Math.min(rule.max, Math.round(raw * 2) / 2)
+  return { ir, trimf: rule.trimfFollowsIr ? ir : null }
+}
+
+/* ------------------------------------------------------------------------------------------ doublons */
+export const normalizeName = (v: unknown) => String(v ?? '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/\s+/g, ' ').trim()
+
+export type PersonKey = { first_name?: unknown; last_name?: unknown; date_of_birth?: unknown; id_document_number?: unknown }
+
+/** Même personne probable : même numéro de pièce, ou mêmes nom et prénom avec la même date de naissance (ou une date absente d'un côté). */
+export function isLikelyDuplicate(a: PersonKey, b: PersonKey): boolean {
+  const docA = String(a.id_document_number ?? '').replace(/\s/g, '').toLowerCase()
+  const docB = String(b.id_document_number ?? '').replace(/\s/g, '').toLowerCase()
+  if (docA && docB && docA === docB) return true
+  if (!normalizeName(a.first_name) || !normalizeName(a.last_name)) return false
+  if (normalizeName(a.first_name) !== normalizeName(b.first_name) || normalizeName(a.last_name) !== normalizeName(b.last_name)) return false
+  const da = String(a.date_of_birth ?? ''), db = String(b.date_of_birth ?? '')
+  return !da || !db || da === db
+}
+
+/* ------------------------------------------------------------------------------- brouillon dans le navigateur */
+export const DRAFT_TTL_MS = 7 * 24 * 3600 * 1000
+export type SavedDraft = { v: 1; savedAt: number; draft: Draft; assign: Draft; receipts: string[]; index: number; reached: number; withPayroll: boolean }
+
+/** Un brouillon n'est conservé que s'il contient autre chose que les valeurs par défaut : un prénom ou un nom. */
+export const draftHasContent = (d: Draft) => !blank(d.first_name) || !blank(d.last_name)
+
+export const serializeDraft = (s: Omit<SavedDraft, 'v' | 'savedAt'>, now = Date.now()): string => JSON.stringify({ v: 1, savedAt: now, ...s } satisfies SavedDraft)
+
+export function parseDraft(raw: string | null, now = Date.now()): SavedDraft | null {
+  if (!raw) return null
+  try {
+    const s = JSON.parse(raw) as Partial<SavedDraft>
+    if (s.v !== 1 || typeof s.savedAt !== 'number' || now - s.savedAt > DRAFT_TTL_MS || now < s.savedAt - 60_000) return null
+    if (!s.draft || typeof s.draft !== 'object' || !s.assign || typeof s.assign !== 'object' || !Array.isArray(s.receipts)) return null
+    return { v: 1, savedAt: s.savedAt, draft: s.draft, assign: s.assign, receipts: s.receipts.filter((x) => typeof x === 'string'), index: Number(s.index) || 0, reached: Number(s.reached) || 0, withPayroll: s.withPayroll !== false }
+  } catch { return null }
+}

@@ -139,3 +139,8 @@ UC-B-ASSISTANT-COMPLET,assistant-de-creation-salarie.mdx,web/e2e/sim/60-assistan
 UC-B-ASSISTANT-RH-SEUL,assistant-de-creation-salarie.mdx,web/e2e/sim/60-assistant.sim.spec.ts,VERT
 UC-B-ASSISTANT-OBLIGATOIRE,assistant-de-creation-salarie.mdx,web/e2e/sim/60-assistant.sim.spec.ts,VERT
 UC-B-SAISIE-COMPLETE,assistant-de-creation-salarie.mdx,web/e2e/sim/60-assistant.sim.spec.ts,VERT
+UC-B-ASSISTANT-DOUBLON,assistant-de-creation-salarie.mdx,web/e2e/sim/61-assistant-lot2.sim.spec.ts,VERT
+UC-B-ASSISTANT-BROUILLON,assistant-de-creation-salarie.mdx,web/e2e/sim/61-assistant-lot2.sim.spec.ts,VERT
+UC-B-ASSISTANT-PARTS,assistant-de-creation-salarie.mdx,web/e2e/sim/61-assistant-lot2.sim.spec.ts,VERT
+UC-B-ASSISTANT-MOBILE,assistant-de-creation-salarie.mdx,web/e2e/sim/61-assistant-lot2.sim.spec.ts,VERT
+UC-E-ALERTE-STRUCTURE,assistant-de-creation-salarie.mdx,web/e2e/sim/61-assistant-lot2.sim.spec.ts,VERT

@@ -121,3 +121,15 @@ Décisions du propriétaire du soir : création en une seule opération (E3) **o
 
 Constats : le calcul du net exige un salarié existant côté base (le solveur lit la fiche) : la simulation insère puis annule dans une sous-transaction. Les textes d'aide des champs passent de `ink-muted` à `ink-soft` (contraste) dans toute l'application.
 **Avant déploiement en ligne** : appliquer la migration `20261217090000_assistant_creation_salarie.sql` sur Supabase, sinon l'assistant échoue (la saisie complète reste utilisable).
+
+## 14. Lot 2 réalisé le 12/11/2026 (branche `feat/assistant-creation-lot2`)
+| Composant | État |
+|---|---|
+| D2 détection des doublons (mêmes nom, prénom et date de naissance, ou même numéro de pièce) | fait : avertissement avec lien vers la fiche, jamais bloquant |
+| E1 brouillon dans le navigateur (7 jours, effacé à la création et à l'abandon, conservé par la croix) | fait |
+| A3 plein écran sur téléphone (`Modal`, option `fullscreenOnMobile`) | fait |
+| F1 notification dédiée à la paie | fait sous forme d'**alerte du tableau de bord** « Structure salariale à affecter par la paie » (fonction `structure_pending_alerts`, migration `20261218090000`), visible des comptes RH et paie ; pas de message individuel |
+| C2 parts fiscales proposées | **mécanisme fait, règle non fournie** : `PARTS_RULE` vaut `null`, aucune proposition n'est affichée et une note l'indique. Aucune valeur légale n'est codée. |
+
+**Décision attendue du propriétaire pour C2** : fournir la règle de calcul des parts (base, supplément si marié(e), supplément par enfant, plafond, et si les parts TRIMF suivent les parts IR) avec sa source légale, ou confirmer de garder la saisie manuelle. L'application de la règle tient en une constante de `web/src/lib/employeeWizard.ts` et ses tests.
+**Avant mise en ligne** : appliquer la migration `20261218090000_alerte_structure_a_affecter.sql` sur Supabase, sinon le bloc « Alertes réglementaires » des comptes RH et paie affiche « Alertes indisponibles ».

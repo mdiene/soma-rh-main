@@ -39,3 +39,6 @@ Assistant de création d'un salarié (wizard) : proposition dans `docs/propositi
 - Interface : `web/src/components/EmployeeWizard.tsx`, règles `web/src/lib/employeeWizard.ts` (9 tests unitaires), choix du type de saisie sur `/salaries/nouveau`, `Modal` avec option `persistent`.
 - Tests : `web/e2e/sim/60-assistant.sim.spec.ts` (4/4), accessibilité de la fenêtre, menu 12/12, guide 7/7 ; page du guide « Créer un salarié avec l'assistant » (29 pages).
 - **Pour mettre en ligne** : appliquer la migration sur Supabase (`scripts/supabase-appliquer.ps1`), puis fusionner et déployer. Sans la migration, seule la saisie complète fonctionne en ligne.
+
+## Assistant — lot 2 (branche `feat/assistant-creation-lot2`, non fusionnée, non déployée)
+Doublons, brouillon local, plein écran téléphone, alerte « structure à affecter » (migration `20261218090000`), mécanisme des parts (règle à fournir, voir la proposition §14). Tests : `61-assistant-lot2` 5/5, unitaires 66/66, SQL `alerte_structure_a_affecter`, menu, accessibilité, guide verts. **Ne pas fusionner dans `main` avant d'avoir appliqué la migration en ligne** (Vercel déploie depuis GitHub et le tableau de bord appelle la nouvelle fonction).

@@ -136,10 +136,12 @@ export function Spinner({ label = 'Chargement…' }: { label?: string }) {
 }
 
 /* ------------------------------------------------------------------ Modale */
-export function Modal({ open, title, onClose, children, footer, wide, persistent }: {
+export function Modal({ open, title, onClose, children, footer, wide, persistent, fullscreenOnMobile }: {
   open: boolean; title: string; onClose: () => void; children: ReactNode; footer?: ReactNode; wide?: boolean
   /** Saisie à ne pas perdre (assistant) : ni clic extérieur ni Échap ne ferment la fenêtre ; seule la croix ou un bouton le fait. */
   persistent?: boolean
+  /** Sous 640 px de large, la fenêtre occupe tout l'écran et son pied de page reste visible en bas. */
+  fullscreenOnMobile?: boolean
 }) {
   useEffect(() => {
     if (!open || persistent) return
@@ -149,12 +151,12 @@ export function Modal({ open, title, onClose, children, footer, wide, persistent
   }, [open, onClose, persistent])
   if (!open) return null
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-ink/40 p-4 pt-[8vh]" onMouseDown={persistent ? undefined : onClose}>
+    <div className={clsx('fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-ink/40 p-4 pt-[8vh]', fullscreenOnMobile && 'max-sm:p-0 max-sm:pt-0')} onMouseDown={persistent ? undefined : onClose}>
       <div
         role="dialog"
         aria-modal="true"
         aria-label={title}
-        className={clsx('w-full rounded border border-line bg-white shadow-xl', wide ? 'max-w-3xl' : 'max-w-lg')}
+        className={clsx('w-full rounded border border-line bg-white shadow-xl', wide ? 'max-w-3xl' : 'max-w-lg', fullscreenOnMobile && 'max-sm:flex max-sm:min-h-full max-sm:max-w-none max-sm:flex-col max-sm:rounded-none max-sm:border-0')}
         onMouseDown={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between border-b border-line px-5 py-3">
@@ -163,8 +165,8 @@ export function Modal({ open, title, onClose, children, footer, wide, persistent
             <X className="h-4 w-4" />
           </button>
         </div>
-        <div className="px-5 py-4">{children}</div>
-        {footer && <div className="flex justify-end gap-2 border-t border-line px-5 py-3">{footer}</div>}
+        <div className={clsx('px-5 py-4', fullscreenOnMobile && 'max-sm:flex-1')}>{children}</div>
+        {footer && <div className={clsx('flex justify-end gap-2 border-t border-line px-5 py-3', fullscreenOnMobile && 'max-sm:sticky max-sm:bottom-0 max-sm:flex-wrap max-sm:bg-white')}>{footer}</div>}
       </div>
     </div>
   )

@@ -150,3 +150,8 @@ bloc,role,parcours,test,statut,preuve
 "B","rh","UC-B-ASSISTANT-RH-SEUL","web/e2e/sim/60-assistant.sim.spec.ts","VERT","création sans structure, délégation à la paie"
 "B","rh","UC-B-ASSISTANT-OBLIGATOIRE","web/e2e/sim/60-assistant.sim.spec.ts","VERT","étape bloquée sans prénom ; abandon avec confirmation"
 "B","rh","UC-B-SAISIE-COMPLETE","web/e2e/sim/60-assistant.sim.spec.ts","VERT","formulaire complet conservé"
+"B","rh","UC-B-ASSISTANT-DOUBLON","web/e2e/sim/61-assistant-lot2.sim.spec.ts","VERT","homonyme signalé, saisie non bloquée"
+"B","rh","UC-B-ASSISTANT-BROUILLON","web/e2e/sim/61-assistant-lot2.sim.spec.ts","VERT","brouillon conservé, repris, effacé à l'abandon"
+"B","rh","UC-B-ASSISTANT-PARTS","web/e2e/sim/61-assistant-lot2.sim.spec.ts","VERT","règle des parts non définie : note et saisie manuelle"
+"B","rh","UC-B-ASSISTANT-MOBILE","web/e2e/sim/61-assistant-lot2.sim.spec.ts","VERT","plein écran à 390 px"
+"E","paie","UC-E-ALERTE-STRUCTURE","web/e2e/sim/61-assistant-lot2.sim.spec.ts","VERT","alerte sur le tableau de bord"
