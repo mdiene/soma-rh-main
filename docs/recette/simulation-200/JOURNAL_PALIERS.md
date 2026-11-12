@@ -210,3 +210,11 @@ Contrôles : SQL 60 tests, 12 échecs (tous de données manquantes), `revue_corr
 - **Guide** : `docs/LOCAL_SETUP.md`, section « Passerelle derrière un proxy (`TRUST_PROXY`) ».
 - Blocage d'un numéro par 5 mauvaises dates : laissé tel quel (accord).
 - Incident de méthode : mes appels `curl` de contrôle ont consommé la limite de demandes par numéro (3 par 24 h) et fait échouer `connexion_telephone` ; traces supprimées. Éviter des numéros réels de test hors des specs.
+
+### Étape 9 — mise en ligne (12/11/2026)
+| Réf | Constat | Statut |
+|---|---|---|
+| MEL-01 | Migrations `20261214090000` à `20261215100000` appliquées sur le projet distant (4 par l'outil, 6 par `scripts/supabase-appliquer.ps1` chez le propriétaire : l'outil `apply_migration` est refusé en session non interactive). Contrôle : plafond de prêt 0,333333, `RET_PRORATA` présente, `login_attempts` et `employee_loan_caps` créées, `next_employee_number` non appelable par un compte connecté, fonctions `login_lock_*` non appelables par `anon`/`authenticated`. 27 salariés, 0 paie : aucune donnée touchée. | VERT |
+| MEL-02 | Alertes de sécurité Supabase : 4 (INFO RLS sans politique ; WARN extension dans `public` ; WARN fonctions `security definer` appelables par un compte connecté, 133 sur 160, aucune par `anon` ; WARN protection contre les mots de passe compromis désactivée). Le détail par objet n'est pas fourni par l'outil. | ORANGE |
+| MEL-03 | Fonction Edge `phone-auth` déployée (version 1, `verify_jwt` désactivé). **Défaut trouvé et corrigé avant déploiement** : la pré-vérification CORS répondait `204` avec un corps, ce que Deno refuse ; sans correction, le téléphone en ligne n'aurait jamais fonctionné depuis le navigateur. Vérifié en ligne : OPTIONS 204 avec en-têtes CORS, corps invalide 400, GET 405. | VERT |
+| MEL-04 | Reste à faire par le propriétaire : secret `PHONE_AUTH_PEPPER`, réinitialisation du mot de passe de la base, URL de redirection, protection contre les mots de passe compromis, `scripts/vercel-deploy.ps1`. Tant que le secret n'est pas posé, les routes `login` et `set-password` échouent ; ne pas annoncer la fonctionnalité aux salariés. Test réel de bout en bout contre Supabase : à faire après le secret. | À FAIRE |

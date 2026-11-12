@@ -1,5 +1,5 @@
 // Fonction Edge « phone-auth » (version en ligne) : mêmes routes que la passerelle locale /auth/v1/phone/* + « login ».
-// NON DÉPLOYÉE : voir docs/DECISION_CONNEXION_TELEPHONE.md (déploiement : supabase functions deploy phone-auth --no-verify-jwt).
+// Déployée le 12/11/2026 sur le projet mzhdwdpesbggxtjxxgab (verify_jwt désactivé : l'appelant n'a pas encore de session ; voir docs/DECISION_CONNEXION_TELEPHONE.md).
 // Secrets : SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, SUPABASE_ANON_KEY (fournis par Supabase), PHONE_AUTH_PEPPER (supabase secrets set, 32+ caractères aléatoires).
 //
 // Mot de passe 5 à 8 : Supabase Auth impose un minimum (6 par défaut). Pour respecter la règle métier sans toucher à la plateforme,
@@ -49,7 +49,8 @@ async function logLogin(phone: string, event: string) {
 }
 
 Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') return reply(204, {})
+  // Pré-vérification CORS : un statut 204 n'admet aucun corps (Deno lève une erreur sinon)
+  if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: { ...cors, 'access-control-allow-methods': 'POST, OPTIONS' } })
   if (req.method !== 'POST') return reply(405, { message: 'Méthode non autorisée' })
   const route = new URL(req.url).pathname.split('/').pop()
   const input = await req.json().catch(() => null)

@@ -271,3 +271,10 @@ Spécification : `docs/modules/MODULES_METIER_VERTICAUX_SOMA_RH.md` (v2) ; manif
 | H51 | Types web | `database.types.ts` contient encore les 3 tables retirées (et il est modifié par Claude Desktop, non commité) : à régénérer quand ses modifications seront commitées. |
 | H52 | Documents historiques | Les documents (`FEUILLE_DE_ROUTE*`, `ORGANIGRAMME_DECISIONS`, QA, analyses) citent encore le planning des gardiens ; ils sont conservés comme historique. Le futur module « sécurité / gardiennage » (`docs/modules/`) reprend le besoin (rotation 24 h/24, majorations de nuit, K15 du registre des risques). |
 | H53 | Mémoire du poste | La machine manque de mémoire (environ 300-400 Mo libres sur 7,8 Go) : Docker a déjà redémarré deux fois et tué les conteneurs SOMA (code 255) ; `flowise` et `docling` (hors SOMA) occupent 1,4 Go. Les arrêter pendant le développement ou augmenter la mémoire de WSL. |
+
+## Centre de conformité : liens « Corriger », fiche du constat et correction sur place (2026-11-12)
+
+À vérifier à l'usage après la mise en service de la fiche du constat et de la modale « Corriger ici » :
+
+- [ ] **CC-01** Après « Enregistrer et relancer le scan », la fiche du constat se ferme quand le constat est résolu. Décider s'il faut plutôt enchaîner sur le constat suivant de la liste (`FindingsTab.tsx`, état `openId`).
+- [ ] **CC-02** `run_compliance_scan` est global : mesurer la durée de l'enregistrement sur une base volumineuse ; si elle gêne, prévoir un rescan limité au salarié modifié.
