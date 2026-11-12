@@ -25,7 +25,7 @@ npx --yes vercel@latest link --yes --project $Projet
 if ($LASTEXITCODE -ne 0) { throw 'Liaison échouée' }
 
 Write-Host "3/4 Variables d'environnement ($cible)..."
-foreach ($v in @(@('VITE_API_URL', $apiUrl), @('VITE_API_PUBLIC_KEY', $apiKey), @('VITE_DOCUMENTS_MODE', 'supabase'))) {
+foreach ($v in @(@('VITE_API_URL', $apiUrl), @('VITE_API_PUBLIC_KEY', $apiKey), @('VITE_DOCUMENTS_MODE', 'supabase'), @('VITE_PHONE_AUTH_URL', "$apiUrl/functions/v1/phone-auth"))) {
   $v[1] | npx --yes vercel@latest env add $v[0] $cible --force
   if ($LASTEXITCODE -ne 0) { throw "Variable $($v[0]) non enregistrée" }
 }

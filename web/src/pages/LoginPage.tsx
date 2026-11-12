@@ -3,6 +3,9 @@ import { dataApi } from '../lib/api'
 import { Button, ErrorNote, TextField } from '../components/ui'
 import { PhoneLogin } from '../components/PhoneLogin'
 
+// D-40 / RPR-11 : l'inscription est fermée par défaut (D-016) ; le lien « Créer un compte » n'apparaît que si le déploiement l'ouvre explicitement
+const SIGNUP_OPEN = import.meta.env.VITE_SIGNUP_ENABLED === 'true'
+
 export default function LoginPage() {
   const [tab, setTab] = useState<'email' | 'phone'>('email')
   const [mode, setMode] = useState<'signin' | 'signup'>('signin')
@@ -76,9 +79,11 @@ export default function LoginPage() {
           <Button type="submit" variant="primary" loading={busy} className="w-full">
             {mode === 'signin' ? 'Se connecter' : 'Créer le compte'}
           </Button>
-          <button type="button" className="text-sm text-river hover:underline" onClick={() => setMode(mode === 'signin' ? 'signup' : 'signin')}>
-            {mode === 'signin' ? 'Pas encore de compte ? Créer un compte' : 'Déjà un compte ? Se connecter'}
-          </button>
+          {SIGNUP_OPEN && (
+            <button type="button" className="text-sm text-river hover:underline" onClick={() => setMode(mode === 'signin' ? 'signup' : 'signin')}>
+              {mode === 'signin' ? 'Pas encore de compte ? Créer un compte' : 'Déjà un compte ? Se connecter'}
+            </button>
+          )}
         </form>
           )}
         </div>

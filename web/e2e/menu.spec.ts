@@ -65,6 +65,7 @@ test.describe('salarié', () => {
     const n = nav(page)
     await expect(n.getByRole('link', { name: 'Mes bulletins' })).toBeVisible()
     await expect(n.getByRole('link', { name: 'Mes congés' })).toBeVisible()
+    await expect(n.getByRole('link', { name: 'Aide et guide utilisateur' })).toBeVisible()
     await expect(n.getByRole('button', { name: /Paie et rémunération|Administration du personnel|Configuration/ })).toHaveCount(0)
     await expect(n.getByRole('link', { name: 'Tableau de bord' })).toHaveCount(0)
   })

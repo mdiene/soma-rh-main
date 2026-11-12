@@ -86,3 +86,12 @@ echo '{"semi": false, "printWidth": 80}' > <tmp>/.oxfmtrc.json ; (cd <tmp> && np
 # 4. Copier vers web/src/lib/ puis, dans web/ : npx tsc -b ; npm run lint ; npm run build
 ```
 Écart connu avec l'ancien générateur : les arguments facultatifs de RPC sont typés `?: string` (et non `?: string | null`) ; `web/src/lib/api.ts` passe donc `reason ?? undefined` (aucune retouche manuelle du fichier généré).
+
+## Passerelle derrière un proxy (`TRUST_PROXY`)
+
+Le verrou de connexion et les limites par adresse reposent sur l'adresse du client. Derrière un proxy ou un répartiteur de charge, la passerelle ne voit que l'adresse du proxy : tous les utilisateurs partageraient alors la même limite (120 requêtes sensibles par 15 minutes).
+
+- Définir `TRUST_PROXY=1` dans l'environnement de la passerelle : elle lit alors l'entrée de **droite** de `X-Forwarded-For` (celle que le proxy a vue).
+- Conditions : **exactement un** proxy devant la passerelle, et la passerelle **non joignable directement** depuis Internet. Sinon l'en-tête est falsifiable et toutes les limites par adresse tombent. Avec deux proxys ou plus, l'entrée de droite est celle du proxy intermédiaire : ne pas activer sans adapter le code.
+- Sans cette variable (cas local, Docker sans proxy), l'en-tête est ignoré.
+- Le verrou de connexion est stocké en base (table `login_attempts`, migration `20261215100000`) : il survit au redémarrage de la passerelle. Si la base répond mal, la passerelle se replie sur la mémoire et le journal le signale.

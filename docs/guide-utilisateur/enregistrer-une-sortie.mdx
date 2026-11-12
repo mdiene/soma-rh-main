@@ -1,0 +1,30 @@
+---
+title: "Enregistrer la sortie d'un salarié"
+description: "Renseigner la date et le motif de sortie sur la fiche (rôle RH)."
+---
+
+**Rôle concerné** : RH. **Exemple** : salariée fictive S0450, démission, dernier jour le 23/10/2026.
+
+## Prérequis
+- La fiche du salarié existe (menu **Administration du personnel → Salariés**).
+- Vous avez le rôle RH.
+
+## Étapes
+1. Ouvrez **Salariés**, cherchez le matricule ou le nom, ouvrez la fiche.
+2. Dans la section **Contrat et classification**, renseignez **Date de sortie** puis **Motif de sortie** (ici « Démission »).
+
+   ![Fiche avant enregistrement](/guide-utilisateur/captures-sim/sortie-avant.png)
+3. Cliquez sur **Enregistrer la fiche**.
+
+   ![Fiche après enregistrement](/guide-utilisateur/captures-sim/sortie-apres.png)
+
+## Résultat attendu
+La base conserve la date de sortie et le motif (`DEMISSION`).
+
+## À savoir (constats de la simulation du 10/11/2026)
+- Le message « Fiche enregistrée » peut ne pas s'afficher ; la donnée est pourtant bien enregistrée.
+- Depuis la correction RPR-09 (10/11/2026), une sortie ou une entrée en cours de mois est payée au prorata des jours ouvrables (lundi au samedi) : ligne « Retenue prorata » au bulletin. Le bulletin d’octobre déjà clôturé de la salariée d’exemple reste au mois entier tant qu’il n’est pas rouvert et recalculé.
+- Le statut de la fiche reste « Actif » après l'enregistrement par la fiche.
+
+## Voir aussi
+[Calculer et clôturer la paie du mois](/guide-utilisateur/calculer-et-cloturer-la-paie)

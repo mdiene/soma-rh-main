@@ -17,7 +17,7 @@ for (const p of PALIERS) {
   test(`palier ${p.n} — ${p.ym}, ${p.cible} salariés`, async ({ browser }) => {
     const rh = await as(browser, 'rh')
     const paie = await as(browser, 'paie')
-    const rhpaie = await as(browser, 'rhpaie')
+    const approbateur = await as(browser, 'paie2') // RPR-02 : approuvent l'administrateur et le rôle paie (pas rh)
     const admin = await as(browser, 'admin')
     const doj = `${p.ym}-01`
 
@@ -65,9 +65,9 @@ for (const p of PALIERS) {
 
     }
 
-    // 4. Séparation des tâches : paie envoie en revue, rhpaie approuve (seul profil qui cumule le rôle rh exigé par la base et le rôle paie exigé par l'écran), paie valide et paye, admin clôture
+    // 4. Séparation des tâches : paie envoie en revue, paie2 approuve (RPR-02 : l'approbation revient au rôle paie ou à l'admin, pas à rh), paie valide et paye, admin clôture
     const refus: string[] = []
-    for (const [page, label] of [[paie, 'Envoyer en revue'], [rhpaie, 'Approuver la paie'], [paie, 'Valider la paie'], [paie, 'Marquer comme payée'], [admin, 'Clôturer la période']] as const) {
+    for (const [page, label] of [[paie, 'Envoyer en revue'], [approbateur, 'Approuver la paie'], [paie, 'Valider la paie'], [paie, 'Marquer comme payée'], [admin, 'Clôturer la période']] as const) {
       const r = await govStep(page, label)
       if (r) refus.push(`${label}: ${r}`)
     }

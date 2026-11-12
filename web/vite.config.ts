@@ -7,5 +7,6 @@ import react from '@vitejs/plugin-react'
 const api = 'http://localhost:8000'
 export default defineConfig({
   plugins: [react()],
-  server: { proxy: { '/auth/v1': api, '/rest/v1': api, '/api/v1': api } },
+  // fs.allow : l'onglet « Documentation utilisateur » lit docs/ (hors de web/) ; sans cela le serveur de développement répond 403 aux images du guide.
+  server: { fs: { allow: ['..'] }, proxy: { '/auth/v1': api, '/rest/v1': api, '/api/v1': api } },
 })

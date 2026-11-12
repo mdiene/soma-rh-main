@@ -271,3 +271,16 @@ Spécification : `docs/modules/MODULES_METIER_VERTICAUX_SOMA_RH.md` (v2) ; manif
 | H51 | Types web | `database.types.ts` contient encore les 3 tables retirées (et il est modifié par Claude Desktop, non commité) : à régénérer quand ses modifications seront commitées. |
 | H52 | Documents historiques | Les documents (`FEUILLE_DE_ROUTE*`, `ORGANIGRAMME_DECISIONS`, QA, analyses) citent encore le planning des gardiens ; ils sont conservés comme historique. Le futur module « sécurité / gardiennage » (`docs/modules/`) reprend le besoin (rotation 24 h/24, majorations de nuit, K15 du registre des risques). |
 | H53 | Mémoire du poste | La machine manque de mémoire (environ 300-400 Mo libres sur 7,8 Go) : Docker a déjà redémarré deux fois et tué les conteneurs SOMA (code 255) ; `flowise` et `docling` (hors SOMA) occupent 1,4 Go. Les arrêter pendant le développement ou augmenter la mémoire de WSL. |
+
+## Centre de conformité : liens « Corriger », fiche du constat et correction sur place (2026-11-12)
+
+À vérifier à l'usage après la mise en service de la fiche du constat et de la modale « Corriger ici » :
+
+- [ ] **CC-01** Après « Enregistrer et relancer le scan », la fiche du constat se ferme quand le constat est résolu. Décider s'il faut plutôt enchaîner sur le constat suivant de la liste (`FindingsTab.tsx`, état `openId`).
+- [ ] **CC-02** `run_compliance_scan` est global : mesurer la durée de l'enregistrement sur une base volumineuse ; si elle gêne, prévoir un rescan limité au salarié modifié.
+
+### Suivi des cotisations par caisse (2026-11-12)
+
+- [ ] **CC-03** Paiement partiel d'une caisse : le montant payé est enregistré égal au montant dû. Ajouter un champ « montant versé » (la colonne `amount_paid` existe déjà dans `contribution_payment_lines`) dans la fenêtre « Marquer payé » de `PayrollContributionsPage.tsx`, et l'afficher dans le détail et l'historique.
+- [ ] **CC-04** Régénérer `web/src/lib/database.types.ts` : la génération a été interrompue, le fichier ne contient ni `contribution_payment_lines` ni `v_contribution_follow`. La page utilise le client sans types (`dataApi as unknown as ApiClient`), à remplacer par le client typé après régénération.
+- [ ] **CC-05** Lancer `menu.spec.ts` et `a11y.spec.ts` (nouvelle page `/paie/cotisations`, nouvelle entrée de menu) et vérifier à l'écran la fiche du constat, la surbrillance et le retour au constat.

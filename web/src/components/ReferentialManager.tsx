@@ -170,7 +170,7 @@ export function ReferentialManager({ config }: { config: RefConfig }) {
             <tbody>
               {rows.map((r) => (
                 <tr key={String(r[config.keyField])} className={clsx('hover:bg-river-light', !r.is_active && 'text-ink-muted')}>
-                  {listFields.map((f) => <td key={f.key} className={clsx('border-b border-line/70 px-3 py-1.5', f.type === 'number' && 'num text-right')}>{cell(f, r[f.key])}</td>)}
+                  {listFields.map((f) => <td key={f.key} className={clsx('border-b border-line/70 px-3 py-1.5 [overflow-wrap:anywhere]', f.type === 'number' && 'num text-right')}>{cell(f, r[f.key])}</td>)}
                   <td className="border-b border-line/70 px-3 py-1.5">
                     <span className={clsx('rounded border px-1.5 py-0.5 text-xs', r.is_active ? 'border-river/30 bg-river-light text-river-dark' : 'border-line bg-paper text-ink-muted')}>{r.is_active ? 'Actif' : 'Désactivé'}</span>
                   </td>
@@ -242,7 +242,9 @@ function RefForm({ config, row, existing, defaultFilter, onClose, onSaved }: {
         <Button variant="ghost" onClick={onClose}>Annuler</Button>
         <Button variant="primary" loading={save.isPending} disabled={!!dup || missing.length > 0} onClick={() => save.mutate()}>{isNew ? 'Créer' : 'Enregistrer'}</Button>
       </>}>
-      <div className="grid gap-3 sm:grid-cols-2">
+      {/* RPR-11 : Entrée valide l'ajout ou la modification (le bouton de validation est dans le pied de la fenêtre) */}
+      <form className="grid gap-3 sm:grid-cols-2" onSubmit={(e) => { e.preventDefault(); if (!dup && missing.length === 0 && !save.isPending) save.mutate() }}>
+        <button type="submit" hidden tabIndex={-1} aria-hidden="true" />
         {config.fields.map((fd) => {
           const disabled = !isNew && fd.createOnly
           const common = { label: `${fd.label}${fd.required ? ' *' : ''}`, disabled, hint: disabled ? 'Non modifiable : la valeur est référencée par les fiches et bulletins.' : fd.hint }
@@ -271,7 +273,7 @@ function RefForm({ config, row, existing, defaultFilter, onClose, onSaved }: {
             </div>
           )
         })}
-      </div>
+      </form>
       {dup && <p className="mt-3 text-sm font-medium text-signal" role="alert">« {String(f[config.labelField])} » existe déjà{!dup.is_active ? ' (désactivé : réactivez-le plutôt que de le recréer)' : ''}.</p>}
       <div className="mt-3"><ErrorNote error={frError(save.error)} /></div>
     </Modal>

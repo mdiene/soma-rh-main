@@ -67,3 +67,102 @@ Dépôt : `C:\IT-Mozaic\SOMA-RH-local`. Migrations : `docker cp` + `psql -f`, pu
 
 ## Résolu pendant la campagne
 - D-64 garde de période (migration `20261109170000_d64_garde_periode_mois_precedent.sql`, rollback, test `tests/sql/d64_garde_periode.sql`) : appliqué, test OK.
+
+---
+## Complément du 10/11/2026 (palier 10)
+- **RPR-09 confirmée** : sortie du 23/10/2026 (S0450) payée le mois entier ; aucun prorata dans `compute_salary_slip`. Décision D-56 à coder (entrée et sortie, base ouvrables par défaut).
+- **RPR-01 à RPR-15** : aucun correctif commité à ce jour (`git log`). Suivi en `test.fixme` dans `web/e2e/sim/30-rpr.sim.spec.ts`.
+- **Nouveau (ORANGE)** : approbation de congé par le manager introuvable dans `/mon-equipe` (bouton Approuver absent) ; la RH a approuvé directement.
+- **Nouveau (ORANGE)** : statut de la fiche resté « Actif » après enregistrement d'une date de sortie par la fiche.
+- **Nettoyage** : demande de congé d'un test antérieur (S0291, « eere r »).
+
+### RPR-09 corrigée (10/11/2026, branche `fix/rpr-09-prorata`)
+- Migration `20261214090000_rpr09_prorata_entree_sortie` (+ retour `db/rollback/…_down.sql`, testé) : paramètre `payroll_settings.proration_basis` (`ouvrables` par défaut = lundi au samedi, jours fériés non déduits ; `calendaires`) et ligne de bulletin `RET_PRORATA`. Entrée et sortie incluses ; transport, kilométrique et prime d'ancienneté suivent le ratio.
+- Test : `tests/sql/rpr09_prorata.sql` (entrée le 15/01 : 12/27 retenus ; calendaire : 14/31 ; sortie le 23/10 : 7/27 ; sortie le 31/10 : aucun prorata ; base invalide refusée). Recalcul de septembre : 200 bulletins, 0 écart avec les bulletins clôturés. Suite SQL : mêmes 11 échecs de données qu'avant (vérifié migration retirée).
+- Les bulletins déjà calculés ne sont pas recalculés. Octobre 2026 (clôturé) reste au mois entier pour S0450 : à rouvrir et recalculer (réouverture motivée, admin) si le propriétaire le souhaite.
+- Changer la base de prorata passe par une nouvelle version datée des paramètres (garde-fou existant : un paramétrage déjà utilisé n'est pas modifiable).
+- Décisions ouvertes : jours fériés (non déduits en base ouvrables) ; prorata appliqué aussi au transport (choix retenu) ; interface de saisie du paramètre non faite.
+
+---
+## État au 10/11/2026 (branche `fix/rpr-09-prorata`)
+| Fiche | Statut | Détail |
+|---|---|---|
+| RPR-09 | corrigée | voir plus haut ; octobre 2026 rouvert, recalculé, reclôturé (S0450 : retenue de prorata 18 331,96 F, net 63 403,18 F) |
+| RPR-05 | corrigée | bouton Recalculer sur une paie « Réouverte » ; `run_payroll_batch` remet les bulletins validés en brouillon avant recalcul (migration `20261214100000`). Cause racine : sans cela chaque bulletin refusait le recalcul et l'écran annonçait quand même « N bulletin(s) calculé(s) » |
+| RPR-01 | corrigée (base) | `transition_payroll_entry` refuse « En revue » et liste les salariés sans bulletin (migration `20261214110000`, test `rpr01_revue_incomplete`). Reste : avertissement persistant sur la page d'une paie incomplète |
+| RPR-02 | corrigée (base) | approbation par admin et rôle paie, plus par rh (migration `20261214120000`, test `rpr02_approbation_roles`). L'écran était déjà conforme. Specs : `paie2` approuve. Reste : parcours Playwright sur un mois ouvert (tous les mois simulés sont clôturés) |
+| RPR-03 | corrigée (partiel) | verrou progressif par couple compte + adresse (`api/server.mjs`), limite par adresse 120/15 min, test `tests/api/login.lock.test.mjs`. Reste : alerte à l'administrateur ; verrou en mémoire (perdu au redémarrage de la passerelle) |
+| RPR-04 à RPR-08, RPR-10 à RPR-15 | à faire | |
+
+Constats nouveaux : (1) `run_payroll_batch` avale les erreurs de calcul ; (2) la ligne `RET_PRORATA` devait exister dans `salary_components` (clé étrangère) ; (3) la passerelle de test sur le port 8001 doit pointer `POSTGREST_URL=http://localhost:3001` quand elle tourne hors Docker.
+
+### Mise à jour du 11/11/2026 : RPR-04, 06, 07, 08
+| Fiche | Statut | Détail |
+|---|---|---|
+| RPR-04 | corrigée | page d'une paie : motif de dérogation toujours demandé, champ vide, bouton désactivé tant qu'il est vide (`PayrollEntryPage.tsx`). Le dialogue de la page Gouvernance était déjà conforme. Pas de test Playwright (aucun mois ouvert à valider) |
+| RPR-05 | corrigée | voir plus haut |
+| RPR-06 | corrigée (partiel) | structure salariale : message de lecture seule pour rh, enregistrement bloqué avant chargement, erreur lisible à la place de `structure_id`, confirmation avec `role="status"`. Le message « Fiche enregistrée » reste un état d'écran (disparaît au prochain enregistrement) |
+| RPR-07 | corrigée | date d'effet par défaut = date d'entrée ; avertissement si elle est postérieure à aujourd'hui |
+| RPR-08 | corrigée | migration `20261214130000` (+ retour) : plafond global 1/3 (app_parameters et valeur de référence du catalogue), modifiable par admin/rh/paie ; surcharge par salarié (`employee_loan_caps`, motif obligatoire) ; journal `audit_events` (ancienne et nouvelle valeur) ; `create_loan` lit la surcharge. Écrans : Paramètres (rôles rh et paie autorisés) et champ « Plafond de retenue sur prêt » sur la fiche. Tests : `rpr08_plafond_pret`, `l2b_validation_admin` et `d30` alignés sur la décision |
+
+Points ouverts : le circuit « demande de modification de constante » (`request_parameter_change`) existe toujours pour `loan_max_rate` dans le catalogue ; la décision demande de ne plus l'utiliser pour ce plafond, à retirer du catalogue si vous le confirmez. Types web régénérés (`database.types.ts`), `p_rate` de `set_employee_loan_cap` accepte `null` côté base mais le type généré l'ignore (cast commenté).
+
+### Mise à jour du 11/11/2026 (soir) : RPR-01 à 15 traitées
+| Fiche | Statut | Détail |
+|---|---|---|
+| RPR-01 | corrigée | refus d'envoi en revue (liste des salariés sans bulletin) + bandeau permanent sur la page d'une paie (`payroll_missing_employees`, migration `20261214140000`) |
+| RPR-02 | corrigée | approbation admin et rôle paie ; test SQL. Parcours Playwright à écrire sur un mois ouvert |
+| RPR-03 | corrigée | verrou par compte + adresse, limite par adresse 120/15 min, **alerte administrateur** (`security_alerts`, journal `verrouillage_connexion`, tableau de bord). Reste : verrou en mémoire (perdu au redémarrage de la passerelle) |
+| RPR-04 à 09 | corrigées | voir mises à jour précédentes |
+| RPR-10 | corrigée | Paramètres > Référentiels RH : gestion des départements ; champ Département sur la fiche ; `/planning` ne dépend plus de `shift_types` ni `work_posts` |
+| RPR-11 | corrigée (partiel) | Entrée valide les référentiels ; plus de débordement à 1280 px ; texte d'accès exact ; lien « Créer un compte » masqué sauf `VITE_SIGNUP_ENABLED=true` (D-40) ; catégorie à 0 F affichée « minimum non renseigné ». **Données à compléter (source datée requise)** : catégorie PRESTATION (Prestations de services) et 3 catégories 1ère, 2ème, 3ème de Transports Routiers Hydrocarbures à 0 F. Les conventions sont toutes actives en base |
+| RPR-12 | corrigée | refus avec code, nombre et exemple par contrôle bloquant ; fenêtre d'avertissement avant « Envoyer en revue » |
+| RPR-13 | corrigée | bandeau « déclaration d'embauche non référencée » sur la fiche |
+| RPR-14 | corrigée | numérotation paramétrable (préfixe, chiffres, prochain numéro), Paramètres > Société, défaut S + 4 chiffres inchangé |
+| RPR-15 | corrigée | mesures : écriture de 200 lignes 130 ms en base, 40 lignes 1,3 s au navigateur, page variables 0,6 à 1,8 s ; les lenteurs de la campagne venaient du serveur de développement. Ajouts : message de progression, une seule lecture des rôles par navigation (3 à 4 requêtes avant). Incident de mesure : un serveur Vite oublié sur le port 5174 consommait le processeur (arrêté) |
+
+Contrôles du 11/11 : tests unitaires 44/44 ; API 11/11 ; SQL 11 échecs de données manquantes (inchangés) ; e2e menu et accessibilité 19/19 ; simulation 20-roles 17/17.
+Décision du propriétaire du 11/11 : `loan_max_rate` reste dans le circuit de demande de constante (non retiré du catalogue).
+
+Prompt de reprise pour poursuivre le chantier : `docs/recette/PROMPT_REPRISE_2026-11-11.md`.
+
+### Mise à jour du 11/11/2026 (reprise) : parcours Playwright et étape manager
+- `web/e2e/sim/31-rpr-mutating.sim.spec.ts` : RPR-01/12 (bandeau + avertissement + refus avec la liste), RPR-04 (motif obligatoire), RPR-02 (rh refusé, même personne refusée, paie2 approuve), RPR-06, RPR-10, RPR-14. 15/15 au vert (53 s). La paie de novembre 2026 est créée (199 bulletins : S0450 est sorti le 23/10) puis supprimée (retour à « Calculée » avec motif, règle de `delete_payroll_entry`). Un échec isolé de création de la paie, non reproduit, a été observé au 3e passage. `30-rpr` garde `fixme` pour RPR-03, 05, 07, 08, 11, 13, 15 (couvertes par SQL, API et unitaires).
+- Bouton « Approuver » introuvable dans `/mon-equipe` : **pas un défaut**. Le salarié de test (S0291) n'avait aucun manager affecté ; l'étape manager est « Ignorée » et la demande attend à l'étape RH. `LeaveApprovals` ne s'affiche que s'il existe une demande à décider pour ce manager. Le congé de test (« eere r ») est supprimé.
+- Statut « Actif » après une date de sortie (S0450, sortie 23/10) : **conforme à la conception**. Le statut passe à « Left » par le processus de sortie (solde de tout compte), pas par l'enregistrement de la date sur la fiche.
+- `scripts/check-migrations.sh` signale des préfixes en double (20261204090000, 20261206090000, 20261207090000, 20261208090000) : antérieurs au chantier, à traiter ou à ajouter à la liste d'exceptions.
+
+Prompt pour rejouer la simulation sur une base remise à zéro, en parallèle : `docs/recette/PROMPT_PARALLELE_PALIER_10_PARTIE_2.md`.
+
+## Rejeu du 12/11/2026 sur base remise à zéro (palier 11)
+
+Tous les parcours existants ont été rejoués : aucun ROUGE, aucune régression par rapport au palier 10. L'étape manager des congés est confirmée (manager affecté : `sim-mgr-1` approuve l'étape 1, `sim-rh` l'étape 2), ce qui clôt l'ORANGE du palier 10.
+
+### RPR-16 — Section « Structure salariale » parfois absente sur une fiche neuve (ORANGE, à confirmer)
+```
+ID : RPR-16   Lien : nouveau (voisin de P1-07 / UC-STRUCT-RACE)
+Gravité / Statut : Mineur / ORANGE (intermittent, non reproduit à la demande)   Module : Salariés   Rôle(s) : paie
+Écran : /salaries/:id — section « Structure salariale »
+Reproduction : après création d'un salarié par le compte rh, ouvrir sa fiche avec le compte paie ; sur environ 200 embauches, 3 fois la section n'est pas apparue dans les 8 s (page blanche une fois).
+Attendu : la section se charge à chaque ouverture.
+Obtenu : élément introuvable après 8 s ; le test a été relancé avec 20 s et est passé.
+Cause probable : lenteur du serveur de développement ou chargement paresseux ; non établie.
+Correctif proposé : mesurer le temps de chargement (React Query) ; indicateur de chargement visible si la section tarde.
+Test d'acceptation : 200 ouvertures de fiche à la suite, section visible en moins de 8 s.
+Effort : S     Priorité : P3
+```
+
+### Outillage
+- `tests/fixtures/sim/reset-zero.sql` : tables `employee_loan_caps`, `phone_access_accounts`, `phone_access_requests`, `phone_access_tokens` ajoutées à la liste (corrigé).
+- `scripts/qa-create-users.ps1` échoue (403 : l'inscription publique est fermée) ; non corrigé. `tests/.env.qa` régénéré à partir des comptes SIM.
+- `scripts/check-migrations.sh` : préfixes en double toujours signalés (déjà noté).
+
+### RPR-17 — Images du guide en 403 sur le serveur de développement (corrigée le 12/11/2026)
+```
+ID : RPR-17   Lien : nouveau (onglet « Documentation utilisateur »)
+Gravité / Statut : Mineur / corrigée avec l'accord du propriétaire   Module : Paramètres   Rôle(s) : tous ceux qui ouvrent l'onglet
+Écran : /parametres?onglet=documentation
+Obtenu : toutes les images du guide, anciennes comprises, répondaient HTTP 403 (Vite ne sert pas docs/, hors de web/) ; images cassées en développement. Le build de production n'était pas concerné.
+Correctif : web/vite.config.ts, server.fs.allow: ['..'] (développement seulement).
+Test d'acceptation : web/e2e/guide.spec.ts (24 pages, aucune image cassée) — VERT.
+```

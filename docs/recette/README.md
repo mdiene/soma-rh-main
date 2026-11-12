@@ -9,3 +9,4 @@
 
 Convention : un sous-dossier par campagne de recette si les résultats deviennent nombreux (`docs/recette/AAAA-MM-JJ/`) ; la batterie reste unique et versionnée.
 - `PROMPT_SIMULATION_200_SALARIES.md` : prompt de la simulation de 10 à 200 salariés (tous rôles, navigateur), qui produit le guide utilisateur, la matrice vert/rouge et le dossier de reprise.
+- `SUIVI_GUIDE.md` : suivi de la reconstruction du guide utilisateur (étapes, tests, captures). Résultats détaillés : `simulation-200/MATRICE_UC.md`, `simulation-200/matrice.csv`, `simulation-200/QUESTIONS_LEGALES_OUVERTES.md`.

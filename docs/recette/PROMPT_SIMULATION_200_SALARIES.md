@@ -1,4 +1,4 @@
-# Prompt Claude Code — Simulation grandeur nature de SOMA-RH (10 à 200 salariés), guide utilisateur et dossier de reprise (v2.2)
+# Prompt Claude Code — Simulation grandeur nature de SOMA-RH (10 à 200 salariés), guide utilisateur et dossier de reprise (v2.3)
 
 > À coller dans Claude Code lancé dans `C:\IT-Mozaic\SOMA-RH-local` (PowerShell, Docker Desktop démarré, navigateur disponible).
 > Cette version v2.2 remplace le « Master Battle Test » d'origine : elle est alignée sur l'architecture réelle de SOMA-RH (voir §2) et sur les résultats des recettes du 04 et 05/11/2026 (`docs/recette/`).
@@ -234,7 +234,7 @@ Le dossier est trié par priorité puis par dépendance, avec un **ordre de dév
 3. Rapport final court en français : ce qui est vert, ce qui est rouge, ce qui est bloqué, les cinq points à traiter d'abord, les décisions attendues, les chemins des livrables.
 4. **Auto-amélioration** : à partir de ce que l'architecture et l'exécution ont montré, réécris ce prompt en v2.2 (corrige ce qui a gêné, ajoute les raccourcis découverts) et enregistre-le sous le même nom.
 
-## 11. Enseignements de la campagne du 09/11/2026 (v2.2)
+## 11. Enseignements de la campagne du 09/11/2026 (v2.3)
 
 À appliquer lors de la prochaine campagne ; détails dans `simulation-200/RAPPORT_VERT_ROUGE.md` et `simulation-200/DOSSIER_DE_REPRISE.md`.
 
@@ -247,3 +247,13 @@ Le dossier est trié par priorité puis par dépendance, avec un **ordre de dév
 7. **Ne jamais mettre à jour la référence de `verify-payroll.ps1`** avec les chiffres de la base simulée ; la relancer seulement après restauration de la sauvegarde d'origine.
 8. **Points ouverts avant la prochaine campagne** : RPR-01 à RPR-15, décisions D-56 (prorata), approbateur, plafond de prêt, paiements individuels.
 9. **Palier 10 à prévoir** : sorties, CDD, prêts, congés, heures supplémentaires (explorer les écrans avant d'écrire les sélecteurs).
+
+---
+
+## Nouveautés v2.3 (12/11/2026)
+- **Guide complet** : 24 pages dans `docs/guide-utilisateur/` (Markdown simple, sans JSX), lues par le site Mintlify et par l'onglet « Documentation utilisateur » (Paramètres). Contrôle : `tests/unit/guide.test.mjs` ; onglet : `web/e2e/guide.spec.ts`.
+- **Helper de capture** : `web/e2e/sim/helpers/capture.ts` (masque mots de passe et jetons, 1280×800, nom à tiret et unique) ; captures dans `docs/guide-utilisateur/captures/`.
+- **Parcours ajoutés** : `05-demarrer` (emplois), `06-comptes` (liaisons, équipes), `40-ecrans` (41 écrans par rôle), `41-embauches`, `42-etats`, `43-connexion`.
+- **Base remise à zéro** : les emplois, les liaisons compte-fiche et les équipes sont à recréer (parcours 05 et 06) ; les matricules repartent de S0724 (décalage de +433 dans `11-octobre` et `12-reouverture`).
+- **Comptes QA** : `scripts/qa-create-users.ps1` ne fonctionne plus (inscription fermée) ; `tests/.env.qa` se régénère à partir de `tests/.env.qa-sim`.
+- Suivi de la campagne : `docs/recette/SUIVI_GUIDE.md`.

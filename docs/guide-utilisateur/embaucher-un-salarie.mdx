@@ -1,0 +1,45 @@
+---
+title: "Embaucher un salarié"
+description: "Créer la fiche, déclarer l'embauche, puis affecter la structure salariale, selon le type de contrat."
+---
+
+**Rôles concernés** : RH (fiche et déclaration d'embauche), paie (structure salariale). **Exemple** : salariés fictifs.
+
+## Prérequis
+Les emplois existent ([Créer les emplois](/guide-utilisateur/creer-les-emplois)). Les conventions collectives et les grilles de catégories sont fournies avec le produit.
+
+## Étapes
+1. **RH** : menu **Salariés → Nouveau salarié**. Le matricule est attribué automatiquement à l'enregistrement (le prochain numéro est affiché, non modifiable).
+2. Renseignez au minimum : **Sexe**, **Prénom**, **Nom**, **Date de naissance**, **Nationalité**, **Emploi**, **Type de contrat**, **Convention collective**, **Catégorie**, **Date d'entrée**, **Mode de paiement**. Pour un salarié marié ou avec enfants, ajoutez la **Situation de famille** et les **Enfants à charge** (ils comptent pour l'impôt).
+
+   ![Formulaire d'embauche en CDD](/guide-utilisateur/captures/embauche-cdd.png)
+3. Cliquez sur **Créer le salarié**. La fiche s'ouvre.
+4. Sur la fiche, renseignez la **Référence de la déclaration d'embauche** et sa **Date**, puis **Enregistrer la fiche** (message « Fiche enregistrée. »).
+5. **Paie** : sur la même fiche, section **Structure salariale**, indiquez la date d'effet (la date d'entrée), puis **Enregistrer**. Attendez la fin du chargement de la section avant d'enregistrer.
+
+   ![Structure salariale d'une fiche](/guide-utilisateur/captures/salarie-fiche-structure.png)
+
+## Types de contrat
+| Code | Libellé | Nature (effet sur la paie) | Rejoué le 12/11/2026 |
+|---|---|---|---|
+| CDI | Contrat à durée indéterminée | Contrat de travail (IR, TRIMF, IPRES, CFCE, allocations familiales) | oui |
+| CDD | Contrat à durée déterminée | Contrat de travail | oui |
+| COD | Contrat d'ouvrier journalier | Autre (ouvrier journalier) | oui |
+| STAGE | Stage | Stage | oui |
+| APPRENTISSAGE | Apprentissage | Apprentissage | non rejoué |
+| PRESTATION | Prestation de services | Prestation de services (BRS) | oui |
+
+Le type de contrat choisi à l'embauche est celui enregistré sur la fiche (vérifié pour chaque type rejoué).
+
+![Formulaire d'embauche en stage](/guide-utilisateur/captures/embauche-stage.png)
+
+## Erreurs fréquentes
+- **« null value in column structure_id … violates not-null constraint »** : la structure salariale a été enregistrée avant la fin du chargement de la section. Attendez que la section soit chargée puis recommencez.
+- Si la section **Structure salariale** n'apparaît pas tout de suite sur une fiche neuve, patientez quelques secondes (constat intermittent, voir le dépannage).
+
+## Cas particuliers
+- Le rôle RH voit la structure salariale en lecture seule ; l'affectation relève de la paie.
+- Un salarié sans structure salariale n'a pas de bulletin au calcul du mois : un bandeau « sans bulletin » le signale à l'envoi en revue.
+
+## Voir aussi
+[Certificat de travail et sortie](/guide-utilisateur/certificat-de-travail) · [Calculer et clôturer la paie](/guide-utilisateur/calculer-et-cloturer-la-paie)

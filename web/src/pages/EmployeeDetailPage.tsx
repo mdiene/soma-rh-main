@@ -45,6 +45,8 @@ export default function EmployeeDetailPage() {
     queryFn: async () => unwrap(await dataApi.rpc('employee_phone_access_status', { p_employee_id: id! })) as string,
   })
   const [form, setForm] = useState<Partial<Emp>>(EMPTY)
+  // RPR-10 : département choisi sur la fiche (géré dans Paramètres > Référentiels RH)
+  const departments = useQuery({ queryKey: ['departments'], queryFn: async () => unwrap(await dataApi.from('departments').select('id, name').order('name')) })
   useEffect(() => { if (emp.data) setForm(emp.data) }, [emp.data])
   const grades = useGrades(form.agreement_code)
   const exitReasons = useQuery({
@@ -101,7 +103,13 @@ export default function EmployeeDetailPage() {
       />
       <ErrorNote error={emp.error || save.error} />
       {created && !save.isSuccess && <p className="mb-4 rounded border border-river/30 bg-river-light px-3 py-2 text-sm text-river-dark">Salarié créé avec le matricule <strong>{created}</strong>.</p>}
-      {save.isSuccess && !isNew && <p className="mb-4 rounded border border-river/30 bg-river-light px-3 py-2 text-sm text-river-dark">Fiche enregistrée.</p>}
+      {save.isSuccess && !isNew && <p role="status" className="mb-4 rounded border border-river/30 bg-river-light px-3 py-2 text-sm text-river-dark">Fiche enregistrée.</p>}
+      {/* RPR-13 : la validation de la 1re paie est refusée sans référence de déclaration d'embauche ; on le signale dès la fiche */}
+      {!isNew && emp.data && !emp.data.hire_declaration_ref && (
+        <p role="alert" className="mb-4 rounded border border-phosphate bg-phosphate-light px-3 py-2 text-sm text-ink">
+          <strong>Déclaration d’embauche non référencée.</strong> Renseignez la référence et la date ci-dessous : sans elles, la validation de la première paie de ce salarié sera refusée.
+        </p>
+      )}
       {!isNew && emp.data && <AttestationModal employeeId={certificate ? emp.data.id : null} kind="certificat_travail" onClose={() => setCertificate(false)} />}
       {!isNew && emp.data && (
         <ChangeNumberModal open={changing} onClose={() => setChanging(false)} employeeId={emp.data.id} current={emp.data.employee_number} />
@@ -131,9 +139,9 @@ export default function EmployeeDetailPage() {
             <TextField label="Date de naissance" type="date" value={form.date_of_birth ?? ''} onChange={set('date_of_birth')} />
             <TextField label="Lieu de naissance" value={form.place_of_birth ?? ''} onChange={set('place_of_birth')} />
             <TextField label="Nationalité" value={form.nationality ?? ''} onChange={set('nationality')} />
-            <TextField label="N° CNI ou passeport" value={form.id_document_number ?? ''} onChange={set('id_document_number')} />
+            <TextField data-fix="id_document_number" label="N° CNI ou passeport" value={form.id_document_number ?? ''} onChange={set('id_document_number')} />
             <TextField label="Délivrée le" type="date" value={form.id_issue_date ?? ''} onChange={set('id_issue_date')} />
-            <TextField label="Expire le" type="date" value={form.id_expiry_date ?? ''} onChange={set('id_expiry_date')} />
+            <TextField data-fix="id_expiry_date" label="Expire le" type="date" value={form.id_expiry_date ?? ''} onChange={set('id_expiry_date')} />
             <TextField label="Père" value={form.father_name ?? ''} onChange={set('father_name')} />
             <TextField label="Mère" value={form.mother_name ?? ''} onChange={set('mother_name')} />
           </div>
@@ -172,8 +180,12 @@ export default function EmployeeDetailPage() {
               <option value="">—</option>
               {selectable(designations.data, (d) => d.id === form.designation_id).map((d) => <option key={d.id} value={d.id}>{d.name}{d.is_active ? '' : ' (désactivé)'}</option>)}
             </SelectField>
-            <SelectField label="Type de contrat" value={form.employment_type ?? 'CDI'} onChange={set('employment_type')}>
+            <SelectField data-fix="employment_type" label="Type de contrat" value={form.employment_type ?? 'CDI'} onChange={set('employment_type')}>
               {selectable(contractTypes.data, (c) => c.code === form.employment_type).map((c) => <option key={c.code} value={c.code}>{c.code} — {c.label}{c.is_active ? '' : ' (désactivé)'}</option>)}
+            </SelectField>
+            <SelectField label="Département" value={form.department_id ?? ''} onChange={(e) => setForm((f) => ({ ...f, department_id: e.target.value || null }))} hint={departments.data && departments.data.length === 0 ? 'Aucun département défini : à créer dans Paramètres > Référentiels RH.' : undefined}>
+              <option value="">— aucun —</option>
+              {(departments.data ?? []).map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}
             </SelectField>
             <SelectField label="Convention collective" className="sm:col-span-2" value={form.agreement_code ?? ''} onChange={(e) => setForm((f) => ({ ...f, agreement_code: e.target.value || null, grade_id: null }))}>
               <option value="">—</option>
@@ -182,22 +194,22 @@ export default function EmployeeDetailPage() {
             <SelectField label="Catégorie" className="sm:col-span-2" value={form.grade_id ?? ''} onChange={set('grade_id')} disabled={!form.agreement_code}>
               <option value="">—</option>
               {selectable(grades.data, (g) => g.id === form.grade_id).map((g) => (
-                <option key={g.id} value={g.id}>{g.code} — {g.staff_status}{g.grade_class ? ` (classe ${g.grade_class})` : ''} — {fcfa(g.base_salary)} F</option>
+                <option key={g.id} value={g.id}>{g.code} — {g.staff_status}{g.grade_class ? ` (classe ${g.grade_class})` : ''} — {Number(g.base_salary) > 0 ? `${fcfa(g.base_salary)} F` : 'minimum non renseigné'}</option>
               ))}
             </SelectField>
-            <TextField label="Date d'entrée" type="date" required value={form.date_of_joining ?? ''} onChange={set('date_of_joining')} />
+            <TextField data-fix="date_of_joining" label="Date d'entrée" type="date" required value={form.date_of_joining ?? ''} onChange={set('date_of_joining')} />
             <TextField label="Date de retour de congé" type="date" value={form.leave_return_date ?? ''} onChange={set('leave_return_date')} />
-            <TextField label="Début du contrat en cours" type="date" value={form.contract_start ?? ''} onChange={set('contract_start')} />
-            <TextField label="Fin du contrat en cours" type="date" value={form.contract_end ?? ''} onChange={set('contract_end')} />
-            <TextField label="Date de sortie" type="date" value={form.relieving_date ?? ''} onChange={set('relieving_date')} />
+            <TextField data-fix="contract_start" label="Début du contrat en cours" type="date" value={form.contract_start ?? ''} onChange={set('contract_start')} />
+            <TextField data-fix="contract_end" label="Fin du contrat en cours" type="date" value={form.contract_end ?? ''} onChange={set('contract_end')} />
+            <TextField data-fix="relieving_date" label="Date de sortie" type="date" value={form.relieving_date ?? ''} onChange={set('relieving_date')} />
             <SelectField label="Motif de sortie" value={form.exit_reason ?? ''} onChange={set('exit_reason')}>
               <option value="">—</option>
               {exitReasons.isError && <option disabled>Motifs indisponibles</option>}
               {(exitReasons.data ?? []).filter((r) => !r.is_legacy || r.code === form.exit_reason).map((r) => <option key={r.code} value={r.code}>{r.label}</option>)}
             </SelectField>
-            <TextField label="Référence de la déclaration d'embauche" value={form.hire_declaration_ref ?? ''} onChange={set('hire_declaration_ref')} />
-            <TextField label="Date de la déclaration d'embauche" type="date" value={form.hire_declared_on ?? ''} onChange={set('hire_declared_on')} />
-            <TextField label="Date d'affiliation à la sécurité sociale" type="date" value={form.affiliation_date ?? ''} onChange={set('affiliation_date')} />
+            <TextField data-fix="hire_declaration_ref" label="Référence de la déclaration d'embauche" value={form.hire_declaration_ref ?? ''} onChange={set('hire_declaration_ref')} />
+            <TextField data-fix="hire_declared_on" label="Date de la déclaration d'embauche" type="date" value={form.hire_declared_on ?? ''} onChange={set('hire_declared_on')} />
+            <TextField data-fix="affiliation_date" label="Date d'affiliation à la sécurité sociale" type="date" value={form.affiliation_date ?? ''} onChange={set('affiliation_date')} />
             <SelectField label="État" value={form.status ?? 'Active'} onChange={set('status')}>
               <option value="Active">Actif</option><option value="Suspended">Suspendu</option><option value="Inactive">Inactif</option><option value="Left">Sorti</option>
             </SelectField>
@@ -249,8 +261,8 @@ function SalaryAssignment({ employee }: { employee: Emp }) {
   const current = q.data?.find((a) => a.id === selectedId) ?? q.data?.[0]
   const [f, setF] = useState<Partial<Assign>>({})
   useEffect(() => {
-    setF(current ?? { from_date: currentPeriod(), sursalaire: 0, fees: 0, other_fixed: 0, transport_mode: 'Prime de transport', leave_paid_monthly: true })
-  }, [current])
+    setF(current ?? { from_date: employee.date_of_joining ?? currentPeriod(), sursalaire: 0, fees: 0, other_fixed: 0, transport_mode: 'Prime de transport', leave_paid_monthly: true })
+  }, [current, employee.date_of_joining])
   const [period, setPeriod] = useState(currentPeriod())
   const original = f.id ? q.data?.find((a) => a.id === f.id) : undefined
   const movedEarlier = !!original && !!f.from_date && f.from_date < original.from_date
@@ -261,7 +273,9 @@ function SalaryAssignment({ employee }: { employee: Emp }) {
       if (!fromDate) throw new Error('La date « En vigueur à partir du » est obligatoire.')
       const duplicate = q.data?.find((a) => a.id !== f.id && a.from_date === fromDate)
       if (duplicate) throw new Error(`Une affectation commence déjà le ${fromDate.split('-').reverse().join('/')}. Modifiez-la depuis l'historique ou choisissez une autre date.`)
-      const payload = omit({ ...f, employee_id: employee.id, structure_id: f.structure_id ?? structures.data?.[0]?.id } as Assign, 'id', 'created_at', 'updated_at')
+      const structureId = f.structure_id ?? structures.data?.[0]?.id
+      if (!structureId) throw new Error('La structure salariale de référence n’est pas encore chargée : patientez un instant puis enregistrez de nouveau.')
+      const payload = omit({ ...f, employee_id: employee.id, structure_id: structureId } as Assign, 'id', 'created_at', 'updated_at')
       // modification d'une affectation existante : mise à jour par identifiant (la date peut changer,
       // y compris vers une date antérieure) ; sinon création d'une nouvelle version
       if (f.id) return unwrap(await dataApi.from('salary_structure_assignments').update(payload).eq('id', f.id).select().single())
@@ -284,6 +298,8 @@ function SalaryAssignment({ employee }: { employee: Emp }) {
   const num = (k: keyof Assign) => (e: React.ChangeEvent<HTMLInputElement>) => setF((x) => ({ ...x, [k]: e.target.value === '' ? null : Number(e.target.value) }))
   const salaryWarning = settings.data?.[0] && employee.employment_type !== 'Prestataire' ? checkBaseSalary(f.base_salary, settings.data[0]) : []
   const readOnly = !can('paie')
+  const notReady = q.isLoading || structures.isLoading // RPR-06 : pas d'enregistrement avant le chargement de la structure
+  const lateStart = !!f.from_date && f.from_date > new Date().toISOString().slice(0, 10) // RPR-07
 
   return (
     <Section
@@ -291,12 +307,14 @@ function SalaryAssignment({ employee }: { employee: Emp }) {
       actions={!readOnly && (
         <div className="flex gap-2">
           {q.data && q.data.length > 0 && <Button size="sm" variant="ghost" onClick={newVersion}>Nouvelle version</Button>}
-          <Button size="sm" variant="primary" loading={save.isPending} onClick={() => save.mutate()} icon={<Save className="h-3.5 w-3.5" />}>Enregistrer</Button>
+          <Button size="sm" variant="primary" loading={save.isPending} disabled={notReady} onClick={() => save.mutate()} icon={<Save className="h-3.5 w-3.5" />}>Enregistrer</Button>
         </div>
       )}
     >
       {q.isLoading ? <Spinner /> : (
         <fieldset disabled={readOnly} className="space-y-4">
+          {readOnly && <p role="note" className="rounded border border-line bg-paper px-3 py-2 text-xs text-ink-soft">Lecture seule : la structure salariale est affectée par le service paie ou par un administrateur.</p>}
+          {lateStart && <p role="alert" className="rounded border border-phosphate bg-phosphate-light px-3 py-2 text-xs text-ink">Cette date est postérieure à aujourd’hui : la structure ne s’appliquera pas aux paies des mois en cours ou déjà calculés.</p>}
           {q.data && q.data.length > 1 && (
             <div className="flex flex-wrap items-center gap-1.5 text-xs" aria-label="Historique des affectations">
               <span className="text-ink-muted">Historique :</span>
@@ -320,7 +338,7 @@ function SalaryAssignment({ employee }: { employee: Emp }) {
           {save.isSuccess && <p role="status" className="rounded border border-river/30 bg-river-light px-3 py-2 text-xs text-river-dark">Structure salariale enregistrée.</p>}
           <div className="grid gap-3 sm:grid-cols-2">
             <TextField label="En vigueur à partir du" type="date" value={f.from_date ?? ''} onChange={(e) => setF((x) => ({ ...x, from_date: e.target.value }))} />
-            <TextField label="Salaire de base (vide = minimum de la catégorie)" type="number" value={f.base_salary ?? ''} onChange={num('base_salary')}
+            <TextField data-fix="base_salary" label="Salaire de base (vide = minimum de la catégorie)" type="number" value={f.base_salary ?? ''} onChange={num('base_salary')}
               hint={salaryWarning[0]?.message} />
             <TextField label="Sursalaire" type="number" step="0.01" value={f.sursalaire ?? 0} onChange={num('sursalaire')} />
             <TextField label="Honoraires (prestataires)" type="number" value={f.fees ?? 0} onChange={num('fees')} />
@@ -345,7 +363,38 @@ function SalaryAssignment({ employee }: { employee: Emp }) {
           <ErrorNote error={q.error || save.error || solve.error} />
         </fieldset>
       )}
+      {can('rh', 'paie') && <LoanCapField employeeId={employee.id} />}
     </Section>
+  )
+}
+
+/* RPR-08 : plafond de retenue sur prêt propre au salarié (vide = plafond global des Paramètres) */
+function LoanCapField({ employeeId }: { employeeId: string }) {
+  const qc = useQueryClient()
+  const own = useQuery({
+    queryKey: ['loan_cap', employeeId],
+    queryFn: async () => (unwrap(await dataApi.from('employee_loan_caps').select('rate').eq('employee_id', employeeId)) as { rate: number }[])[0]?.rate ?? null,
+  })
+  const global = useQuery({ queryKey: ['loan_max_rate'], queryFn: async () => unwrap(await dataApi.rpc('get_loan_max_rate')) as number })
+  const [v, setV] = useState('')
+  const [reason, setReason] = useState('')
+  useEffect(() => { if (own.data !== undefined) setV(own.data == null ? '' : String(own.data)) }, [own.data])
+  const save = useMutation({
+    mutationFn: async () => unwrap(await dataApi.rpc('set_employee_loan_cap', { p_employee_id: employeeId, p_rate: (v === '' ? null : Number(v)) as number, p_reason: reason })),
+    onSuccess: () => { setReason(''); qc.invalidateQueries({ queryKey: ['loan_cap', employeeId] }) },
+  })
+  return (
+    <div className="mt-4 rounded border border-line bg-paper p-3">
+      <p className="text-sm font-medium">Plafond de retenue sur prêt</p>
+      <p className="mb-2 text-xs text-ink-soft">Part du brut qu'une retenue mensuelle de prêt ne peut pas dépasser. Laissez vide pour appliquer le plafond global ({global.data != null ? `${Math.round(global.data * 1000) / 10} %` : '…'}). Le net ne devient jamais négatif.</p>
+      <div className="flex flex-wrap items-end gap-2">
+        <TextField label="Plafond propre au salarié (0,4 = 40 %)" type="number" step="0.01" value={v} onChange={(e) => setV(e.target.value)} className="w-56" />
+        <TextField label="Motif (obligatoire, 5 caractères minimum)" value={reason} onChange={(e) => setReason(e.target.value)} className="w-72" />
+        <Button loading={save.isPending} disabled={reason.trim().length < 5} onClick={() => save.mutate()}>Enregistrer le plafond</Button>
+      </div>
+      {save.isSuccess && <p role="status" className="mt-2 text-xs text-river-dark">Plafond enregistré (journalisé).</p>}
+      <div className="mt-2"><ErrorNote error={own.error || save.error} /></div>
+    </div>
   )
 }
 

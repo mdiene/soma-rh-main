@@ -1,6 +1,19 @@
-# Accès par téléphone — guide utilisateur
+---
+title: "Se connecter et accéder par téléphone"
+description: "Connexion par e-mail, accès par téléphone pour les salariés, autorisation et révocation par l'administrateur."
+---
 
-Décisions et sécurité : `docs/DECISION_CONNEXION_TELEPHONE.md`.
+## Se connecter par e-mail
+Ouvrez l'application : l'écran de connexion propose deux onglets, **E-mail** et **Téléphone**. Saisissez votre **Adresse e-mail** et votre **Mot de passe**, puis **Se connecter**. L'inscription est fermée : un compte est créé par un administrateur.
+
+![Écran de connexion par e-mail](/guide-utilisateur/captures/connexion-email.png)
+
+Après 5 mots de passe faux, la connexion est bloquée 1 minute pour ce compte sur cet appareil, puis 2, 4… jusqu'à 30 minutes.
+
+## Accès par téléphone (salariés)
+L'onglet **Téléphone** permet à un salarié de se connecter avec son numéro. Ce mode ne donne que l'espace salarié (profil, congés, bulletins).
+
+![Onglet Téléphone de l'écran de connexion](/guide-utilisateur/captures/connexion-telephone.png)
 
 ## Demander mon accès par téléphone (salarié)
 1. Sur l'écran de connexion, ouvrez l'onglet **Téléphone**, puis **Créer mon accès**.
@@ -29,4 +42,5 @@ Même parcours que la demande d'accès : **Mot de passe oublié** > saisir le nu
 - **Puis-je être manager ou RH avec ce compte ?** Non : ce mode ne donne que l'espace salarié. Un compte e-mail distinct est nécessaire pour un autre rôle.
 - **Le numéro change** : la RH modifie la fiche ; l'accès est désactivé et doit être de nouveau demandé.
 
-*Captures d'écran : à produire avec Playwright dans `docs/guide-utilisateur/captures-sim/` une fois le parcours e2e exécuté.*
+## Voir aussi
+[Rôles et droits](/guide-utilisateur/roles-et-droits) · [Premiers pas](/guide-utilisateur/premiers-pas)

@@ -89,7 +89,7 @@ begin
   perform public.set_parameter('loan_max_rate', 0.4);
   if public.get_loan_max_rate() <> 0.4 then raise exception 'FAIL : plafond de prêt non modifié'; end if;
   perform public.reset_parameter('loan_max_rate');
-  if public.get_loan_max_rate() <> 0.33 then raise exception 'FAIL : plafond de prêt non réinitialisé'; end if;
+  if public.get_loan_max_rate() <> round(1.0 / 3, 6) then raise exception 'FAIL : plafond de prêt non réinitialisé (valeur de référence 1/3, RPR-08)'; end if;
 
   -- 7. garde : une version utilisée par une paie calculée est immuable
   execute 'reset role';

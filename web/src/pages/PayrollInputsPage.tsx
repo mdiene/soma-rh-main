@@ -149,6 +149,8 @@ export default function PayrollInputsPage() {
         </>}
       />
       <ErrorNote error={data.error || save.error || copyPrev.error} />
+      {/* RPR-15 : indicateur de progression pendant l'enregistrement (plusieurs secondes possibles à 200 salariés) */}
+      {save.isPending && <p role="status" className="mb-3 rounded border border-line bg-paper px-3 py-2 text-sm text-ink-soft">Enregistrement de {dirty.size} ligne(s) en cours… ne quittez pas la page.</p>}
       {save.isSuccess && dirty.size === 0 && <p className="mb-3 rounded border border-river/30 bg-river-light px-3 py-2 text-sm text-river-dark">Variables de {monthLabel(period)} enregistrées. Relancez le calcul du traitement pour les prendre en compte.</p>}
       {loading ? <Spinner /> : (
         <>

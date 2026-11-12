@@ -38,3 +38,7 @@ web/.env.production.local
 
 # Lien local du projet Vercel (créé par « vercel link »)
 .vercel/
+
+.vercel
+.env*
+!.env*.example

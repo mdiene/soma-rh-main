@@ -29,6 +29,12 @@
 }
 
 @layer components {
+  /* élément à corriger, ouvert depuis le centre de conformité (useHighlight) */
+  .fix-highlight {
+    @apply rounded bg-phosphate-light ring-2 ring-phosphate ring-offset-2;
+    animation: fix-pulse 1.2s ease-in-out 3;
+  }
+  @keyframes fix-pulse { 50% { box-shadow: 0 0 0 6px rgb(224 176 0 / 0.35); } }
   .field {
     @apply w-full rounded border border-line bg-white px-3 py-2 text-sm text-ink
            placeholder:text-ink-muted focus:border-river focus:outline-none focus:ring-2 focus:ring-river/20

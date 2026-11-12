@@ -1,5 +1,5 @@
 // Fonction Edge « phone-auth » (version en ligne) : mêmes routes que la passerelle locale /auth/v1/phone/* + « login ».
-// NON DÉPLOYÉE : voir docs/DECISION_CONNEXION_TELEPHONE.md (déploiement : supabase functions deploy phone-auth --no-verify-jwt).
+// Déployée le 12/11/2026 sur le projet mzhdwdpesbggxtjxxgab (verify_jwt désactivé : l'appelant n'a pas encore de session ; voir docs/DECISION_CONNEXION_TELEPHONE.md).
 // Secrets : SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, SUPABASE_ANON_KEY (fournis par Supabase), PHONE_AUTH_PEPPER (supabase secrets set, 32+ caractères aléatoires).
 //
 // Mot de passe 5 à 8 : Supabase Auth impose un minimum (6 par défaut). Pour respecter la règle métier sans toucher à la plateforme,
@@ -41,30 +41,43 @@ function problem(pw: unknown, p: Record<string, string>): string | null {
 // Verrouillage de connexion par couple numéro + adresse (en mémoire de l'instance : meilleur effort ; la base verrouille déjà l'ouverture).
 const fails = new Map<string, { n: number; until: number; level: number }>()
 
+const UNAVAILABLE = 'Service indisponible, réessayez plus tard.'
+// Le journal ne bloque pas la réponse, mais son échec laisse une trace
+async function logLogin(phone: string, event: string) {
+  const { error } = await admin.rpc('phone_access_log_login', { p_phone: phone, p_event: event })
+  if (error) console.error('phone_access_log_login', error.message)
+}
+
 Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') return reply(204, {})
+  // Pré-vérification CORS : un statut 204 n'admet aucun corps (Deno lève une erreur sinon)
+  if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: { ...cors, 'access-control-allow-methods': 'POST, OPTIONS' } })
   if (req.method !== 'POST') return reply(405, { message: 'Méthode non autorisée' })
   const route = new URL(req.url).pathname.split('/').pop()
-  const input = await req.json().catch(() => ({}))
-  const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown'
+  const input = await req.json().catch(() => null)
+  if (input === null || typeof input !== 'object') return reply(400, { message: 'Corps de requête invalide' })
+  // Adresse : l'entrée de DROITE de X-Forwarded-For est celle que la plateforme a vue (celles de gauche sont fournies par le client)
+  const ip = req.headers.get('cf-connecting-ip') ?? req.headers.get('x-forwarded-for')?.split(',').map((x) => x.trim()).filter(Boolean).pop() ?? 'unknown'
   const ipHash = (await sha256(`${pepper}|${ip}`)).slice(0, 32)
   const phone = String(input.phone ?? '').slice(0, 40)
 
   if (route === 'request') {
-    await admin.rpc('phone_access_request', { p_phone: phone, p_ip_hash: ipHash })
+    const { error } = await admin.rpc('phone_access_request', { p_phone: phone, p_ip_hash: ipHash })
+    if (error) { console.error('phone_access_request', error.message); return reply(500, { message: UNAVAILABLE }) } // la réponse neutre ne couvre pas une panne
     return reply(200, { status: 'received', message: NEUTRAL_REQUEST })
   }
 
   if (route === 'open') {
     const token = hex(crypto.getRandomValues(new Uint8Array(24)).buffer)
     const second = /^\d{4}-\d{2}-\d{2}$/.test(String(input.second ?? '')) ? input.second : null
-    const { data } = await admin.rpc('phone_access_open', { p_phone: phone, p_second: second, p_ip_hash: ipHash, p_token_hash: await sha256(token) })
+    const { data, error } = await admin.rpc('phone_access_open', { p_phone: phone, p_second: second, p_ip_hash: ipHash, p_token_hash: await sha256(token) })
+    if (error) { console.error('phone_access_open', error.message); return reply(500, { message: UNAVAILABLE }) }
     return data ? reply(200, { status: 'ready', token }) : reply(200, { status: 'pending', message: NEUTRAL_OPEN })
   }
 
   if (route === 'set-password') {
     const tokenHash = await sha256(String(input.token ?? ''))
-    const { data: peek } = await admin.rpc('phone_access_peek', { p_token_hash: tokenHash })
+    const { data: peek, error: peekError } = await admin.rpc('phone_access_peek', { p_token_hash: tokenHash })
+    if (peekError) { console.error('phone_access_peek', peekError.message); return reply(500, { message: UNAVAILABLE }) }
     const p = peek?.[0]
     if (!p) return reply(400, { message: "Le lien d'activation est invalide ou a expiré. Recommencez la saisie de votre numéro." })
     const bad = problem(input.password, p)
@@ -87,21 +100,24 @@ Deno.serve(async (req) => {
   }
 
   if (route === 'login') {
-    const { data: e164 } = await admin.rpc('phone_normalize', { p_phone: phone })
+    const { data: e164, error: normError } = await admin.rpc('phone_normalize', { p_phone: phone })
+    if (normError) { console.error('phone_normalize', normError.message); return reply(500, { message: UNAVAILABLE }) }
     if (!e164) return reply(400, { message: 'Numéro ou mot de passe invalide' })
     const key = `${ip}|${e164}`, f = fails.get(key) ?? { n: 0, until: 0, level: 0 }
     if (Date.now() < f.until) return reply(429, { message: `Trop d'échecs, réessayez dans ${Math.ceil((f.until - Date.now()) / 1000)} secondes` })
     const { data, error } = await anon.auth.signInWithPassword({ email: toEmail(e164), password: await derive(e164, String(input.password ?? '')) })
+    // une panne du service d'authentification n'est pas un mot de passe faux : pas de compteur d'échecs, pas de verrou
+    if (error && ((error.status ?? 0) >= 500 || error.name === 'AuthRetryableFetchError')) { console.error('signInWithPassword', error.message); return reply(503, { message: UNAVAILABLE }) }
     if (error || !data.session) {
       f.n += 1
       const locked = f.n >= 5
       if (locked) { f.until = Date.now() + Math.min(60_000 * 2 ** f.level, 1_800_000); f.level += 1; f.n = 0 }
       fails.set(key, f)
-      await admin.rpc('phone_access_log_login', { p_phone: e164, p_event: locked ? 'verrouillage de connexion' : 'connexion échouée' })
+      await logLogin(e164, locked ? 'verrouillage de connexion' : 'connexion échouée')
       return reply(400, { message: 'Numéro ou mot de passe invalide' })
     }
     fails.delete(key)
-    await admin.rpc('phone_access_log_login', { p_phone: e164, p_event: 'connexion réussie' })
+    await logLogin(e164, 'connexion réussie')
     return reply(200, { access_token: data.session.access_token, refresh_token: data.session.refresh_token })
   }
 

@@ -8,14 +8,13 @@ import pg from 'pg'
 import { PDFDocument, StandardFonts, rgb } from 'pdf-lib'
 import { createDocumentThumbnail } from './thumbnail.mjs'
 import {
-  NEUTRAL_OPEN_MESSAGE, NEUTRAL_REQUEST_MESSAGE, createLoginLimiter, emailToPhone, hashIp, hashToken,
-  isPhoneEmail, parseBirthDate, passwordProblem, phoneToEmail,
+  NEUTRAL_OPEN_MESSAGE, NEUTRAL_REQUEST_MESSAGE, createLoginLimiter, createPersistentLimiter, emailToPhone, hashIp, hashToken,
+  clientAddress, isPhoneEmail, parseBirthDate, passwordProblem, phoneToEmail,
 } from './phone.mjs'
 
 // Store for rate limiting and brute force tracking (in-memory for simplicity;
 // in production use Redis or database with persistence)
 const rateLimitStore = new Map() // ip -> { count, resetTime }
-const bruteForceStore = new Map() // ip -> { failures, lockedUntil }
 
 // La table public.refresh_tokens est créée par la migration 20261105120000_refresh_tokens.sql (D-017).
 
@@ -25,7 +24,7 @@ const refreshTokenStore = new Map()
 
 // Adresse du client : request.ip n'existe pas sur http.IncomingMessage, d'où un compteur commun à tous (D-017)
 function clientIp(request) {
-  return request.socket?.remoteAddress || 'unknown'
+  return clientAddress(request.socket?.remoteAddress, request.headers['x-forwarded-for'], process.env.TRUST_PROXY === '1')
 }
 
 // Simple rate limiter middleware factory
@@ -47,25 +46,6 @@ function rateLimitMiddleware(max, windowMs) {
     } else {
       // New window
       rateLimitStore.set(ip, { count: 1, resetTime: now + windowMs })
-    }
-
-    next()
-  }
-}
-
-// Brute force protection checker
-function bruteForceCheckMiddleware(maxFailures, lockDurationMs) {
-  return async (request, response, next) => {
-    const ip = clientIp(request)
-    const now = Date.now()
-    const entry = bruteForceStore.get(ip)
-
-    // If IP is locked, reject unless it's past the lock duration
-    if (entry && entry.lockedUntil && now < entry.lockedUntil) {
-      const retryAfter = Math.ceil((entry.lockedUntil - now) / 1000)
-      return json(response, 429, {
-        message: 'Compte verrouillé suite à trop d\'échecs, réessayez dans ' + retryAfter + ' secondes',
-      })
     }
 
     next()
@@ -124,12 +104,12 @@ const SECURITY = {
   // Rate limiting : max requêtes par intervalle par IP
   rateLimit: {
     windowMs: 15 * 60 * 1000, // 15 minutes
-    max: Number(process.env.RATE_LIMIT_MAX ?? 30), // 30 connexions/15min par IP par défaut
+    max: Number(process.env.RATE_LIMIT_MAX ?? 120), // RPR-03 : limite par adresse séparée du verrou par compte, 120 requêtes sensibles/15 min par défaut
   },
   // Refresh token : expiration en ms (24h par défaut)
   refreshTokenTtl: Number(process.env.REFRESH_TOKEN_TTL ?? 24 * 60 * 60 * 1000),
   // Anti-force brute : échecs avant verrouillage
-  bruteForceMax: Number(process.env.BRUTE_FORCE_MAX ?? 3),
+  bruteForceMax: Number(process.env.BRUTE_FORCE_MAX ?? 5),
   // TOTP : configurable par rôle (admin/rh sensibles)
   totpEnabled: process.env.TOTP_ENABLED === 'true',
 };
@@ -151,10 +131,15 @@ async function issueToken(user) {
     .sign(secret)
 }
 
-async function body(request) {
+async function body(request, maxBytes = 25 * 1024 * 1024) {
   if (request.parsedBody) return request.parsedBody // corps déjà lu par auth() (le flux ne se relit pas)
   const chunks = []
-  for await (const chunk of request) chunks.push(chunk)
+  let size = 0
+  for await (const chunk of request) {
+    size += chunk.length
+    if (size > maxBytes) throw Object.assign(new Error('Corps trop volumineux'), { code: 'BODY_TOO_LARGE' })
+    chunks.push(chunk)
+  }
   if (!chunks.length) return {}
   const raw = Buffer.concat(chunks).toString('utf8')
   const contentType = request.headers['content-type'] ?? ''
@@ -337,8 +322,8 @@ async function documentRoute(request, response, url) {
       return json(response, 201, { document: document.rows[0] }), true
     } catch (error) {
       await client.query('rollback')
-      await unlink(absolutePath).catch(() => {})
-      await unlink(absoluteThumbnailPath).catch(() => {})
+      await unlink(absolutePath).catch(logUnlink)
+      await unlink(absoluteThumbnailPath).catch(logUnlink)
       throw error
     } finally {
       client.release()
@@ -381,8 +366,8 @@ async function documentRoute(request, response, url) {
     )
     if (!access.rows[0]) return json(response, 404, { message: 'Document introuvable ou non autorisé' }), true
     await pool.query('delete from public.employee_documents where id = $1', [documentId])
-    await unlink(path.join(documentRoot, access.rows[0].storage_path)).catch(() => {})
-    if (access.rows[0].thumbnail_path) await unlink(path.join(documentRoot, access.rows[0].thumbnail_path)).catch(() => {})
+    await unlink(path.join(documentRoot, access.rows[0].storage_path)).catch(logUnlink)
+    if (access.rows[0].thumbnail_path) await unlink(path.join(documentRoot, access.rows[0].thumbnail_path)).catch(logUnlink)
     return json(response, 200, { deleted: true }), true
   }
   return false
@@ -399,7 +384,37 @@ function setCors(request, response) {
 }
 
 // Connexion par téléphone : verrouillage progressif par couple numéro + adresse (jamais par adresse seule, RPR-03)
-const phoneLoginLimiter = createLoginLimiter()
+// État en base (survit au redémarrage, partagé entre instances), repli en mémoire si la base est indisponible
+const persistent = (prefix, maxFailures) => createPersistentLimiter({
+  query: (sql, params) => pool.query(sql, params), memory: createLoginLimiter({ maxFailures }), prefix, maxFailures, salt: () => jwtSecret,
+})
+const phoneLoginLimiter = persistent('phone', 5)
+const emailLoginLimiter = persistent('email', SECURITY.bruteForceMax)
+
+// RPR-03 : chaque verrouillage de connexion est journalisé (compte masqué, adresse hachée) et remonte dans les alertes de l'administrateur
+const maskEmail = (email) => {
+  const [local = '', domain = ''] = String(email ?? '').toLowerCase().split('@')
+  return `${local.slice(0, 2)}***@${domain.slice(0, 60)}`
+}
+async function logLoginLock(email, ipHash) {
+  try {
+    await pool.query(
+      "insert into public.audit_events (action, resource_type, result, after_data) values ('verrouillage_connexion', 'auth', 'denied', jsonb_build_object('account', $1::text, 'ip_hash', $2::text))",
+      [maskEmail(email), ipHash],
+    )
+  } catch (error) {
+    console.error('Journal du verrouillage indisponible :', error.message) // ne jamais empêcher la réponse de connexion
+  }
+}
+// Hachage bcrypt (coût 12) d'un mot de passe inconnu : sert à égaliser le temps de réponse quand le compte n'existe pas
+// Suppression de fichier : l'absence du fichier est normale, toute autre erreur laisse une trace (pièce orpheline)
+const logUnlink = (error) => { if (error?.code !== 'ENOENT') console.error('Suppression de fichier impossible :', error?.message) }
+const DUMMY_HASH = bcrypt.hashSync(randomBytes(16).toString('hex'), 12)
+// Le journal des connexions ne doit jamais empêcher la réponse (comme logLoginLock), mais l'échec est tracé
+async function logPhoneLogin(phone, action) {
+  try { await pool.query('select public.phone_access_log_login($1, $2)', [phone, action]) }
+  catch (error) { console.error('Journal de connexion téléphone indisponible :', error.message) }
+}
 const phoneRoutes = ['/auth/v1/phone/request', '/auth/v1/phone/open', '/auth/v1/phone/set-password']
 const ipSalt = () => jwtSecret
 const phoneDb = (fn, params) => pool.query(`select public.${fn} as r`, params).then((x) => x.rows[0].r)
@@ -466,16 +481,24 @@ async function phoneAuth(request, response, pathname) {
 
 async function auth(request, response, pathname) {
   // Corps lu une fois pour toutes : la connexion par téléphone n'obéit pas au verrou collectif par adresse
-  if (request.method === 'POST') request.parsedBody = await body(request).catch(() => ({}))
+  // Routes non authentifiées : corps plafonné à 64 Ko, JSON invalide refusé (plus de « {} » silencieux)
+  if (request.method === 'POST') {
+    try { request.parsedBody = await body(request, 64 * 1024) } catch (error) {
+      if (error?.code === 'BODY_TOO_LARGE') {
+        response.setHeader('connection', 'close')
+        response.once('finish', () => request.destroy()) // on coupe le flux seulement une fois le 413 envoyé
+        return json(response, 413, { message: 'Requête trop volumineuse' })
+      }
+      return json(response, 400, { message: 'Corps de requête invalide' })
+    }
+    if (request.parsedBody === null || typeof request.parsedBody !== 'object') return json(response, 400, { message: 'Corps de requête invalide' })
+  }
   const phoneLogin = pathname === '/auth/v1/token' && isPhoneEmail(request.parsedBody?.email)
   // Middleware : vérification rate limit et brute force
   // Limitation seulement sur les points qui reçoivent des identifiants : /auth/v1/user est appelé à chaque page
   const sensible = request.method === 'POST' && (pathname === '/auth/v1/token' || pathname === '/auth/v1/signup' || phoneRoutes.includes(pathname))
   if (sensible) {
     await rateLimitMiddleware(SECURITY.rateLimit.max, SECURITY.rateLimit.windowMs)(request, response, async () => {})
-    if (!phoneLogin && !phoneRoutes.includes(pathname)) {
-      await bruteForceCheckMiddleware(SECURITY.bruteForceMax, 30 * 60 * 1000)(request, response, async () => {})
-    }
     if (response.writableEnded) return true // 429 déjà envoyé : on n'exécute pas la requête
   }
 
@@ -489,12 +512,6 @@ async function auth(request, response, pathname) {
     const input = await body(request)
     if (!input.email || !input.password || input.password.length < 8) {
       return json(response, 400, { error: 'email et mot de passe de 8 caractères minimum requis' })
-    }
-    // Vérifier les échecs précédents pour ce IP (débloquer si nécessaire)
-    const ip = clientIp(request)
-    const bfEntry = bruteForceStore.get(ip)
-    if (bfEntry && bfEntry.lockedUntil && Date.now() > bfEntry.lockedUntil) {
-      delete bruteForceStore.get(ip)
     }
     const password = await bcrypt.hash(input.password, 12)
     const id = randomUUID()
@@ -522,47 +539,44 @@ async function auth(request, response, pathname) {
 
   if (request.method === 'POST' && pathname === '/auth/v1/token') {
     const input = await body(request)
+    if (typeof input.email !== 'string' || typeof input.password !== 'string') return json(response, 400, { error: 'invalid_credentials', error_description: 'Adresse ou mot de passe invalide' })
+    // RPR-03 : verrouillage progressif par couple compte + adresse (un poste ne bloque jamais les autres comptes ni les autres postes)
+    const lockKey = `${hashIp(clientIp(request), ipSalt())}|${String(input.email ?? '').toLowerCase()}`
+    if (!phoneLogin) {
+      const wait = await emailLoginLimiter.retryAfter(lockKey)
+      if (wait) return json(response, 429, { message: `Trop d'échecs pour ce compte depuis ce poste, réessayez dans ${wait} secondes` })
+    }
     const result = await pool.query('select id, email, encrypted_password, created_at, updated_at from auth.users where email = lower($1)', [input.email])
     const user = result.rows[0]
     if (phoneLogin) {
       // Compte téléphone : verrouillage progressif par couple numéro + adresse, compte actif obligatoire
       const key = `${clientIp(request)}|${String(input.email).toLowerCase()}`
-      const wait = phoneLoginLimiter.retryAfter(key)
+      const wait = await phoneLoginLimiter.retryAfter(key)
       if (wait) return json(response, 429, { message: `Trop d'échecs, réessayez dans ${wait} secondes` })
-      const valid = user && (await bcrypt.compare(input.password ?? '', user.encrypted_password))
+      // bcrypt est toujours exécuté (hachage factice si le numéro n'a pas de compte) : le délai ne révèle pas les comptes existants
+      const passwordOk = await bcrypt.compare(input.password, user?.encrypted_password ?? DUMMY_HASH)
+      const valid = user && passwordOk
         && (await phoneDb('phone_access_account_status($1)', [user.id])) === 'active'
       const phone = emailToPhone(input.email)
       if (!valid) {
-        const locked = phoneLoginLimiter.fail(key)
-        await pool.query('select public.phone_access_log_login($1, $2)', [phone, locked ? 'verrouillage de connexion' : 'connexion échouée'])
+        const locked = await phoneLoginLimiter.fail(key)
+        await logPhoneLogin(phone, locked ? 'verrouillage de connexion' : 'connexion échouée')
         return json(response, 400, { error: 'invalid_credentials', error_description: 'Numéro ou mot de passe invalide' })
       }
-      phoneLoginLimiter.success(key)
-      await pool.query('select public.phone_access_log_login($1, $2)', [phone, 'connexion réussie'])
+      await phoneLoginLimiter.success(key)
+      await logPhoneLogin(phone, 'connexion réussie')
       const refresh = await rotateRefreshToken(user.id, input.email)
       return json(response, 200, {
         user: { id: user.id, email: user.email, created_at: user.created_at, updated_at: user.updated_at },
         access_token: await issueToken(user), refresh_token: refresh, token_type: 'bearer', expires_in: 28800,
       })
     }
-    if (!user || !(await bcrypt.compare(input.password ?? '', user.encrypted_password))) {
-      // Enregistrer l'échec pour anti-force brute
-      const ip = clientIp(request)
-      let bfEntry = bruteForceStore.get(ip)
-      if (!bfEntry) {
-        bfEntry = { failures: 0, lockedUntil: 0 }
-        bruteForceStore.set(ip, bfEntry)
-      }
-      bfEntry.failures++
-      if (bfEntry.failures >= SECURITY.bruteForceMax) {
-        // Verrouiller pendant 30 minutes
-        bfEntry.lockedUntil = Date.now() + 30 * 60 * 1000
-      }
+    const emailPasswordOk = await bcrypt.compare(input.password, user?.encrypted_password ?? DUMMY_HASH)
+    if (!user || !emailPasswordOk) {
+      if (await emailLoginLimiter.fail(lockKey)) await logLoginLock(input.email, lockKey.split('|')[0])
       return json(response, 400, { error: 'invalid_credentials', error_description: 'Adresse ou mot de passe invalide' })
     }
-    // Réinitialiser les échecs à la connexion réussie
-    const ip = clientIp(request)
-    bruteForceStore.delete(ip)
+    await emailLoginLimiter.success(lockKey)
     // Rotate refresh token : ancien invalide, nouveau créé
     const newRefreshToken = await rotateRefreshToken(user.id, input.email)
     return json(response, 200, {

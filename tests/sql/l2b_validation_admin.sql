@@ -31,7 +31,7 @@ begin
   -- 2. une demande du rh n'a aucun effet tant qu'elle n'est pas approuvée
   perform pg_temp.as_user(c.user_rh);
   q1 := public.request_parameter_change('loan_max_rate', 0.4);
-  if public.get_loan_max_rate() <> 0.33 then raise exception 'FAIL : la demande a modifié la constante avant validation'; end if;
+  if public.get_loan_max_rate() <> round(1.0 / 3, 6) then raise exception 'FAIL : la demande a modifié la constante avant validation'; end if;
   if (select status from public.approval_requests where id = q1) <> 'en_attente' then raise exception 'FAIL : demande non en attente'; end if;
   r := pg_temp.try('select public.request_parameter_change(''loan_max_rate'', 0.5)');
   if r not like '%déjà en attente%' then raise exception 'FAIL : seconde demande identique acceptée : %', r; end if;
@@ -51,7 +51,7 @@ begin
   select count(*) into n0 from public.employee_notifications where user_id = c.user_rh and title = 'Demande refusée';
   perform pg_temp.as_user(c.user_admin);
   perform public.decide_request(q1, false, 'Valeur non justifiée');
-  if public.get_loan_max_rate() <> 0.33 then raise exception 'FAIL : une demande refusée a été appliquée'; end if;
+  if public.get_loan_max_rate() <> round(1.0 / 3, 6) then raise exception 'FAIL : une demande refusée a été appliquée'; end if;
   execute 'reset role';
   if (select count(*) from public.employee_notifications where user_id = c.user_rh and title = 'Demande refusée') <> n0 + 1 then raise exception 'FAIL : demandeur non notifié du refus'; end if;
   perform pg_temp.as_user(c.user_admin);
@@ -124,7 +124,7 @@ begin
   if public.get_loan_max_rate() <> 0.3 then raise exception 'FAIL : saisie directe de l''administrateur non appliquée'; end if;
   if (select status from public.approval_requests where id = q2) <> 'approuvée' then raise exception 'FAIL : saisie directe non approuvée d''office'; end if;
   q2 := public.request_parameter_reset('loan_max_rate');
-  if public.get_loan_max_rate() <> 0.33 then raise exception 'FAIL : réinitialisation directe non appliquée'; end if;
+  if public.get_loan_max_rate() <> round(1.0 / 3, 6) then raise exception 'FAIL : réinitialisation directe non appliquée'; end if;
 
   -- 10. ancien circuit : deroger_constat crée une demande, ne déroge plus directement
   execute 'reset role';

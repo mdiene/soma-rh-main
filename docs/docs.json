@@ -8,6 +8,35 @@
   "navigation": {
     "groups": [
       {
+        "group": "Guide utilisateur",
+        "pages": [
+          "guide-utilisateur/index",
+          "guide-utilisateur/premiers-pas",
+          "guide-utilisateur/roles-et-droits",
+          "guide-utilisateur/connexion-et-acces-telephone",
+          "guide-utilisateur/parcours-admin",
+          "guide-utilisateur/parcours-rh",
+          "guide-utilisateur/parcours-paie",
+          "guide-utilisateur/parcours-manager",
+          "guide-utilisateur/parcours-salarie",
+          "guide-utilisateur/creer-les-emplois",
+          "guide-utilisateur/relier-comptes-et-equipes",
+          "guide-utilisateur/embaucher-un-salarie",
+          "guide-utilisateur/certificat-de-travail",
+          "guide-utilisateur/enregistrer-une-sortie",
+          "guide-utilisateur/demander-un-conge",
+          "guide-utilisateur/accorder-un-pret",
+          "guide-utilisateur/calendrier-de-paie",
+          "guide-utilisateur/calculer-et-cloturer-la-paie",
+          "guide-utilisateur/suivi-des-cotisations",
+          "guide-utilisateur/etats-legaux",
+          "guide-utilisateur/simulateur-net-brut",
+          "guide-utilisateur/glossaire",
+          "guide-utilisateur/faq",
+          "guide-utilisateur/depannage"
+        ]
+      },
+      {
         "group": "Règles de paie",
         "pages": [
           "regles-de-paie/registre-legal"

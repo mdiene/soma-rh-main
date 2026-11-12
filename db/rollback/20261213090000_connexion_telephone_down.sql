@@ -5,6 +5,7 @@ drop trigger if exists employees_phone_access_phone_change on public.employees;
 drop trigger if exists user_roles_phone_access_lock on public.user_roles;
 drop table if exists public.phone_access_tokens, public.phone_access_requests, public.phone_access_attempts,
                      public.phone_access_accounts, public.phone_access_settings cascade;
+drop index if exists public.employees_phone_normalized_idx; -- dépend de phone_normalize()
 drop function if exists public.phone_access_request(text, text), public.phone_access_open(text, date, text, text),
   public.phone_access_peek(text), public.phone_access_complete(text, uuid), public.phone_access_log_login(text, text),
   public.phone_access_account_status(uuid), public.phone_access_disable(uuid, text, text), public.phone_access_expire(),

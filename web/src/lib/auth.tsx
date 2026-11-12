@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import type { ApiSession as Session } from './api'
 import { dataApi } from './api'
 
@@ -20,10 +20,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [roles, setRoles] = useState<Role[]>([])
   const [loading, setLoading] = useState(true)
 
-  const loadRoles = useCallback(async (s: Session | null) => {
-    if (!s) { setRoles([]); return }
-    const { data } = await dataApi.from('user_roles').select('role').eq('user_id', s.user.id)
-    setRoles((data ?? []).map((r) => r.role as Role))
+  // RPR-15 : les rôles étaient relus à chaque événement d'authentification (3 à 4 requêtes par navigation).
+  // Une seule lecture par utilisateur, partagée entre les appelants simultanés (getSession et onAuthStateChange) : chacun attend la même promesse.
+  const inflight = useRef<{ id: string; promise: Promise<void> } | null>(null)
+  const loadRoles = useCallback((s: Session | null, force = false): Promise<void> => {
+    if (!s) { inflight.current = null; setRoles([]); return Promise.resolve() }
+    if (!force && inflight.current?.id === s.user.id) return inflight.current.promise
+    const promise = (async () => {
+      const { data, error } = await dataApi.from('user_roles').select('role').eq('user_id', s.user.id)
+      if (error) inflight.current = null // échec (jeton expiré, réseau) : la prochaine notification retentera
+      setRoles((data ?? []).map((r) => r.role as Role))
+    })()
+    inflight.current = { id: s.user.id, promise }
+    return promise
   }, [])
 
   useEffect(() => {
@@ -32,9 +41,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       await loadRoles(data.session)
       setLoading(false)
     })
-    const { data: sub } = dataApi.auth.onAuthStateChange((_event, s) => {
+    const { data: sub } = dataApi.auth.onAuthStateChange((event, s) => {
       setSession(s)
-      void loadRoles(s)
+      void loadRoles(s, event === 'TOKEN_REFRESHED') // un renouvellement de jeton relit les rôles (retrait de droit pris en compte)
     })
     return () => sub.subscription.unsubscribe()
   }, [loadRoles])
@@ -44,7 +53,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     roles,
     loading,
     can: (...wanted) => roles.includes('admin') || wanted.some((r) => roles.includes(r)),
-    refreshRoles: () => loadRoles(session),
+    refreshRoles: () => loadRoles(session, true),
     signOut: async () => { await dataApi.auth.signOut() },
   }), [session, roles, loading, loadRoles])
 

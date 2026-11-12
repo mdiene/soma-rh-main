@@ -1,0 +1,51 @@
+---
+title: "Rôles et droits"
+description: "Qui voit quoi dans SOMA-RH : le menu de chaque rôle, tiré du menu réel de l'application."
+---
+
+SOMA-RH connaît cinq rôles : **administrateur**, **RH**, **paie**, **manager** et **salarié**. Un compte peut cumuler plusieurs rôles (par exemple RH et paie). L'administrateur accède à tous les écrans.
+
+Le menu n'est qu'un confort : la sécurité réelle est appliquée par la base de données. Un écran absent du menu reste inaccessible même si vous saisissez son adresse : l'application vous renvoie alors vers une autre page.
+
+## Écrans par rôle
+
+| Espace | Écran | Adresse | Admin | RH | Paie | Manager | Salarié |
+|---|---|---|---|---|---|---|---|
+| Espace personnel | Mon profil et mes demandes | `/mon-espace` | ✔ | ✔ | ✔ | ✔ | ✔ |
+| Espace personnel | Mes congés | `/conges` | ✔ |  |  | ✔ | ✔ |
+| Espace personnel | Mes bulletins | `/mes-bulletins` | ✔ | ✔ | ✔ | ✔ | ✔ |
+| Espace personnel | Aide et guide utilisateur | `/aide` | ✔ | ✔ | ✔ | ✔ | ✔ |
+| Management | Mon équipe et validations | `/mon-equipe` | ✔ |  |  | ✔ |  |
+| Management | Organigramme d'équipe | `/equipes/organigramme` | ✔ |  |  | ✔ |  |
+| Administration du personnel | Salariés | `/salaries` | ✔ | ✔ | ✔ |  |  |
+| Administration du personnel | Dossiers administratifs | `/dossiers-salaries` | ✔ | ✔ |  |  |  |
+| Administration du personnel | Demandes des salariés | `/demandes` | ✔ | ✔ |  |  |  |
+| Administration du personnel | Congés et absences | `/conges` | ✔ | ✔ | ✔ |  |  |
+| Administration du personnel | Présences | `/presences` | ✔ | ✔ | ✔ |  |  |
+| Administration du personnel | Planning métier | `/planning` | ✔ | ✔ | ✔ |  |  |
+| Administration du personnel | Équipes et managers | `/equipes` | ✔ | ✔ |  |  |  |
+| Paie et rémunération | Variables du mois | `/paie/variables` | ✔ | ✔ | ✔ |  |  |
+| Paie et rémunération | Prêts et régularisations | `/paie/ajustements` | ✔ | ✔ | ✔ |  |  |
+| Paie et rémunération | Traitements de paie | `/paie` | ✔ | ✔ | ✔ |  |  |
+| Paie et rémunération | Suivi des cotisations | `/paie/cotisations` | ✔ | ✔ | ✔ |  |  |
+| Paie et rémunération | Contrôle et clôture | `/paie/gouvernance` | ✔ | ✔ | ✔ |  |  |
+| Paie et rémunération | États légaux et cotisations | `/etats` | ✔ | ✔ | ✔ |  |  |
+| Paie et rémunération | Simulateur net / brut | `/paie/simulateur` | ✔ | ✔ | ✔ |  |  |
+| Pilotage et décision | Tableau de bord | `/` | ✔ | ✔ | ✔ |  |  |
+| Pilotage et décision | Pilotage RH | `/pilotage` | ✔ | ✔ | ✔ |  |  |
+| Pilotage et décision | Organigramme global | `/equipes/organigramme` | ✔ | ✔ | ✔ |  |  |
+| Pilotage et décision | Simulation d'organisation | `/equipes/simulation` | ✔ | ✔ |  |  |  |
+| Configuration | Paramètres et comptes | `/parametres` | ✔ | ✔ | ✔ |  |  |
+| Configuration | Centre de conformité | `/centre-conformite` | ✔ | ✔ | ✔ |  |  |
+| Configuration | Modules métiers | `/modules` | ✔ | ✔ | ✔ |  |  |
+| Configuration | Journal des modifications | `/journal` | ✔ | ✔ |  |  |  |
+
+## À savoir
+- Les rôles s'attribuent dans **Paramètres → Accès** (administrateur seulement), ligne par ligne, en cochant le rôle.
+- Relier un compte à une fiche salarié (colonne « Fiche salarié ») donne accès à « Mes bulletins » et à « Mes congés » ; un compte non relié ne voit aucun bulletin.
+- Le manager ne voit que les salariés de son équipe (affectations faites par la RH dans **Équipes et managers**).
+- Le salarié ne voit que ses propres fiche, congés et bulletins **validés**.
+- Les rôles « rh » et « paie » ont des droits distincts en paie : l'approbation d'un traitement exige un compte paie ou administrateur différent de la personne qui l'a envoyé en revue.
+
+## Voir aussi
+[Premiers pas](/guide-utilisateur/premiers-pas) · [Parcours de l'administrateur](/guide-utilisateur/parcours-admin)

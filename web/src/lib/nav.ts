@@ -1,7 +1,7 @@
 import {
   Banknote, CalendarCheck2, CalendarRange, CalendarDays, Calculator, FileSpreadsheet, FileText, History, Inbox, LayoutDashboard,
   LockKeyhole, Network, PieChart, Settings, ShieldCheck, SlidersHorizontal, UserCircle, Users, Wallet, Receipt,
-  Blocks, Briefcase, Cog, UsersRound, type LucideIcon,
+  Blocks, Briefcase, Cog, LifeBuoy, UsersRound, type LucideIcon,
 } from 'lucide-react'
 import type { Role } from './auth'
 
@@ -24,6 +24,7 @@ export const SPACES: NavSpace[] = [
     { to: '/mon-espace', label: 'Mon profil et mes demandes', icon: UserCircle, roles: ['salarie', 'rh', 'paie', 'manager'] },
     { to: '/conges', label: 'Mes congés', icon: CalendarDays, roles: ['salarie', 'manager'], keywords: 'conge absence solde demande' },
     { to: '/mes-bulletins', label: 'Mes bulletins', icon: Receipt, roles: ['salarie', 'rh', 'paie', 'manager'], keywords: 'bulletin fiche de paie salaire' },
+    { to: '/aide', label: 'Aide et guide utilisateur', icon: LifeBuoy, roles: ['salarie', 'rh', 'paie', 'manager'], keywords: 'aide documentation guide manuel faq glossaire' },
   ] },
   { id: 'equipe', label: 'Management', icon: UsersRound, items: [
     { to: '/mon-equipe', label: 'Mon équipe et validations', icon: Users, roles: ['manager'], badge: 'validations' },
@@ -42,6 +43,7 @@ export const SPACES: NavSpace[] = [
     { to: '/paie/variables', label: 'Variables du mois', icon: SlidersHorizontal, roles: ['paie', 'rh'] },
     { to: '/paie/ajustements', label: 'Prêts et régularisations', icon: Banknote, roles: ['paie', 'rh'] },
     { to: '/paie', label: 'Traitements de paie', icon: Wallet, roles: ['paie', 'rh'], keywords: 'calcul bulletins salaire' },
+    { to: '/paie/cotisations', label: 'Suivi des cotisations', icon: Banknote, roles: ['paie', 'rh'], keywords: 'versement reçu virement chèque échéance payé' },
     { to: '/paie/gouvernance', label: 'Contrôle et clôture', icon: LockKeyhole, roles: ['paie', 'rh'] },
     { to: '/etats', label: 'États légaux et cotisations', icon: FileSpreadsheet, roles: ['paie', 'rh'], keywords: 'ipres css cfce ir trimf brs ipm livre de paie déclaration écritures comptables' },
     { to: '/paie/simulateur', label: 'Simulateur net / brut', icon: Calculator, roles: ['paie', 'rh'] },

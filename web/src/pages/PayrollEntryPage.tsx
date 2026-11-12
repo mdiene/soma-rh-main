@@ -4,7 +4,7 @@ import { ArrowLeft, Ban, BookOpen, CheckCircle2, ChevronRight, Banknote, Downloa
 import { DeletePayrollModal } from '../components/DeletePayrollModal'
 import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { PayrollRefusal, REVERTIBLE, dataApi, isPayrollValidated, transitionPayroll, unwrap, type ApiClient, type Views } from '../lib/api'
+import { REVERTIBLE, dataApi, isPayrollValidated, transitionPayroll, unwrap, type ApiClient, type Views } from '../lib/api'
 import { useAuth } from '../lib/auth'
 import { date, fcfa, monthLabel } from '../lib/format'
 import { BatchModal, ComparisonPanel, RevertModal, downloadPayrollSummary } from '../components/PayrollEntryExtras'
@@ -80,6 +80,12 @@ export default function PayrollEntryPage() {
     enabled: !!id && !!entry.data && entry.data.status !== 'Annulée' && (slips.data?.length ?? 0) > 0,
     queryFn: async () => (unwrap(await dataApi.rpc('payroll_entry_checks', { p_payroll_entry_id: id! })) ?? []) as unknown as Check[],
   })
+  // RPR-01 : salariés attendus sans bulletin (structure salariale manquante, erreur de calcul) ; l'envoi en revue est refusé tant qu'il en reste
+  const missing = useQuery({
+    queryKey: ['payroll-missing', id, entry.data?.status, slips.data?.length],
+    enabled: !!id && !!entry.data && ['Brouillon', 'Calculée', 'Réouverte', 'En revue'].includes(entry.data.status),
+    queryFn: async () => (unwrap(await dataApi.rpc('payroll_missing_employees', { p_payroll_entry_id: id! })) ?? []) as { employee_number: string; employee_name: string }[],
+  })
   const cancel = useMutation({
     mutationFn: async () => unwrap(await dataApi.rpc('cancel_payroll_entry', { p_payroll_entry_id: id! })),
     onSuccess: () => { setConfirm(null); refresh() },
@@ -90,7 +96,7 @@ export default function PayrollEntryPage() {
   if (!e) return <ErrorNote error={entry.error ?? 'Traitement introuvable'} />
   const rows = slips.data ?? []
   const paidSlips = new Set((payments.data ?? []).filter((p) => p.paid).map((p) => p.slip_id))
-  const editable = e.status === 'Brouillon' || e.status === 'Calculée'
+  const editable = e.status === 'Brouillon' || e.status === 'Calculée' || e.status === 'Réouverte' // RPR-05 : une paie rouverte peut être recalculée
   const closed = e.status === 'Clôturée'
 
   return (
@@ -127,6 +133,12 @@ export default function PayrollEntryPage() {
       <DeletePayrollModal open={confirm === 'delete'} entry={e} onClose={() => setConfirm(null)} onDeleted={() => nav('/paie', { replace: true })} />
       <ErrorNote error={slips.error || run.error} />
 
+      {missing.data && missing.data.length > 0 && rows.length > 0 && (
+        <p role="alert" className="mb-4 rounded border border-signal/40 bg-signal-light px-3 py-2 text-sm text-signal">
+          <strong>{missing.data.length} salarié(s) sans bulletin</strong> : {missing.data.slice(0, 8).map((m) => `${m.employee_number} ${m.employee_name}`).join(', ')}{missing.data.length > 8 ? ', …' : ''}.
+          {' '}L’envoi en revue est refusé tant qu’ils n’ont pas de bulletin : affectez-leur une structure salariale, puis recalculez.
+        </p>
+      )}
       {result && (
         <div className="mb-4 rounded border border-line bg-white text-sm">
           <div className="flex items-center gap-3 px-4 py-3">
@@ -202,12 +214,11 @@ export default function PayrollEntryPage() {
       <BatchModal entryId={id!} open={confirm === 'batch'} onClose={() => setConfirm(null)} onDone={(r) => { setConfirm(null); setResult(r as RunResult); refresh() }} />
       <RevertModal entryId={id!} status={e.status} open={confirm === 'reopen'} onClose={() => setConfirm(null)} onDone={() => { setConfirm(null); refresh() }} />
       <Modal open={confirm === 'submit'} onClose={() => setConfirm(null)} title="Valider la paie"
-        footer={<><Button variant="ghost" onClick={() => setConfirm(null)}>Revenir</Button><Button variant="primary" loading={submit.isPending} onClick={() => submit.mutate()}>Valider {rows.length} bulletin(s)</Button></>}>
+        footer={<><Button variant="ghost" onClick={() => setConfirm(null)}>Revenir</Button><Button variant="primary" loading={submit.isPending} disabled={!motif.trim()} onClick={() => submit.mutate()}>Valider {rows.length} bulletin(s)</Button></>}>
         <p className="text-sm">Une fois validés, les bulletins de {monthLabel(e.period_start)} ne peuvent plus être recalculés et deviennent visibles par les salariés.</p>
-        {submit.error instanceof PayrollRefusal && submit.error.code === 'SD403' && (
-          <TextField className="mt-3" label="Motif de la dérogation (obligatoire)" value={motif} onChange={(ev) => setMotif(ev.target.value)}
-            hint="Vous avez préparé cette paie : en tant qu'administrateur, vous pouvez la valider en indiquant un motif, qui sera journalisé." />
-        )}
+        {/* RPR-04 : valider une paie « Calculée » sans revue ni approbation est une dérogation (D-43) : motif toujours demandé, champ vide au départ */}
+        <TextField className="mt-3" label="Motif de la dérogation (obligatoire)" value={motif} onChange={(ev) => setMotif(ev.target.value)}
+          hint="Cette validation passe sans revue ni approbation, et peut concerner une paie que vous avez préparée : le motif est enregistré dans le journal d'audit." />
         <div className="mt-3"><ErrorNote error={submit.error} /></div>
       </Modal>
       <Modal open={confirm === 'cancel'} onClose={() => setConfirm(null)} title="Annuler le traitement"

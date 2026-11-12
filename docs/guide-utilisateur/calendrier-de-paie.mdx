@@ -1,0 +1,31 @@
+---
+title: "Calendrier de paie, pas à pas"
+description: "Du mois ouvert à la clôture, statut par statut, avec le rôle à chaque étape."
+---
+
+Un traitement de paie suit toujours la même séquence. Chaque étape change le **statut** du traitement ; le bouton à utiliser porte le nom indiqué.
+
+| Statut avant | Action (bouton) | Rôle | Statut après |
+|---|---|---|---|
+| — | **Nouveau traitement** puis **Créer le traitement** (mois, mode de paiement) | paie | Ouvert |
+| Ouvert | **Calculer les bulletins** | paie | Calculée |
+| Calculée | **Envoyer en revue** | paie | En revue |
+| En revue | **Approuver la paie** | administrateur ou paie, différent de la personne qui a envoyé en revue | Approuvée |
+| Approuvée | **Valider la paie** | paie | Validée |
+| Validée | **Marquer comme payée** | paie | Payée |
+| Payée | **Clôturer la période** | administrateur | Clôturée |
+
+![Traitements de paie](/guide-utilisateur/captures/paie-traitements.png)
+
+## Contrôles et refus
+- **Paie incomplète** : si des salariés actifs n'ont pas de bulletin (par exemple sans structure salariale), un bandeau d'alerte « sans bulletin » liste leurs matricules et l'envoi en revue est refusé.
+- **Validation sans revue** : elle exige un **motif** (dérogation tracée).
+- **Approbation** : un compte RH ne peut pas approuver ; la personne qui a envoyé en revue ne peut pas approuver non plus.
+- **Remettre en Calculée** (avant approbation) : retour en arrière avec motif.
+
+## Réouvrir un mois clôturé
+1. **Administrateur** : menu **Contrôle et clôture**, bouton **Rouvrir** sur le mois, saisir le **Motif**, puis **Rouvrir**.
+2. **Paie** : ouvrir le traitement et cliquer sur **Recalculer** (ou **Calculer les bulletins**), puis refaire les étapes jusqu'à **Clôturer la période**.
+
+## Voir aussi
+[Calculer et clôturer la paie du mois](/guide-utilisateur/calculer-et-cloturer-la-paie) · [Accorder un prêt](/guide-utilisateur/accorder-un-pret)

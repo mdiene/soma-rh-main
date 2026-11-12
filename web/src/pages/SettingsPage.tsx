@@ -10,8 +10,10 @@ import { useAuth, type Role } from '../lib/auth'
 import { useAgreements, useCompany, useComponents, useEmployees, useGrades } from '../lib/queries'
 import { date, fcfa, num, pct } from '../lib/format'
 import { DataTable } from '../components/DataTable'
+import { DepartmentsManager } from '../components/DepartmentsManager'
 import { DocumentTemplatesTab } from '../components/DocumentTemplatesTab'
 import { PhoneAccessAdmin } from '../components/PhoneAccessAdmin'
+import { UserGuideTab } from '../components/UserGuideTab'
 import { AuditLogView, ReferentialManager, type RefConfig, type RefTable } from '../components/ReferentialManager'
 import { Button, ErrorNote, Modal, PageHeader, Section, SelectField, Spinner, TextField } from '../components/ui'
 
@@ -25,6 +27,7 @@ const TABS = [
   { id: 'grilles', label: 'Grilles conventionnelles' },
   { id: 'societe', label: 'Société' },
   { id: 'modeles', label: 'Modèles de documents' },
+  { id: 'documentation', label: 'Documentation utilisateur' },
 ] as const
 type Tab = (typeof TABS)[number]['id']
 
@@ -49,8 +52,9 @@ export default function SettingsPage() {
       {tab === 'baremes' && <TaxTab />}
       {tab === 'rubriques' && <ComponentsTab />}
       {tab === 'grilles' && <GradesTab />}
-      {tab === 'societe' && <CompanyTab />}
+      {tab === 'societe' && <><CompanyTab /><EmployeeNumberSetting /></>}
       {tab === 'modeles' && <DocumentTemplatesTab />}
+      {tab === 'documentation' && <UserGuideTab />}
     </>
   )
 }
@@ -100,7 +104,7 @@ function AccessTab() {
 
       {can('admin') && (
         <Section title="Comptes et rôles">
-          <p className="mb-3 text-sm text-ink-soft">Les comptes se créent depuis l'écran de connexion. Attribuez ensuite les rôles ; relier un compte à une fiche lui donne accès à « Mes bulletins ».</p>
+          <p className="mb-3 text-sm text-ink-soft">L'inscription est fermée : un compte est créé sur invitation d'un administrateur (les salariés peuvent aussi demander un accès depuis l'onglet « Téléphone » de l'écran de connexion). Attribuez ensuite les rôles ; relier un compte à une fiche lui donne accès à « Mes bulletins ».</p>
           <ErrorNote error={users.error || toggle.error || link.error} />
           {users.isLoading ? <Spinner /> : (
             <div className="overflow-x-auto">
@@ -267,9 +271,9 @@ function LoanCapSetting() {
       <h3 className="mb-1 mt-6 text-sm font-semibold">Prêts et acomptes</h3>
       <p className="mb-3 max-w-prose text-xs text-ink-muted">La retenue mensuelle d'un prêt ne peut pas dépasser cette part du brut du salarié. Un bulletin ne peut jamais avoir un net négatif.</p>
       <div className="flex max-w-md items-end gap-3">
-        <TextField label="Plafond de retenue (part du brut)" type="number" step="0.01" value={v} disabled={!can('admin')}
+        <TextField label="Plafond de retenue (part du brut)" type="number" step="0.01" value={v} disabled={!can('rh', 'paie')}
           hint={pct(Number(v))} onChange={(e) => setV(e.target.value)} />
-        {can('admin') && <Button size="sm" variant="primary" icon={<Save className="h-3.5 w-3.5" />} loading={save.isPending} onClick={() => save.mutate()}>Enregistrer</Button>}
+        {can('rh', 'paie') && <Button size="sm" variant="primary" icon={<Save className="h-3.5 w-3.5" />} loading={save.isPending} onClick={() => save.mutate()}>Enregistrer</Button>}
       </div>
       <div className="mt-3"><ErrorNote error={q.error || save.error} /></div>
     </>
@@ -439,7 +443,8 @@ function ReferentialsTab() {
   }
   const order: RefTable[] = ['designations', 'contract_types', 'collective_agreements', 'employee_grades', 'payment_modes']
   return (
-    <div className="grid gap-4 lg:grid-cols-[13rem_1fr]">
+    <>
+    <div className="grid gap-4 lg:grid-cols-[13rem_minmax(0,1fr)]">
       <nav aria-label="Référentiels" className="flex flex-row flex-wrap gap-1 lg:flex-col">
         {order.map((t) => (
           <button key={t} type="button" aria-current={which === t} onClick={() => setWhich(t)}
@@ -451,6 +456,8 @@ function ReferentialsTab() {
       </nav>
       {which === 'employee_grades' && agreements.isLoading ? <Spinner /> : <ReferentialManager key={which} config={configs[which]} />}
     </div>
+    <DepartmentsManager />
+    </>
   )
 }
 
@@ -519,15 +526,44 @@ function CompanyTab() {
           <span>Entreprise de travail temporaire (ETT)</span>
         </label>
         {f.is_ett && (
-          <TextField label="N° d'agrément (Direction générale du Travail et de la Sécurité sociale)" className="sm:col-span-2"
+          <TextField data-fix="ett_agreement_number" label="N° d'agrément (Direction générale du Travail et de la Sécurité sociale)" className="sm:col-span-2"
             value={f.ett_agreement_number ?? ''} onChange={t('ett_agreement_number')}
             hint="Requis pour ouvrir une entreprise de travail temporaire (Code du travail 2026, art. 292). Sans numéro, une alerte s'affiche tant que le module Intérim est actif." />
         )}
-        <TextField label="Attestation de régularité sociale (date de délivrance)" type="date"
+        <TextField data-fix="social_regularity_cert_date" label="Attestation de régularité sociale (date de délivrance)" type="date"
           value={f.social_regularity_cert_date ?? ''} onChange={(e) => setF({ ...f, social_regularity_cert_date: e.target.value || null })}
           hint="Valable 6 mois (Code du travail 2026, art. 291). Une alerte s'affiche à J-30 tant que le module Gardiennage est actif." />
       </fieldset>
       <div className="mt-3"><ErrorNote error={company.error || save.error} /></div>
+    </Section>
+  )
+}
+
+/* RPR-14 : numérotation des matricules (préfixe et nombre de chiffres) ; modifiable par l'administrateur, visible par rh et paie */
+type NumberSettings = { prefix: string; width: number; next: number; example: string }
+function EmployeeNumberSetting() {
+  const { can } = useAuth()
+  const qc = useQueryClient()
+  const q = useQuery({ queryKey: ['employee_number_settings'], queryFn: async () => unwrap(await dataApi.rpc('get_employee_number_settings')) as unknown as NumberSettings, enabled: can('rh', 'paie') })
+  const [prefix, setPrefix] = useState('S')
+  const [width, setWidth] = useState('4')
+  const [next, setNext] = useState('')
+  useEffect(() => { if (q.data) { setPrefix(q.data.prefix); setWidth(String(q.data.width)) } }, [q.data])
+  const save = useMutation({
+    mutationFn: async () => unwrap(await dataApi.rpc('set_employee_number_settings', { p_prefix: prefix, p_width: Number(width), ...(next ? { p_next: Number(next) } : {}) })),
+    onSuccess: () => { setNext(''); qc.invalidateQueries({ queryKey: ['employee_number_settings'] }); qc.invalidateQueries({ queryKey: ['employee_number_preview'] }) },
+  })
+  if (!can('rh', 'paie')) return null
+  return (
+    <Section title="Numérotation des matricules"
+      actions={can('admin') && <Button size="sm" variant="primary" icon={<Save className="h-3.5 w-3.5" />} loading={save.isPending} onClick={() => save.mutate()}>Enregistrer</Button>}>
+      <p className="mb-3 max-w-prose text-xs text-ink-muted">Le matricule est attribué automatiquement à la création d'une fiche : préfixe en majuscules, puis un numéro complété de zéros. Les matricules déjà attribués ne changent pas ; un numéro déjà pris est toujours sauté.</p>
+      <fieldset disabled={!can('admin')} className="grid gap-3 sm:grid-cols-3">
+        <TextField label="Préfixe (1 à 6 lettres)" value={prefix} onChange={(e) => setPrefix(e.target.value.toUpperCase())} />
+        <TextField label="Nombre de chiffres" type="number" value={width} onChange={(e) => setWidth(e.target.value)} />
+        <TextField label="Prochain numéro (facultatif)" type="number" value={next} onChange={(e) => setNext(e.target.value)} hint={q.data ? `Prochain matricule : ${q.data.example}` : undefined} />
+      </fieldset>
+      <div className="mt-3"><ErrorNote error={q.error || save.error} /></div>
     </Section>
   )
 }

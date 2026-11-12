@@ -189,7 +189,7 @@ export default function PlanningPage() {
         </div>
       )}
 
-      <Section title="Conformité de la semaine" className="mt-6">
+      <div data-fix="planning_conformite" className="mt-6"><Section title="Conformité de la semaine">
         {compliance.isLoading ? <Spinner /> : (compliance.data ?? []).length === 0 ? (
           <p className="text-sm text-ink/60">Aucune alerte sur les postes enregistrés de cette semaine.</p>
         ) : (
@@ -201,7 +201,7 @@ export default function PlanningPage() {
             ))}
           </ul>
         )}
-      </Section>
+      </Section></div>
     </div>
   )
 }

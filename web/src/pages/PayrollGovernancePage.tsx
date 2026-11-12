@@ -62,6 +62,8 @@ export default function PayrollGovernancePage() {
   const [derog, setDerog] = useState<{ id: string; status: string } | null>(null)
   const [motif, setMotif] = useState('')
   const [revert, setRevert] = useState<{ id: string; status: string } | null>(null)
+  // RPR-12 : avertissement dès l'envoi en revue si des contrôles bloquants existent (ils feront refuser l'approbation et la validation)
+  const [warn, setWarn] = useState<{ id: string; status: string; items: CheckResult[] } | null>(null)
   const transition = useMutation({
     mutationFn: async ({ id, status, reason }: { id: string; status: string; reason?: string }) =>
       transitionPayroll(id, status, reason),
@@ -71,6 +73,15 @@ export default function PayrollGovernancePage() {
   const checks = useMutation({
     mutationFn: async (id: string) => unwrap(await dataApi.rpc('payroll_entry_checks', { p_payroll_entry_id: id })),
   })
+
+  async function advance(id: string, status: string) {
+    if (status === 'En revue') {
+      const found = unwrap(await dataApi.rpc('payroll_entry_checks', { p_payroll_entry_id: id })) as unknown as CheckResult[]
+      const errors = found.filter((item) => item.niveau === 'erreur')
+      if (errors.length > 0) { setWarn({ id, status, items: errors }); return }
+    }
+    transition.mutate({ id, status })
+  }
 
   return (
     <>
@@ -160,7 +171,7 @@ export default function PayrollGovernancePage() {
                       loading={transition.isPending && transition.variables?.id === entry.id}
                       disabled={blocking.length > 0 || checkErrors.length > 0}
                       icon={<CheckCircle2 className="h-4 w-4" />}
-                      onClick={() => transition.mutate({ id: entry.id, status: next.status })}
+                      onClick={() => advance(entry.id, next.status)}
                     >
                       {next.label}
                     </Button>
@@ -178,6 +189,15 @@ export default function PayrollGovernancePage() {
       )}
       {revert && <RevertModal entryId={revert.id} status={revert.status} open onClose={() => setRevert(null)}
         onDone={() => { setRevert(null); qc.invalidateQueries({ queryKey: ['payroll-governance'] }) }} />}
+      <Modal open={warn !== null} onClose={() => setWarn(null)} title="Contrôles bloquants à résoudre"
+        footer={<><Button variant="ghost" onClick={() => setWarn(null)}>Revenir</Button>
+          <Button variant="primary" onClick={() => { if (warn) transition.mutate({ id: warn.id, status: warn.status }); setWarn(null) }}>Envoyer en revue quand même</Button></>}>
+        <p className="text-sm">{warn?.items.length} contrôle(s) bloquant(s) sont ouverts. L’approbation et la validation seront refusées tant qu’ils ne sont pas résolus.</p>
+        <ul className="mt-2 max-h-48 list-disc space-y-1 overflow-auto pl-5 text-xs text-signal">
+          {warn?.items.slice(0, 8).map((item, index) => <li key={`${item.code}-${item.salarie ?? index}`}><strong>{item.salarie ?? item.code}</strong> : {item.message}</li>)}
+          {warn && warn.items.length > 8 && <li className="text-ink-muted">+ {warn.items.length - 8} autre(s)</li>}
+        </ul>
+      </Modal>
       <Modal open={derog !== null} onClose={() => setDerog(null)} title="Dérogation à la séparation des tâches"
         footer={<><Button variant="ghost" onClick={() => setDerog(null)}>Annuler</Button>
           <Button variant="primary" loading={transition.isPending} disabled={!motif.trim()}
