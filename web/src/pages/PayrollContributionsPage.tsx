@@ -41,7 +41,9 @@ export default function PayrollContributionsPage() {
       return { mois, list, total, paidTotal, nbPaid: paid.length, state: paid.length === list.length ? 'Payé' : paid.length === 0 ? 'À payer' : 'Partiel' }
     })
   }, [rows])
-  const month = params.get('mois') ?? months.find((m) => m.state !== 'Payé')?.mois ?? months[0]?.mois
+  const asked = params.get('mois')
+  // un mois inconnu dans l'adresse n'affiche rien : on retombe sur le premier mois à payer
+  const month = (asked && months.some((m) => m.mois === asked) ? asked : null) ?? months.find((m) => m.state !== 'Payé')?.mois ?? months[0]?.mois
   const cur = months.find((m) => m.mois === month)
   const canPay = can('paie')
 
@@ -134,11 +136,11 @@ export default function PayrollContributionsPage() {
           <Button variant="primary" loading={mark.isPending} disabled={!f.paid_at || !f.payment_mode} onClick={() => mark.mutate(true)}>Confirmer</Button>
         </>}>
         <div className="grid gap-3 sm:grid-cols-2">
-          <TextField label="Date de paiement" type="date" value={f.paid_at} onChange={(e) => setF({ ...f, paid_at: e.target.value })} />
+          <TextField label="Date de paiement" type="date" max={today()} value={f.paid_at} onChange={(e) => setF({ ...f, paid_at: e.target.value })} />
           <SelectField label="Mode de paiement" value={f.payment_mode} onChange={(e) => setF({ ...f, payment_mode: e.target.value })}>
             {(modes.data ?? []).filter((m) => m.is_active || m.code === f.payment_mode).map((m) => <option key={m.code} value={m.code}>{m.label}</option>)}
           </SelectField>
-          <TextField className="sm:col-span-2" label="N° de reçu, de virement ou de chèque" value={f.reference} onChange={(e) => setF({ ...f, reference: e.target.value })}
+          <TextField className="sm:col-span-2" label="N° de reçu, de virement ou de chèque" maxLength={100} value={f.reference} onChange={(e) => setF({ ...f, reference: e.target.value })}
             hint="Facultatif. Si plusieurs caisses sont cochées, la même référence s’applique à toutes ; marquez-les une par une pour des références différentes." />
         </div>
         {[...sel].some((c) => cur?.list.find((r) => r.caisse === c)?.statut === 'Payé') && (

@@ -35,7 +35,7 @@ export function fixLinks(f: FindingRef, back?: string): { to: string; label: str
   const add = (to: string, p: string) => `${to}${to.includes('?') ? '&' : '?'}${p}`
   const fields = (f.rule_id && FIELDS[f.rule_id]) || null
   const links = fields ? fields.map(([k, label]) => ({ to: add(base.to, `surligne=${k}`), label })) : [base]
-  return back ? links.map((l) => ({ ...l, to: add(l.to, `retour=${back}`) })) : links
+  return back ? links.map((l) => ({ ...l, to: add(l.to, `retour=${encodeURIComponent(back)}`) })) : links
 }
 /** Champs de la fiche salarié corrigeables sur place : clé = colonne de `employees`. */
 export const EMPLOYEE_FIELDS: Record<string, { label: string; type: 'date' | 'text' | 'contract' }> = {
@@ -63,9 +63,9 @@ export const fixLink =(f: FindingRef) => fixLinks(f)[0]
 function fixLinkBase(f: FindingRef): { to: string; label: string } {
   switch (f.entity) {
     case 'employee':
-      return { to: `/salaries/${f.employee_id ?? f.entity_id}`, label: 'Ouvrir la fiche du salarié' }
+      return { to: `/salaries/${encodeURIComponent(f.employee_id ?? f.entity_id)}`, label: 'Ouvrir la fiche du salarié' }
     case 'salary_slip':
-      return { to: `/bulletins/${f.entity_id}`, label: 'Ouvrir le bulletin' }
+      return { to: `/bulletins/${encodeURIComponent(f.entity_id)}`, label: 'Ouvrir le bulletin' }
     case 'cotisation':
       return { to: `/paie/cotisations${contributionMonth(f.message) ? `?mois=${contributionMonth(f.message)}` : ''}`, label: 'Enregistrer le versement' }
     case 'planning': {

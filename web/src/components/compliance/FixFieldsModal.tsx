@@ -45,9 +45,10 @@ export function FixFieldsModal({ employeeId, keys, onClose }: { employeeId: stri
             const set = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => setEdit((x) => ({ ...x, [k]: e.target.value }))
             return f.type === 'contract'
               ? <SelectField key={k} label={f.label} value={value(k)} onChange={set}>
+                  <option value="">—</option>
                   {selectable(contractTypes.data, (c) => c.code === value(k)).map((c) => <option key={c.code} value={c.code}>{c.code} — {c.label}{c.is_active ? '' : ' (désactivé)'}</option>)}
                 </SelectField>
-              : <TextField key={k} label={f.label} type={f.type} value={value(k)} onChange={set} />
+              : <TextField key={k} label={f.label} type={f.type} maxLength={f.type === 'date' ? undefined : 100} value={value(k)} onChange={set} />
           })}
         </div>
       )}

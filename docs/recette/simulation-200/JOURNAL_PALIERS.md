@@ -242,3 +242,17 @@ Vérifié en lecture seule : en ligne, 27 salariés, 0 fiche de test, 0 compte t
 | MEL-14 | Mise en ligne : base, fonction Edge et site Vercel cohérents ; test réel de bout en bout validé (MEL-05 à MEL-11). | VERT |
 | MEL-15 | Protection contre les mots de passe compromis : non confirmée par le propriétaire (alerte Supabase `auth_leaked_password_protection`). | À CONFIRMER |
 | MEL-16 | Parcours téléphone joué depuis le site en ligne, dans un navigateur : non fait (seul l'appel direct à la fonction a été testé). Revue des 133 fonctions `security definer` appelables par un compte connecté : non faite une à une. | À FAIRE |
+
+### Revue du lot conformité et cotisations (12/11/2026) — corrections
+Revues base de données et sécurité du commit `e68ddcf` (migration `20261216090000`, page `/paie/cotisations`, fiche du constat). Aucun constat critique. Corrigé par la migration `20261216100000_cotisations_corrections_revue.sql` (+ retour arrière, test `cotisations_corrections`) et de petites retouches d'interface.
+
+| Réf | Constat | Correction | Statut |
+|---|---|---|---|
+| COT-01 | Concurrence : deux caisses validées en même temps laissaient le mois « non versé » | verrou par mois (`pg_advisory_xact_lock`) | VERT |
+| COT-02 | Un versement saisi à la main dans `contribution_payments` était supprimé (ligne IPM) ou écrasé | seules les lignes créées par le suivi sont modifiées ou retirées ; caisses hors échéancier sans effet | VERT |
+| COT-03 | Changement de mois d'une ligne : ancien mois périmé | resynchronisation de l'ancien et du nouveau mois | VERT |
+| COT-04 | La vue `v_contribution_follow` laissait un salarié lire ses propres cotisations (part patronale comprise) | filtre rh/paie pour les rôles d'API ; propriétaire et administration voient tout (sinon la synchronisation lisait une vue vide, défaut trouvé par le test) | VERT |
+| COT-05 | Bornes de longueur manquantes, `?mois=` non validé, date de paiement future, liens non encodés, liste de contrat sans valeur vide | contraintes (référence 100, note 500), `max`, `maxLength`, `encodeURIComponent`, option vide | VERT |
+| COT-06 | Retour arrière laissait les versements de synchronisation | suppression des lignes « Suivi des versements par caisse » | VERT |
+| COT-07 | Nom de caisse libre : une faute de frappe crée une ligne orpheline | non corrigé : liste fermée non ajoutée (valeurs à confirmer avec le propriétaire) | ORANGE |
+Contrôles : SQL 63 tests, mêmes 12 échecs de données manquantes, `cotisations_corrections` et `cotisations_versements` OK ; types et build OK ; menu et accessibilité 19/19 (un premier passage a échoué parce que le serveur de développement s'était arrêté ; relancé, 19/19).
