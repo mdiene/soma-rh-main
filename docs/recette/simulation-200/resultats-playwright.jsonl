@@ -502,3 +502,8 @@
 {"uc":"UC-A-CONNEXION","status":"VERT","note":"formulaire e-mail et onglet Téléphone affichés","at":"2026-11-12T17:10:09.795Z"}
 {"uc":"UC-E-SIMULATEUR","status":"VERT","note":"simulateur affiché pour S0728","at":"2026-11-12T17:17:09.794Z"}
 {"uc":"UC-E-SIMULATEUR","status":"VERT","note":"simulateur affiché pour S0728","at":"2026-11-12T17:17:38.895Z"}
+{"uc":"UC-D-MALADIE","status":"VERT","note":"état final : Approuvée","at":"2026-11-12T18:04:34.219Z"}
+{"uc":"UC-D-PERMISSION","status":"VERT","note":"état final : Approuvée","at":"2026-11-12T18:05:05.054Z"}
+{"uc":"UC-D-ABSENCE-NON-PAYEE","status":"VERT","note":"état final : Approuvée","at":"2026-11-12T18:05:36.589Z"}
+{"uc":"UC-D-MATERNITE","status":"VERT","note":"état final : Approuvée","at":"2026-11-12T18:06:11.811Z"}
+{"uc":"UC-D-SOLDES-ECRITURES","status":"VERT","note":"onglets Soldes et Écritures affichés","at":"2026-11-12T18:06:15.388Z"}
