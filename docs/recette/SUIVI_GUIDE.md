@@ -56,3 +56,14 @@ Sur base remise à zéro, le référentiel « Emplois » est vide : 23 emplois c
 - Correction faite avec l'accord du propriétaire : `web/vite.config.ts` (`server.fs.allow`). Aucune autre correction de l'application.
 - Mintlify : NON TESTÉ, la commande `mint` n'est pas installée.
 - Risque : aucune des corrections RPR ouvertes n'a été faite pendant la campagne.
+
+## Après la clôture (12/11/2026)
+| Étape | Résultat | Commit |
+|---|---|---|
+| Aide pour tous les rôles | entrée de menu `/aide`, tests menu 12/12, accessibilité 11/11, guide 7/7 | 6395a1a |
+| Publication | branche fusionnée dans `main`, poussée | f1e4127 |
+| Déploiement Vercel | production READY, `.vercelignore` étendu au guide | — |
+| Campagne 2 | 13 UC verts supplémentaires (congés spéciaux, présences et HS, planning, variables, demande de profil, apprentissage, ajout à la simulation) ; RPR-18 ORANGE | 843cbba |
+| Guide | 28 pages, 7 contrôles d'intégrité verts, onglet et Aide vérifiés en e2e | 843cbba |
+
+Reste à jouer : voir `docs/passation/PASSATION_SOMA-RH_2026-11-12.md` (troisième passe).

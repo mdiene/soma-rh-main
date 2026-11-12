@@ -257,3 +257,8 @@ Le dossier est trié par priorité puis par dépendance, avec un **ordre de dév
 - **Base remise à zéro** : les emplois, les liaisons compte-fiche et les équipes sont à recréer (parcours 05 et 06) ; les matricules repartent de S0724 (décalage de +433 dans `11-octobre` et `12-reouverture`).
 - **Comptes QA** : `scripts/qa-create-users.ps1` ne fonctionne plus (inscription fermée) ; `tests/.env.qa` se régénère à partir de `tests/.env.qa-sim`.
 - Suivi de la campagne : `docs/recette/SUIVI_GUIDE.md`.
+
+### Ajouts du 12/11/2026 (soir)
+- Entrée de menu **Aide et guide utilisateur** (tous rôles) ; guide à **28 pages** ; déploiement de production avec `docs/` limité au guide (`.vercelignore`).
+- **Campagne 2** : `50-conges-types`, `51-temps-paie`, `52-divers` (congés maladie/maternité/permission/absence non payée, présences et heures supplémentaires, planning, variables, demande de profil, apprentissage, simulation de réorganisation). Les restes à jouer sont listés dans la passation du 12/11/2026.
+- Constat **RPR-18** (soldes de congé négatifs sans dotation) à trancher avant la prochaine campagne.
