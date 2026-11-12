@@ -20,7 +20,8 @@ declare
     'payroll_approvals','payroll_corrections','payroll_entries','payroll_inputs','payroll_periods','payroll_snapshots',
     'recurring_pay_items','salary_payments','salary_slip_details','salary_slips','salary_structure_assignments',
     'shift_assignments','team_members','teams','trainings',
-    'employee_job_history','module_payroll_input','module_shift'];
+    'employee_job_history','module_payroll_input','module_shift',
+    'employee_loan_caps','phone_access_accounts','phone_access_requests','phone_access_tokens'];
   v_present text[];
   v_oids oid[];
   v_bad text;
