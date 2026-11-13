@@ -12,6 +12,7 @@
         "pages": [
           "guide-utilisateur/index",
           "guide-utilisateur/premiers-pas",
+        "guide-utilisateur/menu-et-a-propos",
           "guide-utilisateur/roles-et-droits",
           "guide-utilisateur/connexion-et-acces-telephone",
           "guide-utilisateur/parcours-admin",

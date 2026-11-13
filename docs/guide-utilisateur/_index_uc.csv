@@ -144,3 +144,8 @@ UC-B-ASSISTANT-BROUILLON,assistant-de-creation-salarie.mdx,web/e2e/sim/61-assist
 UC-B-ASSISTANT-PARTS,assistant-de-creation-salarie.mdx,web/e2e/sim/61-assistant-lot2.sim.spec.ts,VERT
 UC-B-ASSISTANT-MOBILE,assistant-de-creation-salarie.mdx,web/e2e/sim/61-assistant-lot2.sim.spec.ts,VERT
 UC-E-ALERTE-STRUCTURE,assistant-de-creation-salarie.mdx,web/e2e/sim/61-assistant-lot2.sim.spec.ts,VERT
+UC-SAISIE-NOMS,assistant-de-creation-salarie.mdx,web/e2e/sim/33-saisie-salarie.sim.spec.ts,VERT
+UC-SAISIE-CNI,assistant-de-creation-salarie.mdx,web/e2e/sim/33-saisie-salarie.sim.spec.ts,VERT
+UC-SAISIE-ATTENTE,assistant-de-creation-salarie.mdx,web/e2e/sim/33-saisie-salarie.sim.spec.ts,VERT
+UC-MENU-SURVOL-EPINGLE,menu-et-a-propos.mdx,web/e2e/menu.spec.ts,VERT
+UC-MENU-APROPOS,menu-et-a-propos.mdx,web/e2e/menu.spec.ts,VERT

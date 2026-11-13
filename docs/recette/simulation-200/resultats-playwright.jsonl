@@ -529,3 +529,93 @@
 {"uc":"UC-B-ASSISTANT-RH-SEUL","status":"VERT","note":"création sans structure, message de délégation à la paie","at":"2026-11-12T20:55:30.694Z"}
 {"uc":"UC-B-ASSISTANT-OBLIGATOIRE","status":"VERT","note":"étape bloquée sans prénom ; abandon avec confirmation","at":"2026-11-12T20:55:33.474Z"}
 {"uc":"UC-B-SAISIE-COMPLETE","status":"VERT","note":"choix de la saisie complète, formulaire sur une page","at":"2026-11-12T20:55:35.099Z"}
+{"uc":"UC-B-ASSISTANT-COMPLET","status":"VERT","note":"salarié S0974 créé par l'assistant avec structure et calcul du net","at":"2026-11-13T17:12:26.995Z"}
+{"uc":"UC-B-ASSISTANT-RH-SEUL","status":"VERT","note":"création sans structure, message de délégation à la paie","at":"2026-11-13T17:12:30.760Z"}
+{"uc":"UC-B-ASSISTANT-OBLIGATOIRE","status":"VERT","note":"étape bloquée sans prénom ; abandon avec confirmation","at":"2026-11-13T17:12:33.465Z"}
+{"uc":"UC-B-SAISIE-COMPLETE","status":"VERT","note":"choix de la saisie complète, formulaire sur une page","at":"2026-11-13T17:12:35.198Z"}
+{"uc":"UC-B-ASSISTANT-DOUBLON","status":"VERT","note":"homonyme S0728 signalé, saisie non bloquée","at":"2026-11-13T17:12:38.341Z"}
+{"uc":"UC-B-ASSISTANT-BROUILLON","status":"VERT","note":"brouillon conservé, repris à la bonne étape, effacé à l'abandon","at":"2026-11-13T17:12:43.738Z"}
+{"uc":"UC-B-ASSISTANT-PARTS","status":"VERT","note":"parts calculées automatiquement, mémo des formules, alerte rouge en cas de saisie manuelle différente","at":"2026-11-13T17:12:47.759Z"}
+{"uc":"UC-B-ASSISTANT-MOBILE","status":"VERT","note":"fenêtre en plein écran à 390 px, boutons visibles","at":"2026-11-13T17:12:49.953Z"}
+{"uc":"UC-E-ALERTE-STRUCTURE","status":"VERT","note":"alerte « structure à affecter » visible pour le compte paie","at":"2026-11-13T17:12:52.987Z"}
+{"uc":"UC-SAISIE-NOMS","status":"VERT","note":"Prénom et Nom mis en forme, nom de jeune fille (F), prénom et nom de la mère","at":"2026-11-13T17:13:18.877Z"}
+{"uc":"UC-SAISIE-CNI","status":"VERT","note":"n° de pièce obligatoire ; doublon refusé à l’écran","at":"2026-11-13T17:13:21.299Z"}
+{"uc":"UC-SAISIE-ATTENTE","status":"VERT","note":"saisie mise en attente, listée avec avancement et points manquants, reprise à l’identique","at":"2026-11-13T17:13:24.525Z"}
+{"uc":"UC-A-LIAISON-COMPTES","status":"VERT","note":"4 comptes reliés à une fiche par l'interface","at":"2026-11-13T17:32:47.256Z"}
+{"uc":"UC-I-EQUIPE","status":"VERT","note":"2 affectation(s) manager enregistrée(s)","at":"2026-11-13T17:32:52.787Z"}
+{"uc":"UC-EMB-P5","status":"VERT","note":"0 embauches créées par le compte RH","at":"2026-11-13T17:33:12.274Z"}
+{"uc":"UC-SORTIE","status":"VERT","note":"statut Active, motif DEMISSION","at":"2026-11-13T17:33:32.448Z"}
+{"uc":"UC-CONGE-DOT","status":"VERT","note":"dotation de 24 jours ouvrables","at":"2026-11-13T17:33:35.629Z"}
+{"uc":"UC-CONGE-DEMANDE","status":"VERT","note":"état Approuvée","at":"2026-11-13T17:33:35.700Z"}
+{"uc":"UC-CONGE-VALIDATION","status":"VERT","note":"état final : Approuvée","at":"2026-11-13T17:33:35.839Z"}
+{"uc":"UC-PRET","status":"VERT","note":"1 prêt(s) pour S0888","at":"2026-11-13T17:33:37.103Z"}
+{"uc":"UC-RECALCUL-PRORATA","status":"VERT","note":"ligne RET_PRORATA du bulletin d'octobre de S0883 : 1","at":"2026-11-13T17:34:15.791Z"}
+{"uc":"UC-ROLE-admin-/salaries","status":"VERT","note":"","at":"2026-11-13T17:34:18.967Z"}
+{"uc":"UC-ROLE-admin-/paie","status":"VERT","note":"","at":"2026-11-13T17:34:20.292Z"}
+{"uc":"UC-ROLE-admin-/paie/gouvernance","status":"VERT","note":"","at":"2026-11-13T17:34:21.693Z"}
+{"uc":"UC-ROLE-admin-/parametres","status":"VERT","note":"","at":"2026-11-13T17:34:24.585Z"}
+{"uc":"UC-ROLE-admin-/journal","status":"VERT","note":"","at":"2026-11-13T17:34:27.281Z"}
+{"uc":"UC-ROLE-admin-/centre-conformite","status":"VERT","note":"","at":"2026-11-13T17:34:30.439Z"}
+{"uc":"UC-ROLE-rh-/salaries","status":"VERT","note":"","at":"2026-11-13T17:34:34.312Z"}
+{"uc":"UC-ROLE-rh-/conges","status":"VERT","note":"","at":"2026-11-13T17:34:36.102Z"}
+{"uc":"UC-ROLE-rh-/dossiers-salaries","status":"VERT","note":"","at":"2026-11-13T17:34:37.667Z"}
+{"uc":"UC-ROLE-rh-/equipes","status":"VERT","note":"","at":"2026-11-13T17:34:39.965Z"}
+{"uc":"UC-ROLE-paie-/paie","status":"VERT","note":"","at":"2026-11-13T17:34:44.620Z"}
+{"uc":"UC-ROLE-paie-/paie/variables","status":"VERT","note":"","at":"2026-11-13T17:34:48.031Z"}
+{"uc":"UC-ROLE-paie-/paie/gouvernance","status":"VERT","note":"","at":"2026-11-13T17:34:51.644Z"}
+{"uc":"UC-ROLE-paie-/etats","status":"VERT","note":"","at":"2026-11-13T17:34:54.608Z"}
+{"uc":"UC-ROLE-mgr_1-/mon-equipe","status":"VERT","note":"","at":"2026-11-13T17:34:57.730Z"}
+{"uc":"UC-ROLE-mgr_1-/demandes","status":"VERT","note":"","at":"2026-11-13T17:34:59.064Z"}
+{"uc":"UC-ROLE-mgr_1-/conges","status":"VERT","note":"","at":"2026-11-13T17:35:00.477Z"}
+{"uc":"UC-ROLE-sal_1-/mon-espace","status":"VERT","note":"","at":"2026-11-13T17:35:02.865Z"}
+{"uc":"UC-ROLE-sal_1-/mes-bulletins","status":"VERT","note":"","at":"2026-11-13T17:35:04.400Z"}
+{"uc":"UC-INTERDIT-mgr_1-/paie","status":"VERT","note":"","at":"2026-11-13T17:35:06.758Z"}
+{"uc":"UC-INTERDIT-mgr_1-/parametres","status":"VERT","note":"","at":"2026-11-13T17:35:07.874Z"}
+{"uc":"UC-INTERDIT-mgr_1-/journal","status":"VERT","note":"","at":"2026-11-13T17:35:09.132Z"}
+{"uc":"UC-INTERDIT-sal_1-/salaries","status":"VERT","note":"","at":"2026-11-13T17:35:11.427Z"}
+{"uc":"UC-INTERDIT-sal_1-/paie","status":"VERT","note":"","at":"2026-11-13T17:35:12.640Z"}
+{"uc":"UC-INTERDIT-sal_1-/parametres","status":"VERT","note":"","at":"2026-11-13T17:35:13.934Z"}
+{"uc":"UC-INTERDIT-sal_1-/journal","status":"VERT","note":"","at":"2026-11-13T17:35:15.219Z"}
+{"uc":"UC-INTERDIT-sal_1-/mon-equipe","status":"VERT","note":"","at":"2026-11-13T17:35:16.504Z"}
+{"uc":"UC-ISOLATION-sal_1","status":"VERT","note":"6 bulletins visibles","at":"2026-11-13T17:35:17.857Z"}
+{"uc":"UC-NOVEMBRE-CALCUL","status":"VERT","note":"paie de novembre créée pour les parcours RPR : 205 bulletin(s) calculé(s). Présences reprises pour 202 salarié(s).","at":"2026-11-13T17:35:32.707Z"}
+{"uc":"UC-RPR-01","status":"VERT","note":"bandeau et refus d'envoi en revue citant S0724","at":"2026-11-13T17:35:36.876Z"}
+{"uc":"UC-RPR-04","status":"VERT","note":"motif obligatoire, bouton désactivé tant que le champ est vide","at":"2026-11-13T17:35:40.675Z"}
+{"uc":"UC-RPR-02","status":"VERT","note":"approuvée par paie2 ; refus de rh et de la personne qui a préparé","at":"2026-11-13T17:36:02.495Z"}
+{"uc":"UC-RPR-06","status":"VERT","note":"message de lecture seule pour rh","at":"2026-11-13T17:36:04.098Z"}
+{"uc":"UC-RPR-10","status":"VERT","note":"département créé, visible sur la fiche, supprimé","at":"2026-11-13T17:36:12.261Z"}
+{"uc":"UC-RPR-14","status":"VERT","note":"préfixe et chiffres paramétrables par l’admin, désactivés pour rh","at":"2026-11-13T17:36:15.804Z"}
+{"uc":"UC-TEL-AUTORISATION","status":"VERT","note":"demande visible chez l’administrateur ; rh sans case d’autorisation","at":"2026-11-13T17:36:34.423Z"}
+{"uc":"UC-TEL-CONNEXION","status":"VERT","note":"activation et connexion ; /paie, /salaries, /parametres inaccessibles","at":"2026-11-13T17:36:38.832Z"}
+{"uc":"UC-TEL-REUTILISATION","status":"VERT","note":"seconde ouverture sans nouvelle autorisation refusée","at":"2026-11-13T17:36:40.558Z"}
+{"uc":"UC-TEL-MAUVAISES-DATES","status":"VERT","note":"après 5 mauvaises dates, la bonne date est refusée","at":"2026-11-13T17:36:46.856Z"}
+{"uc":"UC-SAISIE-NOMS","status":"VERT","note":"Prénom et Nom mis en forme, nom de jeune fille (F), prénom et nom de la mère","at":"2026-11-13T17:37:31.656Z"}
+{"uc":"UC-SAISIE-CNI","status":"VERT","note":"n° de pièce obligatoire ; doublon refusé à l’écran","at":"2026-11-13T17:37:34.548Z"}
+{"uc":"UC-SAISIE-ATTENTE","status":"VERT","note":"saisie mise en attente, listée avec avancement et points manquants, reprise à l’identique","at":"2026-11-13T17:37:37.835Z"}
+{"uc":"UC-I-TABLEAU","status":"VERT","note":"rh /","at":"2026-11-13T17:37:41.991Z"}
+{"uc":"UC-I-PILOTAGE","status":"VERT","note":"rh /pilotage","at":"2026-11-13T17:37:44.614Z"}
+{"uc":"UC-B-LISTE","status":"VERT","note":"rh /salaries","at":"2026-11-13T17:37:46.903Z"}
+{"uc":"UC-B-NOUVEAU","status":"VERT","note":"rh /salaries/nouveau","at":"2026-11-13T17:37:49.535Z"}
+{"uc":"UC-B-DOSSIERS","status":"VERT","note":"rh /dossiers-salaries","at":"2026-11-13T17:37:51.843Z"}
+{"uc":"UC-H-DEMANDES-RH","status":"VERT","note":"rh /demandes","at":"2026-11-13T17:37:54.452Z"}
+{"uc":"UC-D-CONGES-RH","status":"VERT","note":"rh /conges","at":"2026-11-13T17:37:56.813Z"}
+{"uc":"UC-C-PRESENCES","status":"VERT","note":"rh /presences","at":"2026-11-13T17:37:59.851Z"}
+{"uc":"UC-C-PLANNING","status":"VERT","note":"rh /planning","at":"2026-11-13T17:38:02.560Z"}
+{"uc":"UC-I-EQUIPES","status":"VERT","note":"rh /equipes","at":"2026-11-13T17:38:04.908Z"}
+{"uc":"UC-I-ORGANIGRAMME","status":"VERT","note":"rh /equipes/organigramme","at":"2026-11-13T17:38:08.880Z"}
+{"uc":"UC-I-SIMULATION","status":"VERT","note":"rh /equipes/simulation","at":"2026-11-13T17:38:11.605Z"}
+{"uc":"UC-E-VARIABLES","status":"VERT","note":"rh /paie/variables","at":"2026-11-13T17:38:16.418Z"}
+{"uc":"UC-E-AJUSTEMENTS","status":"VERT","note":"rh /paie/ajustements","at":"2026-11-13T17:38:19.973Z"}
+{"uc":"UC-E-TRAITEMENTS","status":"VERT","note":"rh /paie","at":"2026-11-13T17:38:22.551Z"}
+{"uc":"UC-F-COTISATIONS","status":"VERT","note":"rh /paie/cotisations","at":"2026-11-13T17:38:25.725Z"}
+{"uc":"UC-E-GOUVERNANCE","status":"VERT","note":"rh /paie/gouvernance","at":"2026-11-13T17:38:28.335Z"}
+{"uc":"UC-F-ETATS","status":"VERT","note":"rh /etats","at":"2026-11-13T17:38:32.425Z"}
+{"uc":"UC-G-CENTRE","status":"VERT","note":"rh /centre-conformite","at":"2026-11-13T17:38:35.272Z"}
+{"uc":"UC-G-MODULES","status":"VERT","note":"rh /modules","at":"2026-11-13T17:38:39.546Z"}
+{"uc":"UC-I-JOURNAL","status":"VERT","note":"rh /journal","at":"2026-11-13T17:38:43.485Z"}
+{"uc":"UC-H-PROFIL","status":"VERT","note":"rh /mon-espace","at":"2026-11-13T17:38:46.463Z"}
+{"uc":"UC-A-ACCES","status":"VERT","note":"admin /parametres?onglet=acces","at":"2026-11-13T17:38:52.603Z"}
+{"uc":"UC-A-TAUX","status":"VERT","note":"admin /parametres?onglet=paie","at":"2026-11-13T17:38:56.255Z"}
+{"uc":"UC-A-BAREMES","status":"VERT","note":"admin /parametres?onglet=baremes","at":"2026-11-13T17:38:59.671Z"}
+{"uc":"UC-A-RUBRIQUES","status":"VERT","note":"admin /parametres?onglet=rubriques","at":"2026-11-13T17:39:03.770Z"}
+{"uc":"UC-A-GRILLES","status":"VERT","note":"admin /parametres?onglet=grilles","at":"2026-11-13T17:39:06.789Z"}

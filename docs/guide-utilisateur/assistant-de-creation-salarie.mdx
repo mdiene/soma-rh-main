@@ -17,11 +17,19 @@ Cochez **Mémoriser mon choix sur ce poste** pour ne plus voir la question. Depu
 ## Les étapes
 Une barre d'étapes en haut de la fenêtre indique où vous en êtes ; une étape déjà validée est cliquable pour la corriger. Chaque étape a un court texte d'explication. Le bouton **Valider et continuer** exige les champs obligatoires de l'étape ; **Précédent** revient en arrière ; **Annuler** demande une confirmation avant d'abandonner (rien n'est enregistré tant que le salarié n'est pas créé).
 
-1. **Identité** : prénom et nom obligatoires.
+1. **Identité** : prénom, nom et **n° de CNI ou de passeport** obligatoires.
+   - Le **n° de CNI ou de passeport est unique** : deux salariés ne peuvent pas avoir le même numéro (espaces et majuscules ignorés). Si le numéro existe déjà, l'écran l'indique en rouge avec le matricule du salarié concerné et l'étape ne se valide pas.
+   - **Prénom et nom** sont mis en forme à la sortie du champ et à l'enregistrement : première lettre de chaque mot en majuscule, le reste en minuscule (« n'DIAYE-sow » devient « N'Diaye-Sow »).
+   - Pour une salariée (sexe **Féminin**), un champ **Nom de jeune fille** apparaît.
+   - **Père** (nom et prénom) ; pour la mère, **Prénom de la mère** et **Nom de la mère**.
 
    ![Étape Identité](/guide-utilisateur/captures/assistant-identite.png)
 2. **Coordonnées** : adresse, téléphones, e-mails, personne à prévenir. Un numéro trop court ou un e-mail mal formé s'affiche en avertissement, sans bloquer.
-3. **Famille et fiscalité** : situation de famille, enfants à charge, parts.
+3. **Famille et fiscalité** : situation de famille, conjoints, enfants à charge, parts TRIMF et IR.
+   - Les **parts sont calculées automatiquement** (référentiel 2026) : IR = 1 (célibataire, veuf(ve), divorcé(e)), 1,5 si marié(e), + 0,5 si le conjoint est sans revenu et à charge, + 0,5 par enfant à charge, plafond 5 ; TRIMF = 1 part, et pour un homme marié 1 part + 1 par épouse sans revenu. Les formules sont rappelées sous les champs.
+   - Vous pouvez **saisir les parts à la main** : si elles diffèrent du calcul automatique, une **alerte rouge** l'indique, avec un bouton **Appliquer le calcul automatique**.
+
+   ![Parts calculées automatiquement](/guide-utilisateur/captures/assistant-famille-parts.png)
 4. **Contrat et classification** : le type de contrat, la date d'entrée, l'emploi, la convention et la catégorie. Les questions s'adaptent au contrat : pour un CDD, un stage ou un apprentissage, le début et la fin du contrat sont obligatoires.
 
    ![Étape Contrat, cas d'un CDD](/guide-utilisateur/captures/assistant-contrat-cdd.png)
@@ -36,6 +44,18 @@ Une barre d'étapes en haut de la fenêtre indique où vous en êtes ; une étap
 9. **Revue et sauvegarde** : toutes les sections sont récapitulées, avec un lien **Modifier** pour chacune. Les erreurs à corriger sont listées avec un lien **Corriger**.
 
    ![Revue avant la création](/guide-utilisateur/captures/assistant-revue.png)
+
+## Mettre la saisie en attente
+Avant de créer le salarié, le bouton **Mettre en attente** (en bas de la fenêtre, à toutes les étapes) enregistre la saisie sans créer de fiche : vous pouvez faire des recherches ou des validations internes, puis reprendre plus tard, même depuis un autre poste. Vous arrivez sur la page **Saisies en cours**.
+
+## Saisies en cours
+Menu **Administration du personnel → Saisies en cours** (ou le bouton **Saisies en cours** de la page Salariés). Chaque salarié en cours de saisie affiche :
+- son **avancement** (part des champs obligatoires renseignés) ;
+- les **points à déterminer** : en rouge ce qui bloque la création, puis ce qui reste à compléter, avec l'étape concernée ;
+- le bouton **Continuer la saisie** (ou un clic sur le nom) : l'assistant se rouvre à l'étape où vous l'aviez laissée, avec toutes les valeurs ;
+- **Supprimer** (avec confirmation) pour abandonner la saisie.
+
+Une saisie ne devient une fiche qu'à **Créer le salarié** ; elle disparaît alors de la liste. Vous ne voyez que vos saisies ; l'administrateur voit toutes les saisies.
 
 ## Calculer le sursalaire à partir du net
 À l'étape **Rémunération**, cliquez sur **Calculer le sursalaire à partir du net…**. Dans la fenêtre : saisissez le **Net à payer souhaité (F CFA)**, vérifiez le **Mois de référence** (choisissez un mois complet, une entrée en cours de mois est payée au prorata), puis **Calculer**. La fenêtre affiche le sursalaire, le brut et le net. **Valider et reprendre dans la saisie** place le sursalaire dans la fiche en cours. Rien n'est enregistré par le calcul.
@@ -55,6 +75,7 @@ Le compte RH ne voit pas l'étape Rémunération : l'affectation de la structure
 ![Alerte sur le tableau de bord de la paie](/guide-utilisateur/captures/tableau-de-bord-structure-a-affecter.png)
 
 ## Erreurs fréquentes
+- **« Le numéro de CNI ou de passeport est obligatoire. »** / **« Ce numéro de CNI ou de passeport est déjà attribué au salarié … »** : saisissez un numéro propre à ce salarié.
 - **« Le prénom est obligatoire. »** (et messages semblables) : l'étape ne se valide pas tant que le champ n'est pas rempli.
 
   ![Champ obligatoire](/guide-utilisateur/captures/assistant-champ-obligatoire.png)
@@ -62,7 +83,7 @@ Le compte RH ne voit pas l'étape Rémunération : l'affectation de la structure
 - **« Net cible invalide »** : le net souhaité doit être supérieur à zéro.
 
 ## Règle de gestion
-Les avertissements (téléphone, e-mail, RIB, catégorie absente) ne bloquent jamais ; seules les erreurs certaines (champ obligatoire, date incohérente) bloquent. Les paramètres fiscaux et sociaux proposés restent ceux de l'application (statut ◐ à confirmer, voir le [Glossaire](/guide-utilisateur/glossaire)).
+Les avertissements (téléphone, e-mail, RIB, catégorie absente, parts différentes du calcul automatique) ne bloquent jamais ; seules les erreurs certaines (champ obligatoire, n° de pièce absent ou déjà attribué, date incohérente) bloquent. Les fiches créées avant cette règle sans n° de pièce affichent une alerte rouge jusqu'à sa saisie. Les paramètres fiscaux et sociaux proposés restent ceux de l'application (statut ◐ à confirmer, voir le [Glossaire](/guide-utilisateur/glossaire)).
 
 ## Voir aussi
 [Embaucher un salarié](/guide-utilisateur/embaucher-un-salarie) · [Simulateur net / brut](/guide-utilisateur/simulateur-net-brut) · [Rôles et droits](/guide-utilisateur/roles-et-droits)
