@@ -1,6 +1,6 @@
 import clsx from 'clsx'
 import { AnimatePresence, LayoutGroup, MotionConfig, motion } from 'framer-motion'
-import { LogOut, Menu, Pin, PinOff, Search, Star } from 'lucide-react'
+import { LogOut, Menu, Pin, PinOff, Search, Star, type LucideIcon } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { Suspense, useEffect, useRef, useState, useSyncExternalStore } from 'react'
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
@@ -74,13 +74,14 @@ function ItemLink({ item, counts, fav, onNavigate }: { item: NavItem; counts: Co
   )
 }
 
-/** Infobulle du rail : au survol et au focus clavier (le nom accessible vient de aria-label). */
-function Tip({ children }: { children: string }) {
-  return (
-    <span aria-hidden className="pointer-events-none absolute left-full top-1/2 z-50 ml-2 -translate-y-1/2 whitespace-nowrap rounded bg-white px-2.5 py-1.5 text-xs font-medium text-ink opacity-0 shadow-lg ring-1 ring-black/10 transition-opacity group-has-[:focus-visible]:opacity-100 group-hover:opacity-100">
-      {children}
-    </span>
-  )
+/** Icône du rail dans un emplacement de 44 px : elle reste en place quand le rail s'élargit. */
+function RailIcon({ icon: Icon, small }: { icon: LucideIcon; small?: boolean }) {
+  return <span className="relative flex h-11 w-11 shrink-0 items-center justify-center"><Icon className={small ? 'h-4 w-4' : 'h-5 w-5'} aria-hidden /></span>
+}
+
+/** Libellé affiché seulement quand le rail est élargi (le nom accessible vient de aria-label). */
+function RailLabel({ show, children }: { show: boolean; children: string }) {
+  return show ? <span aria-hidden className="relative min-w-0 flex-1 truncate pr-7 text-left text-sm">{children}</span> : null
 }
 
 export function Layout() {
@@ -102,7 +103,10 @@ export function Layout() {
   // survol : ouverture immédiate, fermeture après un court délai (le temps de passer de l'icône au volet)
   const closeTimer = useRef<number>()
   const cancelClose = () => window.clearTimeout(closeTimer.current)
-  const hoverClose = () => { cancelClose(); closeTimer.current = window.setTimeout(() => setFly(undefined), 220) }
+  const [railHover, setRailHover] = useState(false)
+  const expandTimer = useRef<number>() // mode épinglé : léger délai avant l'élargissement, pour ne pas recouvrir le volet quand on le vise
+  const railExpanded = desktop && railHover // le rail s'élargit (noms des espaces) tant que la souris est sur le rail ou sur le volet flottant
+  const hoverClose = () => { cancelClose(); closeTimer.current = window.setTimeout(() => { setFly(undefined); setRailHover(false) }, 220) }
   useEffect(() => () => window.clearTimeout(closeTimer.current), [])
   // clic ou toucher en dehors du rail et du volet flottant : fermeture (le survol seul ne suffit pas sur écran tactile)
   useEffect(() => {
@@ -167,11 +171,11 @@ export function Layout() {
   const favOf = (to: string): Fav | undefined => isPinned(to) ? undefined : ({ on: favorites.includes(to), disabled: !canAddFavorite, toggle: () => toggleFavorite(to) })
   // favoris : seulement les pages encore accessibles au rôle courant
   const favItems = favorites.filter((to) => !isPinned(to)).map((to) => entries.find((e) => e.to === to)).filter((e): e is PaletteEntry => !!e)
-  const done = () => { setOpen(false); setFly(undefined) }
+  const done = () => { window.clearTimeout(expandTimer.current); setOpen(false); setFly(undefined); setRailHover(false) }
   const flySpace = spaces.find((s) => s.id === fly?.id)
   const initials = (session?.user.email ?? '?').slice(0, 2).toUpperCase()
 
-  const railButtonCls = 'relative flex h-11 w-11 items-center justify-center rounded-lg text-white/70 transition-colors hover:text-white'
+  const railButtonCls = 'relative flex h-11 w-full items-center rounded-lg text-white/70 transition-colors hover:bg-white/5 hover:text-white'
 
   return (
     <MotionConfig reducedMotion="user">
@@ -184,71 +188,86 @@ export function Layout() {
           </button>
         </div>
 
-        <aside className={clsx('no-print max-h-[calc(100vh-3.25rem)] bg-ink text-white lg:sticky lg:top-0 lg:flex lg:h-screen lg:max-h-none lg:shrink-0', open ? 'flex' : 'hidden')}>
+        <aside className={clsx('no-print max-h-[calc(100vh-3.25rem)] bg-ink text-white lg:sticky lg:top-0 lg:z-40 lg:flex lg:h-screen lg:max-h-none lg:shrink-0', open ? 'flex' : 'hidden')}>
           <nav className="flex min-h-0 flex-1" aria-label="Navigation principale">
-            {/* colonne 1 : rail d'ancrage */}
+            {/* colonne 1 : rail d'ancrage. Au survol (bureau) il s'élargit en recouvrant le contenu et affiche le nom des espaces, comme la barre latérale de Supabase */}
             {hasRail && (
-              <div className="flex w-[4.5rem] shrink-0 flex-col items-center gap-1 bg-[#16212A] py-4">
-                <div className="mb-2 hidden lg:block"><Brand compact /></div>
-                {pinnedItems.map((i) => (
-                  <div key={i.to} className="group relative">
-                    <NavLink to={i.to} end={i.to === '/'} onClick={done} aria-label={i.label}
-                      className={({ isActive }) => clsx(railButtonCls, isActive && 'bg-white/10 text-white')}>
-                      <i.icon className="h-5 w-5" aria-hidden />
-                    </NavLink>
-                    <Tip>{i.label}</Tip>
+              <div className="relative w-[4.5rem] shrink-0 lg:z-30">
+                <div
+                  data-nav-zone
+                  onPointerEnter={(e) => { if (!desktop || e.pointerType !== 'mouse') return; cancelClose(); window.clearTimeout(expandTimer.current); if (collapsed) setRailHover(true); else expandTimer.current = window.setTimeout(() => setRailHover(true), 350) }}
+                  onPointerLeave={(e) => { if (e.pointerType === 'mouse') { window.clearTimeout(expandTimer.current); hoverClose() } }}
+                  className={clsx('absolute inset-y-0 left-0 flex flex-col gap-1 overflow-hidden bg-[#16212A] px-3.5 py-4 transition-[width,box-shadow] duration-200 ease-out', railExpanded ? 'w-72 shadow-2xl shadow-black/40' : 'w-[4.5rem]')}
+                >
+                  <div className="mb-2 hidden h-11 items-center lg:flex">
+                    <span className="flex w-11 shrink-0 justify-center"><Brand compact /></span>
+                    {railExpanded && <span className="truncate text-sm font-semibold">SOMA-RH</span>}
                   </div>
-                ))}
-                {pinnedItems.length > 0 && <div className="my-1 h-px w-8 bg-white/10" aria-hidden />}
-                <LayoutGroup>
-                  {spaces.map((s) => {
-                    const isActive = s.id === activeId
-                    const n = total(s)
-                    return (
-                      <div key={s.id} className="group relative" data-nav-zone
-                        onPointerEnter={(e) => { if (collapsed && e.pointerType === 'mouse') { cancelClose(); setFly({ id: s.id, top: e.currentTarget.getBoundingClientRect().top }) } }}
-                        onPointerLeave={(e) => { if (collapsed && e.pointerType === 'mouse') hoverClose() }}>
-                        <motion.button
-                          whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
-                          onClick={(e) => {
-                            if (collapsed) {
-                              const r = e.currentTarget.getBoundingClientRect()
-                              setFly({ id: s.id, top: r.top }) // ouvert au survol : le clic le garde ouvert (Échap, clic ailleurs ou sortie de la souris le ferment)
-                            } else { setPicked({ id: s.id, path: pathname }); setFly(undefined) }
-                          }}
-                          aria-label={n ? `${s.label}, ${n} en attente` : s.label}
-                          aria-expanded={collapsed ? fly?.id === s.id : isActive}
-                          aria-controls={!collapsed && isActive ? `space-${s.id}` : undefined}
-                          className={clsx(railButtonCls, (isActive || fly?.id === s.id) && 'text-white')}
-                        >
-                          {isActive && (
-                            <motion.span layoutId="activePillarIndicator" className="absolute inset-0 rounded-lg bg-white/10" transition={{ duration: 0.25, ease: EASE }}>
-                              <span className="absolute -left-3 top-2 h-7 w-1 rounded-r bg-[#E0B000]" />
-                            </motion.span>
-                          )}
-                          <s.icon className="relative h-5 w-5" aria-hidden />
-                          <Badge n={n} className="absolute -right-0.5 -top-0.5 min-w-[1.25rem] text-center" />
-                        </motion.button>
-                        {!collapsed && <Tip>{s.label}</Tip>}
-                      </div>
-                    )
-                  })}
-                </LayoutGroup>
-                <div className="mt-auto flex flex-col items-center gap-2 pt-3">
-                  {collapsed && (
-                    <>
-                      <button onClick={() => setPalette(true)} title="Rechercher (Ctrl+K)" aria-label="Rechercher une page (Ctrl+K)" className={railButtonCls}>
-                        <Search className="h-5 w-5" aria-hidden />
-                      </button>
-                      <button onClick={toggleRail} aria-pressed={false} aria-label="Épingler le menu ouvert" title="Épingler le menu : le garder ouvert en permanence" className={railButtonCls}>
-                        <Pin className="h-5 w-5" aria-hidden />
-                      </button>
-                    </>
-                  )}
-                  <span title={roles.length ? roles.join(', ') : 'aucun rôle attribué'} aria-hidden className="flex h-9 w-9 items-center justify-center rounded-full bg-river text-xs font-semibold text-white">{initials}</span>
-                  <button onClick={signOut} title="Se déconnecter" aria-label="Se déconnecter" className="rounded p-1.5 text-white/60 hover:text-white">
-                    <LogOut className="h-4 w-4" aria-hidden />
-                  </button>
+                  {pinnedItems.map((i) => (
+                    <NavLink key={i.to} to={i.to} end={i.to === '/'} onClick={done} aria-label={i.label}
+                      className={({ isActive }) => clsx(railButtonCls, isActive && 'bg-white/10 text-white')}>
+                      <RailIcon icon={i.icon} />
+                      <RailLabel show={railExpanded}>{i.label}</RailLabel>
+                    </NavLink>
+                  ))}
+                  {pinnedItems.length > 0 && <div className="my-1 h-px bg-white/10" aria-hidden />}
+                  <LayoutGroup>
+                    {spaces.map((s) => {
+                      const isActive = s.id === activeId
+                      const n = total(s)
+                      return (
+                        <div key={s.id}
+                          onPointerEnter={(e) => { if (collapsed && e.pointerType === 'mouse') { cancelClose(); setFly({ id: s.id, top: e.currentTarget.getBoundingClientRect().top }) } }}>
+                          <motion.button
+                            whileTap={{ scale: 0.98 }}
+                            onClick={(e) => {
+                              if (collapsed) {
+                                const r = e.currentTarget.getBoundingClientRect()
+                                setFly({ id: s.id, top: r.top }) // ouvert au survol : le clic le garde ouvert (Échap, clic ailleurs ou sortie de la souris le ferment)
+                              } else { setPicked({ id: s.id, path: pathname }); setFly(undefined); window.clearTimeout(expandTimer.current); setRailHover(false) }
+                            }}
+                            aria-label={n ? `${s.label}, ${n} en attente` : s.label}
+                            aria-expanded={collapsed ? fly?.id === s.id : isActive}
+                            aria-controls={!collapsed && isActive ? `space-${s.id}` : undefined}
+                            className={clsx(railButtonCls, (isActive || fly?.id === s.id) && 'text-white')}
+                          >
+                            {isActive && (
+                              <motion.span layoutId="activePillarIndicator" className="absolute inset-0 rounded-lg bg-white/10" transition={{ duration: 0.25, ease: EASE }}>
+                                <span className="absolute -left-3.5 top-2 h-7 w-1 rounded-r bg-[#E0B000]" />
+                              </motion.span>
+                            )}
+                            <RailIcon icon={s.icon} />
+                            <RailLabel show={railExpanded}>{s.label}</RailLabel>
+                            <Badge n={n} className={clsx('absolute min-w-[1.25rem] text-center', railExpanded ? 'right-2 top-1/2 -translate-y-1/2' : '-right-0.5 -top-0.5')} />
+                          </motion.button>
+                        </div>
+                      )
+                    })}
+                  </LayoutGroup>
+                  <div className="mt-auto flex flex-col gap-1 pt-3">
+                    {collapsed && (
+                      <>
+                        <button onClick={() => setPalette(true)} title="Rechercher (Ctrl+K)" aria-label="Rechercher une page (Ctrl+K)" className={railButtonCls}>
+                          <RailIcon icon={Search} />
+                          <RailLabel show={railExpanded}>Rechercher</RailLabel>
+                        </button>
+                        <button onClick={toggleRail} aria-pressed={false} aria-label="Épingler le menu ouvert" title="Épingler le menu : le garder ouvert en permanence" className={railButtonCls}>
+                          <RailIcon icon={Pin} />
+                          <RailLabel show={railExpanded}>Épingler le menu</RailLabel>
+                        </button>
+                      </>
+                    )}
+                    <div className="flex h-11 items-center" title={roles.length ? roles.join(', ') : 'aucun rôle attribué'}>
+                      <span className="flex w-11 shrink-0 justify-center">
+                        <span aria-hidden className="flex h-9 w-9 items-center justify-center rounded-full bg-river text-xs font-semibold text-white">{initials}</span>
+                      </span>
+                      {railExpanded && <span className="min-w-0 truncate text-xs text-white/70">{session?.user.email}</span>}
+                    </div>
+                    <button onClick={signOut} title="Se déconnecter" aria-label="Se déconnecter" className={railButtonCls}>
+                      <RailIcon icon={LogOut} small />
+                      <RailLabel show={railExpanded}>Se déconnecter</RailLabel>
+                    </button>
+                  </div>
                 </div>
               </div>
             )}
@@ -323,11 +342,11 @@ export function Layout() {
               <>
                 <motion.div
                   role="group" aria-label={flySpace.label} data-nav-zone
-                  onPointerEnter={(e) => { if (e.pointerType === 'mouse') cancelClose() }} onPointerLeave={(e) => { if (e.pointerType === 'mouse') hoverClose() }}
+                  onPointerEnter={(e) => { if (e.pointerType === 'mouse') { cancelClose(); setRailHover(true) } }} onPointerLeave={(e) => { if (e.pointerType === 'mouse') hoverClose() }}
                   initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
                   transition={{ type: 'spring', stiffness: 420, damping: 32 }}
                   className="fixed z-50 hidden w-64 origin-top-left rounded-md border border-white/10 bg-ink p-2 text-white shadow-xl lg:block"
-                  style={{ left: '4.75rem', top: Math.max(8, Math.min(fly.top, window.innerHeight - 48 - flySpace.items.length * 34)) }}
+                  style={{ left: railExpanded ? '18.25rem' : '4.75rem', top: Math.max(8, Math.min(fly.top, window.innerHeight - 48 - flySpace.items.length * 34)) }}
                 >
                   <div className="flex items-center justify-between px-2 pb-1 pt-0.5">
                     <p className="text-xs font-medium text-white/50">{flySpace.label}</p>

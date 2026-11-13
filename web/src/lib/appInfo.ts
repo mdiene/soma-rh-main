@@ -7,6 +7,13 @@ export type Release = { version: string; date: string; title: string; changes: s
 /** Journal des versions : la plus récente en premier. La numérotation a été introduite avec la version 1.0.0 ; l'historique antérieur est dans Git. */
 export const RELEASES: Release[] = [
   {
+    version: '1.0.1', date: '2026-11-13', title: 'Menu latéral façon Supabase',
+    changes: [
+      'La colonne d’icônes s’élargit au survol et affiche le nom des espaces, avec leurs compteurs.',
+      'Le volet d’un espace s’ouvre devant le contenu de la page, y compris devant les colonnes des tableaux.',
+    ],
+  },
+  {
     version: '1.0.0', date: '2026-11-13', title: 'Saisie des salariés, menu et pages d’information',
     changes: [
       'Assistant de saisie : n° de CNI ou de passeport obligatoire et unique, noms mis en forme (Prénom, Nom), nom de jeune fille, prénom et nom de la mère.',

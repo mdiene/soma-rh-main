@@ -56,6 +56,31 @@ test.describe('administrateur', () => {
     await expect(n.getByRole('link', { name: 'Variables du mois' })).toBeVisible()
   })
 
+  test('survol du rail : il s’élargit et affiche le nom des espaces, puis se referme', async ({ page }) => {
+    const bouton = nav(page).getByRole('button', { name: /^Paie et rémunération/ })
+    await expect(bouton.getByText('Paie et rémunération')).toHaveCount(0) // rail étroit : icônes seules
+    await bouton.hover()
+    await expect(bouton.getByText('Paie et rémunération')).toBeVisible() // rail élargi (menu épinglé : après un court délai)
+    await page.mouse.move(900, 450)
+    await expect(bouton.getByText('Paie et rémunération')).toHaveCount(0)
+  })
+
+  test('le volet d’un espace s’ouvre devant les colonnes d’un tableau, pas derrière', async ({ page }) => {
+    const n = nav(page)
+    await n.getByRole('button', { name: 'Désépingler le menu (le replier)' }).click()
+    await page.goto('/salaries')
+    await expect(page.getByRole('table')).toBeVisible({ timeout: 30_000 })
+    await n.getByRole('button', { name: /^Administration du personnel/ }).hover()
+    const volet = page.getByRole('group', { name: 'Administration du personnel' })
+    await expect(volet).toBeVisible()
+    const box = (await volet.boundingBox())!
+    // le point du volet qui recouvre le tableau appartient bien au volet (et non à un en-tête de colonne)
+    const surLeVolet = await page.evaluate(({ x, y }) => !!document.elementFromPoint(x, y)?.closest('[role="group"]'), { x: box.x + box.width / 2, y: box.y + 24 })
+    expect(surLeVolet).toBe(true)
+    await page.mouse.move(1000, 700)
+    await n.getByRole('button', { name: 'Épingler le menu ouvert' }).click() // remet l'état mémorisé par défaut
+  })
+
   test('menu À propos : aide, informations, tarification, conditions, confidentialité, versions', async ({ page }) => {
     const n = nav(page)
     await n.getByRole('button', { name: /^À propos/ }).click()
@@ -72,6 +97,7 @@ test.describe('administrateur', () => {
   })
 
   test('aucune page principale ne plante', async ({ page }) => {
+    test.setTimeout(120_000) // une vingtaine de pages à ouvrir
     const errors = collectPageErrors(page)
     for (const route of ['/', '/salaries', '/salaries/en-cours', '/conges', '/presences', '/paie', '/etats', '/pilotage', '/modules', '/parametres', '/journal', '/mon-equipe', '/mon-espace', '/aide', '/a-propos', '/tarification', '/conditions-utilisation', '/confidentialite', '/sauvegardes-versions']) {
       await page.goto(route)
