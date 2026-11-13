@@ -1,7 +1,7 @@
 import {
   Banknote, CalendarCheck2, CalendarRange, CalendarDays, Calculator, FileSpreadsheet, FileText, History, Inbox, LayoutDashboard,
   LockKeyhole, Network, PieChart, Settings, ShieldCheck, SlidersHorizontal, UserCircle, Users, Wallet, Receipt,
-  Blocks, Briefcase, Cog, LifeBuoy, UsersRound, type LucideIcon,
+  Blocks, Briefcase, Cog, DatabaseBackup, Info, LifeBuoy, ListChecks, ScrollText, Tags, UsersRound, type LucideIcon,
 } from 'lucide-react'
 import type { Role } from './auth'
 
@@ -24,7 +24,6 @@ export const SPACES: NavSpace[] = [
     { to: '/mon-espace', label: 'Mon profil et mes demandes', icon: UserCircle, roles: ['salarie', 'rh', 'paie', 'manager'] },
     { to: '/conges', label: 'Mes congés', icon: CalendarDays, roles: ['salarie', 'manager'], keywords: 'conge absence solde demande' },
     { to: '/mes-bulletins', label: 'Mes bulletins', icon: Receipt, roles: ['salarie', 'rh', 'paie', 'manager'], keywords: 'bulletin fiche de paie salaire' },
-    { to: '/aide', label: 'Aide et guide utilisateur', icon: LifeBuoy, roles: ['salarie', 'rh', 'paie', 'manager'], keywords: 'aide documentation guide manuel faq glossaire' },
   ] },
   { id: 'equipe', label: 'Management', icon: UsersRound, items: [
     { to: '/mon-equipe', label: 'Mon équipe et validations', icon: Users, roles: ['manager'], badge: 'validations' },
@@ -32,6 +31,7 @@ export const SPACES: NavSpace[] = [
   ] },
   { id: 'rh', label: 'Administration du personnel', icon: Briefcase, items: [
     { to: '/salaries', label: 'Salariés', icon: Users, roles: ['rh', 'paie'], keywords: 'annuaire employé personnel' },
+    { to: '/salaries/en-cours', label: 'Saisies en cours', icon: ListChecks, roles: ['rh'], keywords: 'brouillon attente création salarié reprendre assistant' },
     { to: '/dossiers-salaries', label: 'Dossiers administratifs', icon: FileText, roles: ['rh'] },
     { to: '/demandes', label: 'Demandes des salariés', icon: Inbox, roles: ['rh'], badge: 'demandes' },
     { to: '/conges', label: 'Congés et absences', icon: CalendarDays, roles: ['rh', 'paie'], badge: 'validations', keywords: 'conge solde rtt maladie' },
@@ -60,6 +60,15 @@ export const SPACES: NavSpace[] = [
       keywords: 'constantes taux plafonds smig ipres css barèmes impôt heures supplémentaires dérogation validation texte de loi réinitialiser' },
     { to: '/modules', label: 'Modules métiers', icon: Blocks, roles: ['rh', 'paie'] },
     { to: '/journal', label: 'Journal des modifications', icon: History, roles: ['rh'] },
+  ] },
+  // dernier espace, commun à tous les rôles : aide, informations, conditions, confidentialité, versions
+  { id: 'apropos', label: 'À propos', icon: Info, items: [
+    { to: '/aide', label: 'Aide et guide utilisateur', icon: LifeBuoy, roles: ['salarie', 'rh', 'paie', 'manager'], keywords: 'aide documentation guide manuel faq glossaire' },
+    { to: '/a-propos', label: 'À propos de SOMA-RH', icon: Info, roles: ['salarie', 'rh', 'paie', 'manager'], keywords: 'version éditeur support contact licences' },
+    { to: '/tarification', label: 'Tarification et services', icon: Tags, roles: ['rh', 'paie'], keywords: 'prix formule abonnement devis services saas' },
+    { to: '/conditions-utilisation', label: 'Conditions d’utilisation', icon: ScrollText, roles: ['salarie', 'rh', 'paie', 'manager'], keywords: 'cgu règles usage' },
+    { to: '/confidentialite', label: 'Politique de confidentialité', icon: ShieldCheck, roles: ['salarie', 'rh', 'paie', 'manager'], keywords: 'données personnelles rgpd cdp vie privée' },
+    { to: '/sauvegardes-versions', label: 'Sauvegardes et versions', icon: DatabaseBackup, roles: ['rh', 'paie'], keywords: 'backup restauration mise à jour version changelog contrôle de version' },
   ] },
 ]
 

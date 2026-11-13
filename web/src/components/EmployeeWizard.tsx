@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Calculator, Check, ChevronLeft } from 'lucide-react'
+import { Calculator, Check, ChevronLeft, PauseCircle } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { dataApi, unwrap } from '../lib/api'
@@ -7,7 +7,7 @@ import type { Json } from '../lib/database.types'
 import { selectable, useAgreements, useContractTypes, useDesignations, useGrades, usePaymentModes } from '../lib/queries'
 import { useAuth } from '../lib/auth'
 import { fcfa } from '../lib/format'
-import { contractQuestions, draftHasContent, firstFullMonth, isLikelyDuplicate, parseDraft, PARTS_RULE, proposeParts, reviewIssues, serializeDraft, softWarnings, stepsFor, toPayload, validateStep, type Draft, type SavedDraft } from '../lib/employeeWizard'
+import { contractQuestions, draftHasContent, asksMaidenName, firstFullMonth, isLikelyDuplicate, normalizeNames, parseDraft, partsAlerts, PARTS_MEMO, personName, reviewIssues, senegalParts, serializeDraft, softWarnings, stepsFor, toPayload, validateStep, type Draft, type SavedDraft } from '../lib/employeeWizard'
 import { Button, ErrorNote, Modal, SelectField, Spinner, TextField } from './ui'
 
 const INITIAL: Draft = {
@@ -18,7 +18,7 @@ const INITIAL_ASSIGN: Draft = { sursalaire: 0, fees: 0, other_fixed: 0, transpor
 
 const LABELS: Record<string, string> = {
   gender: 'Sexe', first_name: 'Prénom', last_name: 'Nom', date_of_birth: 'Date de naissance', place_of_birth: 'Lieu de naissance', nationality: 'Nationalité',
-  id_document_number: 'N° CNI ou passeport', id_issue_date: 'Délivrée le', id_expiry_date: 'Expire le', father_name: 'Père', mother_name: 'Mère',
+  id_document_number: 'N° CNI ou passeport', id_issue_date: 'Délivrée le', id_expiry_date: 'Expire le', father_name: 'Père', mother_name: 'Mère', maiden_name: 'Nom de jeune fille', mother_first_name: 'Prénom de la mère', mother_last_name: 'Nom de la mère',
   address: 'Adresse', phone_personal: 'Téléphone personnel', phone_work: 'Téléphone professionnel', email_personal: 'E-mail personnel', email_work: 'E-mail professionnel',
   emergency_contact_name: 'Personne à prévenir', emergency_contact_phone: 'Téléphone d’urgence', ipres_number: 'N° IPRES', css_number: 'N° CSS',
   marital_status: 'Situation de famille', spouses_count: 'Conjoint(e)s', children_count: 'Enfants à charge', trimf_parts: 'Parts TRIMF', ir_parts: 'Parts IR',
@@ -29,7 +29,7 @@ const LABELS: Record<string, string> = {
   from_date: 'En vigueur à partir du', base_salary: 'Salaire de base', sursalaire: 'Sursalaire', fees: 'Honoraires', other_fixed: 'Autre élément fixe', transport_mode: 'Transport',
 }
 const STEP_FIELDS: Record<string, string[]> = {
-  identite: ['gender', 'first_name', 'last_name', 'date_of_birth', 'place_of_birth', 'nationality', 'id_document_number', 'id_issue_date', 'id_expiry_date', 'father_name', 'mother_name'],
+  identite: ['gender', 'first_name', 'last_name', 'date_of_birth', 'place_of_birth', 'nationality', 'id_document_number', 'id_issue_date', 'id_expiry_date', 'father_name', 'maiden_name', 'mother_first_name', 'mother_last_name'],
   coordonnees: ['address', 'phone_personal', 'phone_work', 'email_personal', 'email_work', 'emergency_contact_name', 'emergency_contact_phone', 'ipres_number', 'css_number'],
   famille: ['marital_status', 'spouses_count', 'children_count', 'trimf_parts', 'ir_parts'],
   contrat: ['designation_id', 'employment_type', 'department_id', 'agreement_code', 'grade_id', 'date_of_joining', 'contract_start', 'contract_end'],
@@ -44,7 +44,7 @@ type CreateResult = { id: string; employee_number: string; structure_assigned: b
 type Sim = { sursalaire: number; gross_pay: string; net_pay: string }
 type DupRow = { id: string; employee_number: string; first_name: string; last_name: string; date_of_birth: string | null; id_document_number: string | null }
 
-export function EmployeeWizard({ open, onClose }: { open: boolean; onClose: () => void }) {
+export function EmployeeWizard({ open, onClose, draftId }: { open: boolean; onClose: () => void; draftId?: string }) {
   const { can, session } = useAuth()
   const canPayroll = can('paie')
   const nav = useNavigate()
@@ -69,10 +69,23 @@ export function EmployeeWizard({ open, onClose }: { open: boolean; onClose: () =
   const [confirmCancel, setConfirmCancel] = useState(false)
   const [result, setResult] = useState<CreateResult | null>(null)
   const [netOpen, setNetOpen] = useState(false)
+  // parts saisies à la main : le calcul automatique ne les écrase plus (une alerte rouge signale l'écart)
+  const [manualParts, setManualParts] = useState<{ ir: boolean; trimf: boolean }>({ ir: false, trimf: false })
+  // saisie mise en attente en base (reprise depuis la page « Saisies en cours »)
+  const [serverDraftId, setServerDraftId] = useState<string | null>(draftId ?? null)
   const heading = useRef<HTMLHeadingElement>(null)
 
   const grades = useGrades(draft.agreement_code as string | undefined)
   const steps = useMemo(() => stepsFor(canPayroll), [canPayroll])
+  // parts TRIMF et IR : calcul automatique (référentiel 2026) tant que la saisie n'est pas manuelle
+  const autoParts = senegalParts({ gender: draft.gender, marital: draft.marital_status, spouses: draft.spouses_count, children: draft.children_count })
+  useEffect(() => {
+    setDraft((d) => {
+      const ir = manualParts.ir ? d.ir_parts : autoParts.ir
+      const trimf = manualParts.trimf ? d.trimf_parts : autoParts.trimf
+      return ir === d.ir_parts && trimf === d.trimf_parts ? d : { ...d, ir_parts: ir, trimf_parts: trimf }
+    })
+  }, [autoParts.ir, autoParts.trimf, manualParts.ir, manualParts.trimf])
   const step = steps[index]
   const payrollRequested = canPayroll && withPayroll
   const merged: Draft = { ...draft, ...(payrollRequested ? { ...assign, from_date: assign.from_date || draft.date_of_joining } : {}) }
@@ -85,9 +98,9 @@ export function EmployeeWizard({ open, onClose }: { open: boolean; onClose: () =
   const draftKey = `soma.assistant-salarie.brouillon.${session?.user.id ?? 'anonyme'}`
   const [saved, setSaved] = useState<SavedDraft | null>(null)
   useEffect(() => {
-    if (!open) return
+    if (!open || draftId) return
     try { setSaved(parseDraft(localStorage.getItem(draftKey))) } catch { setSaved(null) }
-  }, [open, draftKey])
+  }, [open, draftKey, draftId])
   useEffect(() => {
     if (!open || result || saved || !draftHasContent(draft)) return
     const t = setTimeout(() => {
@@ -95,6 +108,23 @@ export function EmployeeWizard({ open, onClose }: { open: boolean; onClose: () =
     }, 400)
     return () => clearTimeout(t)
   }, [open, result, saved, draft, assign, receipts, index, reached, withPayroll, draftKey])
+  /* saisie mise en attente en base : reprise depuis la page « Saisies en cours » */
+  const loadedDraft = useRef<string | null>(null)
+  const serverDraft = useQuery({
+    queryKey: ['employee_draft', draftId],
+    enabled: open && !!draftId,
+    queryFn: async () => unwrap(await dataApi.from('employee_drafts').select('id, data').eq('id', draftId!).single()),
+  })
+  useEffect(() => {
+    if (!serverDraft.data || loadedDraft.current === serverDraft.data.id) return
+    loadedDraft.current = serverDraft.data.id
+    const sd = serverDraft.data.data as unknown as Partial<{ draft: Draft; assign: Draft; receipts: string[]; index: number; reached: number; withPayroll: boolean; manualParts: { ir: boolean; trimf: boolean } }>
+    setDraft({ ...INITIAL, ...(sd.draft ?? {}) }); setAssign({ ...INITIAL_ASSIGN, ...(sd.assign ?? {}) }); setReceipts(sd.receipts ?? []); setWithPayroll(sd.withPayroll ?? true)
+    setManualParts(sd.manualParts ?? { ir: false, trimf: false })
+    const i = Math.min(Math.max(0, sd.index ?? 0), steps.length - 1)
+    setIndex(i); setReached(Math.min(Math.max(sd.reached ?? 0, i), steps.length - 1))
+    setServerDraftId(serverDraft.data.id)
+  }, [serverDraft.data, steps.length])
   const clearDraft = () => { try { localStorage.removeItem(draftKey) } catch { /* rien à effacer */ } }
   function resumeDraft() {
     if (!saved) return
@@ -125,21 +155,41 @@ export function EmployeeWizard({ open, onClose }: { open: boolean; onClose: () =
     },
   })
 
+  /* n° de CNI ou de passeport : unique (espaces et casse ignorés) ; la base refuse aussi tout doublon */
+  const docKey = (v: string) => v.replace(/\s/g, '').toLowerCase()
+  const docTaken = useQuery({
+    queryKey: ['wizard-doc-taken', docKey(dupDoc)],
+    enabled: open && docKey(dupDoc).length >= 3,
+    queryFn: async () => {
+      const rows = unwrap(await dataApi.from('employees').select('id, employee_number, last_name, id_document_number').ilike('id_document_number', `%${docKey(dupDoc).split('').join('%')}%`).limit(20))
+      return rows.filter((r) => docKey(r.id_document_number ?? '') === docKey(dupDoc))
+    },
+  })
+  const docIssues = (docTaken.data ?? []).slice(0, 1).map((x) => ({ field: 'id_document_number', message: `Ce numéro de CNI ou de passeport est déjà attribué au salarié ${x.employee_number} ${x.last_name}.` }))
+
   const set = (k: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const v = e.target.type === 'number' ? (e.target.value === '' ? null : Number(e.target.value)) : e.target.value
     setDraft((d) => ({ ...d, [k]: v }))
   }
+  // noms de personnes : mise en forme (Prénom, Nom) à la sortie du champ ; la base applique la même règle
+  const nameProps = (k: string) => ({
+    value: String(draft[k] ?? ''),
+    onChange: set(k),
+    onBlur: () => setDraft((d) => (String(d[k] ?? '').trim() === '' ? d : { ...d, [k]: personName(d[k]) })),
+  })
   const setA = (k: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const v = e.target.type === 'number' ? (e.target.value === '' ? null : Number(e.target.value)) : e.target.value
     setAssign((a) => ({ ...a, [k]: v }))
   }
 
-  const issues = validateStep(step.id, merged, { payrollRequested })
+  const issues = [...validateStep(step.id, merged, { payrollRequested }), ...(step.id === 'identite' ? docIssues : [])]
   const warnings = softWarnings(step.id, merged)
-  const review = reviewIssues(merged, steps.map((s) => s.id), { payrollRequested })
+  const reviewBase = reviewIssues(merged, steps.map((s) => s.id), { payrollRequested })
+  const review = docIssues.length ? [...reviewBase.filter((r) => r.step !== 'identite'), { step: 'identite' as const, issues: [...(reviewBase.find((r) => r.step === 'identite')?.issues ?? []), ...docIssues] }] : reviewBase
 
   function reset() {
     setDraft(INITIAL); setAssign(INITIAL_ASSIGN); setReceipts([]); setIndex(0); setReached(0); setTried(false); setResult(null); setWithPayroll(true); setConfirmCancel(false)
+    setManualParts({ ir: false, trimf: false }); setServerDraftId(draftId ?? null); loadedDraft.current = null
   }
   function close() { clearDraft(); reset(); onClose() }
   // la croix de l'en-tête garde le brouillon pour une reprise ; « Abandonner » l'efface
@@ -155,11 +205,24 @@ export function EmployeeWizard({ open, onClose }: { open: boolean; onClose: () =
 
   const create = useMutation({
     mutationFn: async () => unwrap(await dataApi.rpc('create_employee_from_wizard', {
-      p_employee: toPayload(draft) as unknown as Json,
+      p_employee: toPayload(normalizeNames(draft)) as unknown as Json,
       p_assignment: (payrollRequested ? toPayload(effectiveAssign) : null) as unknown as Json,
       p_receipts: receipts,
     })) as unknown as CreateResult,
-    onSuccess: (r) => { clearDraft(); setResult(r); qc.invalidateQueries({ queryKey: ['employees'] }); qc.invalidateQueries({ queryKey: ['next-employee-number'] }) },
+    onSuccess: async (r) => {
+      clearDraft(); setResult(r); qc.invalidateQueries({ queryKey: ['employees'] }); qc.invalidateQueries({ queryKey: ['next-employee-number'] })
+      if (serverDraftId) { await dataApi.from('employee_drafts').delete().eq('id', serverDraftId); setServerDraftId(null); qc.invalidateQueries({ queryKey: ['employee_drafts'] }) }
+    },
+  })
+
+  /* mise en attente : la saisie est enregistrée en base (sans créer de fiche) et se reprend depuis « Saisies en cours » */
+  const standby = useMutation({
+    mutationFn: async () => {
+      const data = { draft, assign, receipts, index, reached, withPayroll, manualParts } as unknown as Json
+      if (serverDraftId) { unwrap(await dataApi.from('employee_drafts').update({ data }).eq('id', serverDraftId).select('id').single()); return serverDraftId }
+      return unwrap(await dataApi.from('employee_drafts').insert({ data }).select('id').single()).id
+    },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['employee_drafts'] }); clearDraft(); reset(); setServerDraftId(null); onClose(); nav('/salaries/en-cours') },
   })
 
   const label = (k: string, v: unknown): string => {
@@ -202,10 +265,26 @@ export function EmployeeWizard({ open, onClose }: { open: boolean; onClose: () =
 
   /* ------------------------------------------------------------------- étapes */
   const fieldErrors = tried ? issues : []
-  const parts = proposeParts(PARTS_RULE, draft.marital_status, draft.children_count)
-  const partsBlock = parts
-    ? <div className="sm:col-span-3"><Button size="sm" onClick={() => setDraft((d) => ({ ...d, ir_parts: parts.ir, ...(parts.trimf !== null ? { trimf_parts: parts.trimf } : {}) }))}>Appliquer la proposition : {parts.ir} part(s) IR</Button></div>
-    : <p role="note" className="text-xs text-ink-soft sm:col-span-3">Le calcul automatique des parts n’est pas encore défini dans l’application : saisissez-les à la main.</p>
+  const alertsParts = partsAlerts(draft)
+  const setPart = (k: 'ir_parts' | 'trimf_parts') => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    setManualParts((m) => ({ ...m, [k === 'ir_parts' ? 'ir' : 'trimf']: true }))
+    set(k)(e)
+  }
+  const partsBlock = (
+    <div className="space-y-2 sm:col-span-3">
+      {alertsParts.length > 0 && (
+        <div role="alert" className="rounded border border-signal/50 bg-signal-light px-3 py-2 text-sm font-medium text-signal">
+          <ul className="list-disc pl-4">{alertsParts.map((a) => <li key={a.field}>{a.message}</li>)}</ul>
+          <Button size="sm" className="mt-2" onClick={() => setManualParts({ ir: false, trimf: false })}>Appliquer le calcul automatique ({String(autoParts.ir).replace('.', ',')} part(s) IR, {autoParts.trimf} part(s) TRIMF)</Button>
+        </div>
+      )}
+      <div className="rounded border border-line bg-paper px-3 py-2 text-xs text-ink-soft">
+        <p className="font-medium text-ink">Calcul automatique des parts : formules utilisées</p>
+        <ul className="mt-1 list-disc space-y-0.5 pl-4">{PARTS_MEMO.map((m) => <li key={m}>{m}</li>)}</ul>
+        <p className="mt-1">Les parts se recalculent tant que vous ne les modifiez pas ; vous pouvez les saisir à la main (une alerte rouge signale alors tout écart).</p>
+      </div>
+    </div>
+  )
   const banner = saved && (
     <div role="status" className="mb-3 flex flex-wrap items-center gap-2 rounded border border-river/30 bg-river-light px-3 py-2 text-sm text-river-dark">
       <span>Un brouillon du {new Date(saved.savedAt).toLocaleString('fr-FR')} est disponible ({String(saved.draft.first_name ?? '')} {String(saved.draft.last_name ?? '')}).</span>
@@ -230,16 +309,19 @@ export function EmployeeWizard({ open, onClose }: { open: boolean; onClose: () =
         <div className="grid gap-3 sm:grid-cols-2">
           <SelectField label="Sexe" value={String(draft.gender ?? '')} onChange={set('gender')}><option value="">—</option><option value="M">Masculin</option><option value="F">Féminin</option></SelectField>
           <span />
-          <TextField label="Prénom" required value={String(draft.first_name ?? '')} onChange={set('first_name')} />
-          <TextField label="Nom" required value={String(draft.last_name ?? '')} onChange={set('last_name')} />
+          <TextField label="Prénom" required {...nameProps('first_name')} />
+          <TextField label="Nom" required {...nameProps('last_name')} />
+          {asksMaidenName(draft) && <TextField label="Nom de jeune fille" {...nameProps('maiden_name')} />}
           <TextField label="Date de naissance" type="date" value={String(draft.date_of_birth ?? '')} onChange={set('date_of_birth')} />
           <TextField label="Lieu de naissance" value={String(draft.place_of_birth ?? '')} onChange={set('place_of_birth')} />
           <TextField label="Nationalité" value={String(draft.nationality ?? '')} onChange={set('nationality')} />
-          <TextField label="N° CNI ou passeport" value={String(draft.id_document_number ?? '')} onChange={set('id_document_number')} />
+          <TextField label="N° CNI ou passeport" required value={String(draft.id_document_number ?? '')} onChange={set('id_document_number')} hint="Obligatoire et unique : deux salariés ne peuvent pas avoir le même numéro." />
           <TextField label="Délivrée le" type="date" value={String(draft.id_issue_date ?? '')} onChange={set('id_issue_date')} />
           <TextField label="Expire le" type="date" value={String(draft.id_expiry_date ?? '')} onChange={set('id_expiry_date')} />
-          <TextField label="Père" value={String(draft.father_name ?? '')} onChange={set('father_name')} />
-          <TextField label="Mère" value={String(draft.mother_name ?? '')} onChange={set('mother_name')} />
+          <TextField label="Père (nom et prénom)" {...nameProps('father_name')} />
+          <span />
+          <TextField label="Prénom de la mère" {...nameProps('mother_first_name')} />
+          <TextField label="Nom de la mère" {...nameProps('mother_last_name')} />
         </div>)
       case 'coordonnees': return (
         <div className="grid gap-3 sm:grid-cols-2">
@@ -260,8 +342,8 @@ export function EmployeeWizard({ open, onClose }: { open: boolean; onClose: () =
           </SelectField>
           <TextField label="Conjoint(e)s" type="number" min={0} value={num(draft.spouses_count, 0)} onChange={set('spouses_count')} />
           <TextField label="Enfants à charge" type="number" min={0} value={num(draft.children_count, 0)} onChange={set('children_count')} />
-          <TextField label="Parts TRIMF" type="number" step="0.5" min={1} value={num(draft.trimf_parts, 1)} onChange={set('trimf_parts')} />
-          <TextField label="Parts IR (quotient familial)" type="number" step="0.5" min={1} max={5} value={num(draft.ir_parts, 1)} onChange={set('ir_parts')} hint="De 1 à 5 parts" />
+          <TextField label="Parts TRIMF" type="number" step="0.5" min={1} value={num(draft.trimf_parts, 1)} onChange={setPart('trimf_parts')} hint={manualParts.trimf ? 'Saisie manuelle' : 'Calcul automatique'} />
+          <TextField label="Parts IR (quotient familial)" type="number" step="0.5" min={1} max={5} value={num(draft.ir_parts, 1)} onChange={setPart('ir_parts')} hint={manualParts.ir ? 'Saisie manuelle (de 1 à 5 parts)' : 'Calcul automatique (de 1 à 5 parts)'} />
           {partsBlock}
         </div>)
       case 'contrat': return (
@@ -401,6 +483,8 @@ export function EmployeeWizard({ open, onClose }: { open: boolean; onClose: () =
           ) : (
             <>
               <Button variant="ghost" className="mr-auto" onClick={() => setConfirmCancel(true)}>Annuler</Button>
+              <Button icon={<PauseCircle className="h-4 w-4" />} loading={standby.isPending} disabled={!draftHasContent(draft)} onClick={() => standby.mutate()}
+                title="Enregistrer la saisie sans créer de fiche : elle se reprend depuis « Saisies en cours »">Mettre en attente</Button>
               <Button icon={<ChevronLeft className="h-4 w-4" />} disabled={index === 0} onClick={() => { setTried(false); setIndex(index - 1) }}>Précédent</Button>
               {isLast
                 ? <Button variant="primary" loading={create.isPending} disabled={review.length > 0} icon={<Check className="h-4 w-4" />} onClick={() => create.mutate()}>Créer le salarié</Button>
@@ -423,6 +507,7 @@ export function EmployeeWizard({ open, onClose }: { open: boolean; onClose: () =
         <h3 ref={heading} tabIndex={-1} className="text-base font-semibold outline-none">{index + 1}. {step.title}</h3>
         <p className="mb-3 text-sm text-ink-soft">{step.help}</p>
         {banner}
+        <ErrorNote error={standby.error} />
         {dupPanel}
         {fieldErrors.length > 0 && (
           <div role="alert" className="mb-3 rounded border border-signal/30 bg-signal-light px-3 py-2 text-sm text-signal">

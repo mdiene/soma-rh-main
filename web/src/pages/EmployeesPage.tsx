@@ -1,6 +1,8 @@
 import { createColumnHelper } from '@tanstack/react-table'
-import { UserPlus } from 'lucide-react'
+import { useQuery } from '@tanstack/react-query'
+import { ListChecks, UserPlus } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
+import { dataApi, unwrap } from '../lib/api'
 import { useEmployees } from '../lib/queries'
 import { useAuth } from '../lib/auth'
 import { date } from '../lib/format'
@@ -26,12 +28,23 @@ export default function EmployeesPage() {
   const q = useEmployees()
   const nav = useNavigate()
   const { can } = useAuth()
+  // saisies mises en attente par l'utilisateur (l'administrateur voit toutes les saisies)
+  const drafts = useQuery({
+    queryKey: ['employee_drafts', 'count'],
+    enabled: can('rh'),
+    queryFn: async () => unwrap(await dataApi.from('employee_drafts').select('id').limit(200)).length,
+  }).data ?? 0
   return (
     <>
       <PageHeader
         title="Salariés"
         description="Fiches du personnel : identité, contrat, catégorie conventionnelle et situation familiale."
-        actions={can('rh') && <Button variant="primary" icon={<UserPlus className="h-4 w-4" />} onClick={() => nav('/salaries/nouveau')}>Nouveau salarié</Button>}
+        actions={can('rh') && (
+          <>
+            <Button icon={<ListChecks className="h-4 w-4" />} onClick={() => nav('/salaries/en-cours')}>Saisies en cours{drafts > 0 ? ` (${drafts})` : ''}</Button>
+            <Button variant="primary" icon={<UserPlus className="h-4 w-4" />} onClick={() => nav('/salaries/nouveau')}>Nouveau salarié</Button>
+          </>
+        )}
       />
       <ErrorNote error={q.error} />
       {q.isLoading ? <Spinner /> : (

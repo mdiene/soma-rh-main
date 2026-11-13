@@ -21,7 +21,7 @@ begin
     'FAIL : prérequis absents (comptes rh seul, rh+paie, paie seul, une grille, une pièce requise)';
 
   emp := jsonb_build_object('first_name', 'TestAssistant', 'last_name', 'Wizard', 'employment_type', 'CDI', 'date_of_joining', '2026-11-02',
-                            'agreement_code', v_agr, 'grade_id', v_grade);
+                            'agreement_code', v_agr, 'grade_id', v_grade, 'id_document_number', 'TEST-CNI-A1');
   asg := jsonb_build_object('from_date', '2026-11-02');
 
   execute 'set local role authenticated';
@@ -46,7 +46,7 @@ begin
 
   -- (3) RH + paie : fiche et structure, net cible atteint (à 1 F près)
   perform set_config('request.jwt.claim.sub', v_rhpaie::text, true);
-  v := public.create_employee_from_wizard(emp, asg || jsonb_build_object('target_net', 150000), null);
+  v := public.create_employee_from_wizard(emp || jsonb_build_object('id_document_number', 'TEST-CNI-A3'), asg || jsonb_build_object('target_net', 150000), null);
   assert (v->>'structure_assigned')::boolean and (v->>'sursalaire')::numeric > 0, '(3) structure affectée avec sursalaire';
   assert abs((v->>'net_pay')::numeric - 150000) < 1, '(3) net cible atteint : ' || (v->>'net_pay');
 
@@ -54,7 +54,7 @@ begin
   reset role; select count(*) into v_before from public.employees; execute 'set local role authenticated';
   perform set_config('request.jwt.claim.sub', v_rhpaie::text, true);
   begin
-    perform public.create_employee_from_wizard(emp - 'first_name', asg, null);
+    perform public.create_employee_from_wizard((emp - 'first_name') || jsonb_build_object('id_document_number', 'TEST-CNI-A4'), asg, null);
     v_ok := false;
   exception when others then v_ok := sqlerrm like '%prénom%'; end;
   assert v_ok, '(4) prénom obligatoire';
@@ -64,7 +64,7 @@ begin
   -- (5) simulation : aucune fiche, matricule non consommé, net cible atteint
   reset role; select count(*) into v_before from public.employees; select last_value into v_seq_before from public.employee_number_seq; execute 'set local role authenticated';
   perform set_config('request.jwt.claim.sub', v_rhpaie::text, true);
-  v := public.simulate_net_for_draft(emp, asg, 120000);
+  v := public.simulate_net_for_draft(emp - 'id_document_number', asg, 120000);
   assert abs((v->>'net_pay')::numeric - 120000) < 1, '(5) net simulé atteint : ' || (v->>'net_pay');
   reset role; select count(*) into v_after from public.employees; select last_value into v_seq_after from public.employee_number_seq; execute 'set local role authenticated';
   assert v_after = v_before, '(5) la simulation ne laisse aucune fiche';

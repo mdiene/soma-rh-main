@@ -25,10 +25,10 @@ test('la rémunération n\'est proposée qu\'au service paie', () => {
 })
 
 test('identité : prénom et nom obligatoires, dates cohérentes', () => {
-  assert.deepEqual(fields(w.validateStep('identite', {})), ['first_name', 'last_name'])
-  assert.deepEqual(w.validateStep('identite', { first_name: 'A', last_name: 'B' }), [])
-  assert.deepEqual(fields(w.validateStep('identite', { first_name: 'A', last_name: 'B', date_of_birth: '2999-01-01' })), ['date_of_birth'])
-  assert.deepEqual(fields(w.validateStep('identite', { first_name: 'A', last_name: 'B', id_issue_date: '2024-05-01', id_expiry_date: '2024-01-01' })), ['id_expiry_date'])
+  assert.deepEqual(fields(w.validateStep('identite', {})), ['first_name', 'id_document_number', 'last_name'])
+  assert.deepEqual(w.validateStep('identite', { first_name: 'A', last_name: 'B', id_document_number: 'X1' }), [])
+  assert.deepEqual(fields(w.validateStep('identite', { first_name: 'A', last_name: 'B', id_document_number: 'X1', date_of_birth: '2999-01-01' })), ['date_of_birth'])
+  assert.deepEqual(fields(w.validateStep('identite', { first_name: 'A', last_name: 'B', id_document_number: 'X1', id_issue_date: '2024-05-01', id_expiry_date: '2024-01-01' })), ['id_expiry_date'])
 })
 
 test('contrat : CDD, stage et apprentissage exigent début et fin ; CDI et journalier non', () => {
@@ -70,7 +70,7 @@ test('avertissements non bloquants : téléphone, e-mail, RIB', () => {
 test('revue : erreurs regroupées par étape', () => {
   const r = w.reviewIssues({ employment_type: 'CDD', date_of_joining: '2026-11-02' }, ['identite', 'contrat', 'revue'])
   assert.deepEqual(r.map((x) => x.step), ['identite', 'contrat'])
-  assert.deepEqual(w.reviewIssues({ first_name: 'A', last_name: 'B', employment_type: 'CDI', date_of_joining: '2026-11-02', marital_status: 'Célibataire', payment_mode: 'espèces' }, ['identite', 'famille', 'contrat', 'paiement', 'revue']), [])
+  assert.deepEqual(w.reviewIssues({ first_name: 'A', last_name: 'B', id_document_number: 'X1', employment_type: 'CDI', date_of_joining: '2026-11-02', marital_status: 'Célibataire', payment_mode: 'espèces' }, ['identite', 'famille', 'contrat', 'paiement', 'revue']), [])
 })
 
 test('charge utile sans champs vides', () => {
@@ -115,4 +115,47 @@ test('brouillon : contenu minimal, expiration et formes invalides', () => {
   assert.equal(w.parseDraft(null, now), null)
   assert.equal(w.parseDraft(JSON.stringify({ v: 2 }), now), null)
   assert.equal(w.parseDraft(raw, now - 10 * 60_000), null)
+})
+
+test('noms : première lettre en majuscule, le reste en minuscule, accents, tirets et apostrophes', () => {
+  assert.equal(w.personName('  MAME   fatou '), 'Mame Fatou')
+  assert.equal(w.personName("n'DIAYE-sow"), "N'Diaye-Sow")
+  assert.equal(w.personName('élodie'), 'Élodie')
+  assert.equal(w.personName(''), '')
+  const d = w.normalizeNames({ first_name: 'AMINATA', last_name: 'ba', maiden_name: 'FALL', mother_first_name: 'khady', mother_last_name: 'DIOP', phone_personal: '77 000 00 00' })
+  assert.deepEqual([d.first_name, d.last_name, d.maiden_name, d.mother_name, d.phone_personal], ['Aminata', 'Ba', 'Fall', 'Khady Diop', '77 000 00 00'])
+  assert.ok(w.asksMaidenName({ gender: 'F' }) && !w.asksMaidenName({ gender: 'M' }) && !w.asksMaidenName({}))
+})
+
+test('parts TRIMF et IR : règle du référentiel 2026', () => {
+  const p = (gender, marital, spouses, children) => w.senegalParts({ gender, marital, spouses, children })
+  assert.deepEqual(p('M', 'Célibataire', 0, 0), { ir: 1, trimf: 1 })
+  assert.deepEqual(p('M', 'Marié(e)', 0, 0), { ir: 1.5, trimf: 1 })
+  assert.deepEqual(p('M', 'Marié(e)', 2, 3), { ir: 3.5, trimf: 3 })        // 1 + 0,5 + 0,5 + 3 x 0,5 ; TRIMF 1 + 2 épouses
+  assert.deepEqual(p('F', 'Marié(e)', 1, 1), { ir: 2.5, trimf: 1 })        // femme mariée salariée : 1 part TRIMF
+  assert.deepEqual(p('M', 'Veuf(ve)', 1, 2), { ir: 2, trimf: 1 })           // conjoints ignorés hors mariage
+  assert.equal(p('M', 'Marié(e)', 1, 20).ir, 5)                             // plafond 5 parts
+})
+
+test('parts : alerte seulement si la saisie diffère du calcul automatique', () => {
+  const base = { gender: 'M', marital_status: 'Marié(e)', spouses_count: 1, children_count: 2 }   // auto : IR 3, TRIMF 2
+  assert.deepEqual(w.partsAlerts({ ...base, ir_parts: 3, trimf_parts: 2 }), [])
+  const a = w.partsAlerts({ ...base, ir_parts: 2, trimf_parts: 2 })
+  assert.deepEqual(a.map((x) => x.field), ['ir_parts'])
+  assert.match(a[0].message, /saisies \(2\).*automatique \(3\)/)
+  assert.equal(w.partsAlerts({ ...base, ir_parts: 3, trimf_parts: 1 })[0].field, 'trimf_parts')
+  assert.equal(w.PARTS_MEMO.length, 3)
+})
+
+test('saisie en attente : avancement et points manquants', () => {
+  const steps = w.stepsFor(false).map((s) => s.id)
+  const vide = w.draftSummary({}, steps)
+  assert.equal(vide.label, 'Salarié sans nom')
+  assert.ok(vide.pct < 50 && vide.missing.some((m) => m.blocking && m.step === 'identite'))
+  const presque = w.draftSummary({ first_name: 'aminata', last_name: 'BA', id_document_number: 'X1', marital_status: 'Célibataire', employment_type: 'CDI', date_of_joining: '2026-01-01', payment_mode: 'espèces' }, steps)
+  assert.equal(presque.pct, 100)
+  assert.equal(presque.label, 'Aminata Ba')
+  assert.ok(presque.missing.every((m) => !m.blocking), 'rien de bloquant : seulement des points à compléter')
+  const cdd = w.draftSummary({ first_name: 'A', last_name: 'B', id_document_number: 'X', marital_status: 'Célibataire', employment_type: 'CDD', date_of_joining: '2026-01-01', payment_mode: 'espèces' }, steps)
+  assert.ok(cdd.pct < 100 && cdd.missing.some((m) => m.blocking && m.message.includes('contrat')))
 })

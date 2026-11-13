@@ -8,8 +8,8 @@ test.describe('administrateur', () => {
   test.use({ storageState: stateFile('admin') })
   test.beforeEach(({ page }) => start(page))
 
-  test('les six espaces sont proposés', async ({ page }) => {
-    for (const name of [/^Espace personnel/, /^Management/, /^Administration du personnel/, /^Paie et rémunération/, /^Pilotage et décision/, /^Configuration/]) {
+  test('les sept espaces sont proposés', async ({ page }) => {
+    for (const name of [/^Espace personnel/, /^Management/, /^Administration du personnel/, /^Paie et rémunération/, /^Pilotage et décision/, /^Configuration/, /^À propos/]) {
       await expect(nav(page).getByRole('button', { name })).toBeVisible()
     }
   })
@@ -28,15 +28,40 @@ test.describe('administrateur', () => {
     await expect(n.getByRole('link', { name: 'Variables du mois' })).toHaveCount(0)
   })
 
-  test('volet réduit : le rail reste, un clic ouvre le panneau flottant', async ({ page }) => {
+  test('menu non épinglé : un clic ouvre le panneau flottant, Échap le referme', async ({ page }) => {
     const n = nav(page)
-    await n.getByRole('button', { name: 'Réduire le menu' }).click()
-    await expect(n.getByRole('button', { name: 'Développer le menu' })).toBeVisible()
+    await n.getByRole('button', { name: 'Désépingler le menu (le replier)' }).click()
+    await expect(n.getByRole('button', { name: 'Épingler le menu ouvert' })).toBeVisible()
     await n.getByRole('button', { name: /^Paie et rémunération/ }).click()
     await expect(page.getByRole('group', { name: 'Paie et rémunération' }).getByRole('link', { name: 'Variables du mois' })).toBeVisible()
     await page.keyboard.press('Escape')
     await expect(page.getByRole('group', { name: 'Paie et rémunération' })).toHaveCount(0)
-    await n.getByRole('button', { name: 'Développer le menu' }).click() // remet l'état mémorisé par défaut
+    await n.getByRole('button', { name: 'Épingler le menu ouvert' }).click() // remet l'état mémorisé par défaut
+  })
+
+  test('menu non épinglé : le survol déploie le volet, la sortie de la souris et le clic le referment', async ({ page }) => {
+    const n = nav(page)
+    await n.getByRole('button', { name: 'Désépingler le menu (le replier)' }).click()
+    const volet = page.getByRole('group', { name: 'Paie et rémunération' })
+    await n.getByRole('button', { name: /^Paie et rémunération/ }).hover()
+    await expect(volet.getByRole('link', { name: 'Variables du mois' })).toBeVisible()
+    await page.mouse.move(700, 450) // la souris quitte la zone du menu
+    await expect(volet).toHaveCount(0)
+    await n.getByRole('button', { name: /^Paie et rémunération/ }).hover()
+    await volet.getByRole('link', { name: 'Variables du mois' }).click() // un clic sur une page referme le volet
+    await expect(page).toHaveURL(/\/paie\/variables/)
+    await expect(volet).toHaveCount(0)
+    await n.getByRole('button', { name: 'Épingler le menu ouvert' }).click() // épinglé : le panneau reste ouvert
+    await expect(n.getByRole('button', { name: 'Désépingler le menu (le replier)' })).toBeVisible()
+    await expect(n.getByRole('link', { name: 'Variables du mois' })).toBeVisible()
+  })
+
+  test('menu À propos : aide, informations, tarification, conditions, confidentialité, versions', async ({ page }) => {
+    const n = nav(page)
+    await n.getByRole('button', { name: /^À propos/ }).click()
+    for (const name of ['Aide et guide utilisateur', 'À propos de SOMA-RH', 'Tarification et services', 'Conditions d’utilisation', 'Politique de confidentialité', 'Sauvegardes et versions']) {
+      await expect(n.getByRole('link', { name })).toBeVisible()
+    }
   })
 
   test('Ctrl+K : « ipres » mène aux états légaux', async ({ page }) => {
@@ -48,7 +73,7 @@ test.describe('administrateur', () => {
 
   test('aucune page principale ne plante', async ({ page }) => {
     const errors = collectPageErrors(page)
-    for (const route of ['/', '/salaries', '/conges', '/presences', '/paie', '/etats', '/pilotage', '/modules', '/parametres', '/journal', '/mon-equipe', '/mon-espace']) {
+    for (const route of ['/', '/salaries', '/salaries/en-cours', '/conges', '/presences', '/paie', '/etats', '/pilotage', '/modules', '/parametres', '/journal', '/mon-equipe', '/mon-espace', '/aide', '/a-propos', '/tarification', '/conditions-utilisation', '/confidentialite', '/sauvegardes-versions']) {
       await page.goto(route)
       await page.waitForLoadState('networkidle')
       await expect(page.getByRole('heading', { level: 1 }).first(), `page ${route}`).toBeVisible()
@@ -61,13 +86,17 @@ test.describe('salarié', () => {
   test.use({ storageState: stateFile('salarie') })
   test.beforeEach(({ page }) => start(page))
 
-  test('liste plate, sans espace de gestion', async ({ page }) => {
+  test('espace personnel et À propos, sans espace de gestion', async ({ page }) => {
     const n = nav(page)
     await expect(n.getByRole('link', { name: 'Mes bulletins' })).toBeVisible()
     await expect(n.getByRole('link', { name: 'Mes congés' })).toBeVisible()
-    await expect(n.getByRole('link', { name: 'Aide et guide utilisateur' })).toBeVisible()
     await expect(n.getByRole('button', { name: /Paie et rémunération|Administration du personnel|Configuration/ })).toHaveCount(0)
     await expect(n.getByRole('link', { name: 'Tableau de bord' })).toHaveCount(0)
+    await n.getByRole('button', { name: /^À propos/ }).click()
+    await expect(n.getByRole('link', { name: 'Aide et guide utilisateur' })).toBeVisible()
+    await expect(n.getByRole('link', { name: 'Politique de confidentialité' })).toBeVisible()
+    await expect(n.getByRole('link', { name: 'Tarification et services' })).toHaveCount(0) // réservé aux rôles rh et paie
+    await expect(n.getByRole('link', { name: 'Sauvegardes et versions' })).toHaveCount(0)
   })
 
   test('les pages de gestion le renvoient ailleurs', async ({ page }) => {

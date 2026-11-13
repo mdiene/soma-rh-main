@@ -14,10 +14,11 @@ test('sidebar développée : aucune violation', async ({ page }) => {
   expect(resume(violations)).toEqual([])
 })
 
-test('sidebar réduite avec flyout ouvert : aucune violation', async ({ page }) => {
+test('sidebar non épinglée avec flyout ouvert au survol : aucune violation', async ({ page }) => {
   await start(page)
-  await page.getByRole('button', { name: 'Réduire le menu' }).click()
-  await page.getByRole('button', { name: /^Administration du personnel/ }).click()
+  await page.getByRole('button', { name: 'Désépingler le menu (le replier)' }).click()
+  await page.getByRole('button', { name: /^Administration du personnel/ }).hover()
+  await expect(page.getByRole('group', { name: 'Administration du personnel' })).toBeVisible()
   const { violations } = await scan(page).include('aside').include('[role="group"]').analyze()
   expect(resume(violations)).toEqual([])
 })
@@ -30,7 +31,7 @@ test('recherche rapide Ctrl+K : aucune violation', async ({ page }) => {
   expect(resume(violations)).toEqual([])
 })
 
-for (const [role, route] of [['admin', '/'], ['admin', '/modules'], ['admin', '/centre-conformite'], ['salarie', '/mon-espace'], ['salarie', '/aide']] as const) {
+for (const [role, route] of [['admin', '/'], ['admin', '/modules'], ['admin', '/centre-conformite'], ['salarie', '/mon-espace'], ['salarie', '/aide'], ['admin', '/salaries/en-cours'], ['admin', '/a-propos'], ['admin', '/tarification'], ['salarie', '/conditions-utilisation'], ['salarie', '/confidentialite'], ['admin', '/sauvegardes-versions']] as const) {
   test.describe(`${role} ${route}`, () => {
     test.use({ storageState: stateFile(role) })
     test('aucune violation critique', async ({ page }) => {
@@ -51,6 +52,7 @@ test('assistant de création d\'un salarié : aucune violation dans la fenêtre'
   expect(resume((await scan(page).include('[role="dialog"]').analyze()).violations)).toEqual([])
   await dlg.getByLabel('Prénom', { exact: true }).fill('Axe')
   await dlg.getByLabel('Nom', { exact: true }).fill('Test')
+  await dlg.getByLabel(/^N° CNI ou passeport/).fill('AXE-TEST-A11Y')
   await dlg.getByRole('button', { name: 'Valider et continuer' }).click()
   await expect(dlg.getByRole('heading', { name: /Coordonnées/ })).toBeVisible()
   expect(resume((await scan(page).include('[role="dialog"]').analyze()).violations)).toEqual([])

@@ -1327,6 +1327,31 @@ export type Database = {
           },
         ]
       }
+      employee_drafts: {
+        Row: {
+          created_at: string
+          created_by: string
+          data: Json
+          id: string
+          updated_at: string
+        }
+        ComputedFields: never
+        Insert: {
+          created_at?: string
+          created_by?: string
+          data: Json
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          data?: Json
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       employee_grades: {
         Row: {
           agreement_code: string
@@ -1882,6 +1907,9 @@ export type Database = {
           hire_declared_on: string | null
           id: string
           id_document_number: string | null
+          maiden_name: string | null
+          mother_first_name: string | null
+          mother_last_name: string | null
           id_expiry_date: string | null
           id_issue_date: string | null
           ipres_number: string | null
@@ -1935,6 +1963,9 @@ export type Database = {
           hire_declared_on?: string | null
           id?: string
           id_document_number?: string | null
+          maiden_name?: string | null
+          mother_first_name?: string | null
+          mother_last_name?: string | null
           id_expiry_date?: string | null
           id_issue_date?: string | null
           ipres_number?: string | null
@@ -1987,6 +2018,9 @@ export type Database = {
           hire_declared_on?: string | null
           id?: string
           id_document_number?: string | null
+          maiden_name?: string | null
+          mother_first_name?: string | null
+          mother_last_name?: string | null
           id_expiry_date?: string | null
           id_issue_date?: string | null
           ipres_number?: string | null

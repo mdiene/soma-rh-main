@@ -19,6 +19,7 @@ async function identite(p: Page, prenom: string) {
   await d.getByLabel('Sexe').selectOption('F')
   await d.getByLabel('Prénom', { exact: true }).fill(prenom)
   await d.getByLabel('Nom', { exact: true }).fill(`Assistant${SUFFIX}`)
+  await d.getByLabel(/^N° CNI ou passeport/).fill(`CNI-${SUFFIX}-${prenom}`) // obligatoire et unique
   await d.getByLabel('Date de naissance').fill('1990-05-12')
   await next(p)
 }

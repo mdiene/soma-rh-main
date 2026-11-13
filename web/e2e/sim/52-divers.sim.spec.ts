@@ -53,6 +53,7 @@ test('B · embauche en apprentissage', async ({ browser }) => {
   await field(rh, 'Nom').fill(e.ln)
   await field(rh, 'Date de naissance').fill(e.dob)
   await field(rh, 'Nationalité').fill('sénégalaise')
+  await field(rh, 'N° CNI ou passeport').fill(e.cni) // obligatoire et unique
   await choisir(rh, 'Emploi', 'Vendeur')
   await choisir(rh, 'Type de contrat', 'Apprentissage')
   await choisir(rh, 'Convention collective', e.ag)

@@ -51,6 +51,7 @@ export function validateStep(id: StepId, d: Draft, o: { payrollRequested?: boole
   if (id === 'identite') {
     if (blank(d.first_name)) e.push({ field: 'first_name', message: 'Le prénom est obligatoire.' })
     if (blank(d.last_name)) e.push({ field: 'last_name', message: 'Le nom est obligatoire.' })
+    if (blank(d.id_document_number)) e.push({ field: 'id_document_number', message: 'Le numéro de CNI ou de passeport est obligatoire (il doit être unique).' })
     if (!blank(d.date_of_birth) && String(d.date_of_birth) > today()) e.push({ field: 'date_of_birth', message: 'La date de naissance ne peut pas être dans le futur.' })
     if (!blank(d.id_issue_date) && !blank(d.id_expiry_date) && String(d.id_expiry_date) < String(d.id_issue_date)) e.push({ field: 'id_expiry_date', message: 'La pièce d’identité expire avant sa date de délivrance.' })
   }
@@ -92,7 +93,6 @@ export function softWarnings(id: StepId, d: Draft): Issue[] {
     }
     if (!blank(d.emergency_contact_name) && blank(d.emergency_contact_phone)) w.push({ field: 'emergency_contact_phone', message: 'Une personne à prévenir est indiquée sans numéro.' })
   }
-  if (id === 'identite' && blank(d.id_document_number)) w.push({ field: 'id_document_number', message: 'Aucun numéro de pièce d’identité : il pourra être complété sur la fiche.' })
   if (id === 'contrat') {
     if (blank(d.designation_id)) w.push({ field: 'designation_id', message: 'Aucun emploi choisi : il est imprimé sur le bulletin.' })
     if (blank(d.agreement_code) || blank(d.grade_id)) w.push({ field: 'grade_id', message: 'Sans convention et catégorie, le salaire de base devra être saisi à la main.' })
@@ -180,4 +180,73 @@ export function parseDraft(raw: string | null, now = Date.now()): SavedDraft | n
     if (!s.draft || typeof s.draft !== 'object' || !s.assign || typeof s.assign !== 'object' || !Array.isArray(s.receipts)) return null
     return { v: 1, savedAt: s.savedAt, draft: s.draft, assign: s.assign, receipts: s.receipts.filter((x) => typeof x === 'string'), index: Number(s.index) || 0, reached: Number(s.reached) || 0, withPayroll: s.withPayroll !== false }
   } catch { return null }
+}
+
+/* --------------------------------------------------------------------------------- noms de personnes */
+/** Champs de nom mis en forme à l'enregistrement (la base applique la même règle : fonction person_name). */
+export const NAME_FIELDS = ['first_name', 'last_name', 'maiden_name', 'mother_first_name', 'mother_last_name', 'father_name'] as const
+
+/** Première lettre de chaque mot en majuscule, le reste en minuscule (« n'DIAYE-sow » devient « N'Diaye-Sow »), espaces superflus retirés. */
+export function personName(v: unknown): string {
+  return String(v ?? '').trim().replace(/\s+/g, ' ').toLowerCase().replace(/(^|[^\p{L}\p{N}])(\p{L})/gu, (_m, sep: string, c: string) => sep + c.toLocaleUpperCase('fr'))
+}
+
+/** Mise en forme des noms avant enregistrement ; le nom complet de la mère (colonne historique) est composé de son prénom et de son nom. */
+export function normalizeNames(d: Draft): Draft {
+  const out: Draft = { ...d }
+  for (const k of NAME_FIELDS) if (!blank(out[k])) out[k] = personName(out[k])
+  if (!blank(out.mother_first_name) || !blank(out.mother_last_name)) out.mother_name = personName(`${out.mother_first_name ?? ''} ${out.mother_last_name ?? ''}`)
+  return out
+}
+
+/** Le nom de jeune fille n'est demandé que pour les femmes. */
+export const asksMaidenName = (d: Draft) => d.gender === 'F'
+
+/* ------------------------------------------------------------------------ parts TRIMF et IR (référentiel 2026) */
+/**
+ * Règle de calcul des parts, d'après le document de référence fourni par le propriétaire (Moteur_Calcul_Paie_Senegal_Complet, Art. 174 CGI) :
+ *  - IR : célibataire, veuf(ve) ou divorcé(e) = 1 ; marié(e) = 1,5 ; conjoint sans revenu à charge = +0,5 ; chaque enfant à charge = +0,5 ; plafond 5 parts.
+ *  - TRIMF : 1 part (célibataire ou femme mariée salariée) ; homme marié : 1 part + 1 part par épouse sans revenu.
+ * Statut : repris du document de référence, non confronté au texte de loi : à confirmer. La saisie manuelle reste possible (alerte si différente).
+ */
+export type PartsInput = { gender?: unknown; marital?: unknown; spouses?: unknown; children?: unknown }
+export const PARTS_MEMO = [
+  'Parts IR = 1 (célibataire, veuf(ve), divorcé(e)) ; 1,5 si marié(e) ; + 0,5 si le conjoint est sans revenu et à charge ; + 0,5 par enfant à charge ; plafond 5 parts (Art. 174 CGI).',
+  'Parts TRIMF = 1 part (célibataire ou femme mariée salariée) ; homme marié : 1 part + 1 part par épouse sans revenu.',
+  'Source : document de référence « Moteur de calcul de paie — Sénégal (référentiel 2026) ». À confirmer auprès du texte de loi.',
+]
+
+export function senegalParts(i: PartsInput): { ir: number; trimf: number } {
+  const married = String(i.marital ?? '') === 'Marié(e)'
+  const spouses = married ? Math.max(0, Math.floor(Number(i.spouses ?? 0)) || 0) : 0
+  const kids = Math.max(0, Math.floor(Number(i.children ?? 0)) || 0)
+  const ir = Math.min(5, 1 + (married ? 0.5 : 0) + (spouses > 0 ? 0.5 : 0) + 0.5 * kids)
+  const trimf = married && String(i.gender ?? '') !== 'F' ? 1 + spouses : 1
+  return { ir, trimf }
+}
+
+/** Écarts entre les parts saisies et le calcul automatique (alerte rouge, jamais bloquante : la saisie manuelle est permise). */
+export function partsAlerts(d: Draft): Issue[] {
+  const p = senegalParts({ gender: d.gender, marital: d.marital_status, spouses: d.spouses_count, children: d.children_count })
+  const out: Issue[] = []
+  const fmt = (n: number) => String(n).replace('.', ',')
+  if (!blank(d.ir_parts) && Number(d.ir_parts) !== p.ir) out.push({ field: 'ir_parts', message: `Parts IR saisies (${fmt(Number(d.ir_parts))}) différentes du calcul automatique (${fmt(p.ir)}). Vérifiez la situation de famille.` })
+  if (!blank(d.trimf_parts) && Number(d.trimf_parts) !== p.trimf) out.push({ field: 'trimf_parts', message: `Parts TRIMF saisies (${fmt(Number(d.trimf_parts))}) différentes du calcul automatique (${fmt(p.trimf)}). Vérifiez le sexe et les conjoints.` })
+  return out
+}
+
+/* --------------------------------------------------------------------------- avancement d'une saisie en attente */
+export type Missing = { step: StepId; message: string; blocking: boolean }
+
+/** Avancement d'une saisie : part des champs obligatoires renseignés, points bloquants puis points à compléter. */
+export function draftSummary(d: Draft, steps: StepId[], o: { payrollRequested?: boolean } = {}): { pct: number; missing: Missing[]; label: string } {
+  const required = ['first_name', 'last_name', 'id_document_number', 'marital_status', 'employment_type', 'date_of_joining', 'payment_mode']
+  if (isFixedTerm(d.employment_type)) required.push('contract_start', 'contract_end')
+  if (o.payrollRequested) required.push('from_date')
+  const filled = required.filter((k) => !blank(d[k])).length
+  const missing: Missing[] = []
+  for (const r of reviewIssues(d, steps, o)) for (const i of r.issues) missing.push({ step: r.step, message: i.message, blocking: true })
+  for (const s of steps) if (s !== 'revue') for (const w of softWarnings(s, d)) missing.push({ step: s, message: w.message, blocking: false })
+  const name = `${String(d.first_name ?? '').trim()} ${String(d.last_name ?? '').trim()}`.trim()
+  return { pct: Math.round((100 * filled) / required.length), missing, label: name ? personName(name) : 'Salarié sans nom' }
 }

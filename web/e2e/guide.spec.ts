@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { expect, test } from '@playwright/test'
-import { collectPageErrors, stateFile } from './helpers'
+import { collectPageErrors, stateFile, start } from './helpers'
 
 // Onglet « Documentation utilisateur » (Paramètres) : sommaire complet, pages lisibles, images chargées, liens internes. Lecture seule.
 // Rôle : administrateur (can() lui ouvre les Paramètres, comme à rh et paie).
@@ -50,8 +50,11 @@ for (const role of ['salarie', 'manager'] as const) {
   test.describe(`aide · ${role}`, () => {
     test.use({ storageState: stateFile(role) })
     test('le menu propose l\'aide, la page s\'ouvre et les images se chargent', async ({ page }) => {
-      await page.goto('/')
-      await page.getByRole('navigation', { name: 'Navigation principale' }).getByRole('link', { name: 'Aide et guide utilisateur' }).click()
+      await start(page) // menu épinglé : le lien d'aide est dans l'espace « À propos »
+      await page.waitForURL(/\/mon-(espace|equipe)/) // redirection de l'accueil terminée (sinon elle réinitialise l'espace choisi)
+      const menu = page.getByRole('navigation', { name: 'Navigation principale' })
+      await menu.getByRole('button', { name: /^À propos/ }).click()
+      await menu.getByRole('link', { name: 'Aide et guide utilisateur' }).click()
       await expect(page).toHaveURL(/\/aide$/)
       await expect(page.getByRole('heading', { level: 1, name: 'Aide et guide utilisateur' })).toBeVisible()
       const sommaire = page.getByRole('navigation', { name: 'Pages du guide' })

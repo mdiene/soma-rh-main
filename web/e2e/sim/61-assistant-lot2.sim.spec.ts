@@ -21,6 +21,7 @@ test('doublons : un homonyme existant est signalé sans bloquer', async ({ brows
   const d = dlgOf(p)
   await d.getByLabel('Prénom', { exact: true }).fill(e.first_name)
   await d.getByLabel('Nom', { exact: true }).fill(e.last_name)
+  await d.getByLabel(/^N° CNI ou passeport/).fill(`CNI-${SUFFIX}-1`)
   await d.getByLabel('Date de naissance').fill(e.date_of_birth)
   const note = d.getByText('Un salarié semble déjà exister :')
   await expect(note).toBeVisible({ timeout: 15_000 })
@@ -37,6 +38,7 @@ test('brouillon : la croix garde la saisie, la reprise restaure l\'étape, l\'ab
   const d = dlgOf(p)
   await d.getByLabel('Prénom', { exact: true }).fill('Brouillon')
   await d.getByLabel('Nom', { exact: true }).fill(`Test${SUFFIX}`)
+  await d.getByLabel(/^N° CNI ou passeport/).fill(`CNI-${SUFFIX}-2`)
   await next(p)
   await expect(d.getByRole('heading', { name: /Coordonnées/ })).toBeVisible()
   await p.waitForTimeout(900) // sauvegarde différée
@@ -61,20 +63,37 @@ test('brouillon : la croix garde la saisie, la reprise restaure l\'étape, l\'ab
   record('UC-B-ASSISTANT-BROUILLON', 'VERT', 'brouillon conservé, repris à la bonne étape, effacé à l\'abandon')
 })
 
-test('parts : aucune proposition tant que la règle n\'est pas définie', async ({ browser }) => {
+test('parts : calcul automatique, mémo des formules, saisie manuelle avec alerte rouge', async ({ browser }) => {
   const p = await as(browser, 'rh')
   await openWizard(p)
   const d = dlgOf(p)
   await d.getByLabel('Prénom', { exact: true }).fill('Parts')
   await d.getByLabel('Nom', { exact: true }).fill(`Test${SUFFIX}`)
+  await d.getByLabel(/^N° CNI ou passeport/).fill(`CNI-${SUFFIX}-parts`)
   await next(p)
   await next(p)
   await expect(d.getByRole('heading', { name: /Famille et fiscalité/ })).toBeVisible()
-  await expect(d.getByText(/calcul automatique des parts n’est pas encore défini/)).toBeVisible()
+  await expect(d.getByText('Calcul automatique des parts : formules utilisées')).toBeVisible()
+  const ir = d.getByLabel('Parts IR (quotient familial)')
+  const trimf = d.getByLabel('Parts TRIMF')
+  await expect(ir).toHaveValue('1')
+  // marié(e) avec 2 enfants à charge : 1 + 0,5 + 2 x 0,5 = 2,5 parts IR ; 1 part TRIMF
+  await d.getByLabel('Situation de famille').selectOption('Marié(e)')
+  await d.getByLabel('Enfants à charge').fill('2')
+  await expect(ir).toHaveValue('2.5')
+  await expect(trimf).toHaveValue('1')
+  await expect(d.getByRole('alert').filter({ hasText: /différentes du calcul automatique/ })).toHaveCount(0)
+  // saisie manuelle différente : alerte rouge, puis retour au calcul automatique
+  await ir.fill('4')
+  const alerte = d.getByRole('alert').filter({ hasText: /Parts IR saisies \(4\) différentes du calcul automatique \(2,5\)/ })
+  await expect(alerte).toBeVisible()
   await capture(p, 'assistant-famille-parts')
+  await alerte.getByRole('button', { name: /Appliquer le calcul automatique/ }).click()
+  await expect(ir).toHaveValue('2.5')
+  await expect(alerte).toHaveCount(0)
   await d.getByRole('button', { name: 'Annuler' }).click()
   await d.getByRole('button', { name: 'Abandonner' }).click()
-  record('UC-B-ASSISTANT-PARTS', 'VERT', 'note affichée : règle des parts non définie, saisie manuelle')
+  record('UC-B-ASSISTANT-PARTS', 'VERT', 'parts calculées automatiquement, mémo des formules, alerte rouge en cas de saisie manuelle différente')
 })
 
 test('plein écran sur téléphone : la fenêtre occupe l\'écran et le pied de page reste visible', async ({ browser }) => {

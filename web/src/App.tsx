@@ -10,6 +10,12 @@ import LoginPage from './pages/LoginPage'
 const DashboardPage = lazy(() => import('./pages/DashboardPage'))
 const EmployeesPage = lazy(() => import('./pages/EmployeesPage'))
 const EmployeeDetailPage = lazy(() => import('./pages/EmployeeDetailPage'))
+const EmployeeDraftsPage = lazy(() => import('./pages/EmployeeDraftsPage'))
+const AboutPage = lazy(() => import('./pages/AboutPages').then((m) => ({ default: m.AboutPage })))
+const PricingPage = lazy(() => import('./pages/AboutPages').then((m) => ({ default: m.PricingPage })))
+const TermsPage = lazy(() => import('./pages/AboutPages').then((m) => ({ default: m.TermsPage })))
+const PrivacyPage = lazy(() => import('./pages/AboutPages').then((m) => ({ default: m.PrivacyPage })))
+const BackupVersionsPage = lazy(() => import('./pages/AboutPages').then((m) => ({ default: m.BackupVersionsPage })))
 const ModulesPage = lazy(() => import('./pages/ModulesPage'))
 const LeavesPage = lazy(() => import('./pages/LeavesPage'))
 const AttendancePage = lazy(() => import('./pages/AttendancePage'))
@@ -77,6 +83,7 @@ export default function App() {
       <Route element={<Layout />}>
         <Route index element={<Home />} />
         <Route path="salaries" element={<RoleGuard to="/salaries"><EmployeesPage /></RoleGuard>} />
+        <Route path="salaries/en-cours" element={<RoleGuard to="/salaries/en-cours"><EmployeeDraftsPage /></RoleGuard>} />
         <Route path="salaries/:id" element={<RoleGuard roles={staff}><EmployeeDetailPage /></RoleGuard>} />
         <Route path="dossiers-salaries" element={<RoleGuard to="/dossiers-salaries"><EmployeeDocumentsPage /></RoleGuard>} />
         <Route path="conges" element={<LeavesPage />} />
@@ -112,6 +119,11 @@ export default function App() {
         <Route path="demandes" element={<RoleGuard to="/demandes"><RequestsPage /></RoleGuard>} />
         <Route path="mes-bulletins" element={<MySlipsPage />} />
         <Route path="aide" element={<HelpPage />} />
+        <Route path="a-propos" element={<RoleGuard to="/a-propos"><AboutPage /></RoleGuard>} />
+        <Route path="tarification" element={<RoleGuard to="/tarification"><PricingPage /></RoleGuard>} />
+        <Route path="conditions-utilisation" element={<RoleGuard to="/conditions-utilisation"><TermsPage /></RoleGuard>} />
+        <Route path="confidentialite" element={<RoleGuard to="/confidentialite"><PrivacyPage /></RoleGuard>} />
+        <Route path="sauvegardes-versions" element={<RoleGuard to="/sauvegardes-versions"><BackupVersionsPage /></RoleGuard>} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
     </Routes>

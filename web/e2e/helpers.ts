@@ -35,6 +35,8 @@ export async function login(page: Page, role: QaRole) {
 
 /** Ouvre l'application avec la session enregistrée du rôle (`test.use({ storageState: stateFile(role) })`). */
 export async function start(page: Page, route = '/') {
+  // menu épinglé ouvert par défaut pour des tests déterministes (par défaut l'application le replie : volet au survol) ; un test peut le changer
+  await page.addInitScript(() => { try { if (localStorage.getItem('nav-rail') === null) localStorage.setItem('nav-rail', '0') } catch { /* stockage indisponible */ } })
   await page.goto(route)
   await expect(page.getByRole('navigation', { name: 'Navigation principale' })).toBeVisible()
 }

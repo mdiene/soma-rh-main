@@ -13,7 +13,7 @@ begin
 
   execute 'set local role authenticated';
   perform set_config('request.jwt.claim.sub', v_rh::text, true);
-  v_emp := public.create_employee_from_wizard(jsonb_build_object('first_name', 'AlerteTest', 'last_name', 'Structure', 'employment_type', 'CDI', 'date_of_joining', current_date::text), null, null);
+  v_emp := public.create_employee_from_wizard(jsonb_build_object('first_name', 'AlerteTest', 'last_name', 'Structure', 'employment_type', 'CDI', 'date_of_joining', current_date::text, 'id_document_number', 'TEST-CNI-ALERTE'), null, null);
   v_id := (v_emp->>'id')::uuid;
 
   select count(*) into n from public.structure_pending_alerts() a where a.employee_id = v_id and a.code = 'structure_a_affecter';

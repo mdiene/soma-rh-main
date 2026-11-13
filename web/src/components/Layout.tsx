@@ -1,8 +1,8 @@
 import clsx from 'clsx'
 import { AnimatePresence, LayoutGroup, MotionConfig, motion } from 'framer-motion'
-import { ChevronsLeft, ChevronsRight, LogOut, Menu, Search, Star } from 'lucide-react'
+import { LogOut, Menu, Pin, PinOff, Search, Star } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
-import { Suspense, useEffect, useState, useSyncExternalStore } from 'react'
+import { Suspense, useEffect, useRef, useState, useSyncExternalStore } from 'react'
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import { useAuth } from '../lib/auth'
 import { dataApi, unwrap, type ApiClient } from '../lib/api'
@@ -95,9 +95,22 @@ export function Layout() {
   const [picked, setPicked] = useState<{ id: string; path: string }>()
   // panneau flottant (volet replié) : à côté de l'icône cliquée
   const [fly, setFly] = useState<{ id: string; top: number }>()
-  // volet replié (bureau seulement), mémorisé par navigateur
-  const [rail, setRail] = useState(() => { try { return localStorage.getItem('nav-rail') === '1' } catch { return false } })
+  // menu épinglé ouvert ou non (bureau seulement), mémorisé par navigateur. Non épinglé (par défaut) : le rail d'icônes reste seul,
+  // le volet de chaque espace se déploie au survol ou au clic et se referme au clic sur une page ou quand la souris sort de la zone.
+  const [rail, setRail] = useState(() => { try { return localStorage.getItem('nav-rail') !== '0' } catch { return true } })
   const toggleRail = () => { setFly(undefined); setRail((v) => { try { localStorage.setItem('nav-rail', v ? '0' : '1') } catch { /* stockage indisponible */ } return !v }) }
+  // survol : ouverture immédiate, fermeture après un court délai (le temps de passer de l'icône au volet)
+  const closeTimer = useRef<number>()
+  const cancelClose = () => window.clearTimeout(closeTimer.current)
+  const hoverClose = () => { cancelClose(); closeTimer.current = window.setTimeout(() => setFly(undefined), 220) }
+  useEffect(() => () => window.clearTimeout(closeTimer.current), [])
+  // clic ou toucher en dehors du rail et du volet flottant : fermeture (le survol seul ne suffit pas sur écran tactile)
+  useEffect(() => {
+    if (!fly) return
+    const outside = (e: PointerEvent) => { if (!(e.target as Element | null)?.closest('[data-nav-zone]')) setFly(undefined) }
+    document.addEventListener('pointerdown', outside)
+    return () => document.removeEventListener('pointerdown', outside)
+  }, [fly])
 
   // Ctrl+K / Cmd+K : recherche rapide
   useEffect(() => {
@@ -192,13 +205,15 @@ export function Layout() {
                     const isActive = s.id === activeId
                     const n = total(s)
                     return (
-                      <div key={s.id} className="group relative">
+                      <div key={s.id} className="group relative" data-nav-zone
+                        onPointerEnter={(e) => { if (collapsed && e.pointerType === 'mouse') { cancelClose(); setFly({ id: s.id, top: e.currentTarget.getBoundingClientRect().top }) } }}
+                        onPointerLeave={(e) => { if (collapsed && e.pointerType === 'mouse') hoverClose() }}>
                         <motion.button
                           whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
                           onClick={(e) => {
                             if (collapsed) {
                               const r = e.currentTarget.getBoundingClientRect()
-                              setFly((f) => (f?.id === s.id ? undefined : { id: s.id, top: r.top }))
+                              setFly({ id: s.id, top: r.top }) // ouvert au survol : le clic le garde ouvert (Échap, clic ailleurs ou sortie de la souris le ferment)
                             } else { setPicked({ id: s.id, path: pathname }); setFly(undefined) }
                           }}
                           aria-label={n ? `${s.label}, ${n} en attente` : s.label}
@@ -214,7 +229,7 @@ export function Layout() {
                           <s.icon className="relative h-5 w-5" aria-hidden />
                           <Badge n={n} className="absolute -right-0.5 -top-0.5 min-w-[1.25rem] text-center" />
                         </motion.button>
-                        <Tip>{s.label}</Tip>
+                        {!collapsed && <Tip>{s.label}</Tip>}
                       </div>
                     )
                   })}
@@ -225,8 +240,8 @@ export function Layout() {
                       <button onClick={() => setPalette(true)} title="Rechercher (Ctrl+K)" aria-label="Rechercher une page (Ctrl+K)" className={railButtonCls}>
                         <Search className="h-5 w-5" aria-hidden />
                       </button>
-                      <button onClick={toggleRail} aria-pressed={rail} aria-label="Développer le menu" title="Développer le menu" className={railButtonCls}>
-                        <ChevronsRight className="h-5 w-5" aria-hidden />
+                      <button onClick={toggleRail} aria-pressed={false} aria-label="Épingler le menu ouvert" title="Épingler le menu : le garder ouvert en permanence" className={railButtonCls}>
+                        <Pin className="h-5 w-5" aria-hidden />
                       </button>
                     </>
                   )}
@@ -252,8 +267,8 @@ export function Layout() {
                     ? <h2 className="min-w-0 flex-1 truncate text-sm font-semibold">{active?.label ?? ''}</h2>
                     : <div className="flex-1"><Brand /></div>}
                   {hasRail && desktop && (
-                    <button onClick={toggleRail} aria-pressed={rail} aria-label="Réduire le menu" title="Réduire le menu" className="rounded p-1 text-white/60 hover:bg-white/10 hover:text-white">
-                      <ChevronsLeft className="h-4 w-4" aria-hidden />
+                    <button onClick={toggleRail} aria-pressed={true} aria-label="Désépingler le menu (le replier)" title="Désépingler : le menu se replie et se déploie au survol" className="rounded p-1 text-white/60 hover:bg-white/10 hover:text-white">
+                      <PinOff className="h-4 w-4" aria-hidden />
                     </button>
                   )}
                 </div>
@@ -306,15 +321,20 @@ export function Layout() {
           <AnimatePresence>
             {collapsed && fly && flySpace && (
               <>
-                <div className="fixed inset-0 z-40 hidden lg:block" onClick={() => setFly(undefined)} aria-hidden />
                 <motion.div
-                  role="group" aria-label={flySpace.label}
+                  role="group" aria-label={flySpace.label} data-nav-zone
+                  onPointerEnter={(e) => { if (e.pointerType === 'mouse') cancelClose() }} onPointerLeave={(e) => { if (e.pointerType === 'mouse') hoverClose() }}
                   initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
                   transition={{ type: 'spring', stiffness: 420, damping: 32 }}
                   className="fixed z-50 hidden w-64 origin-top-left rounded-md border border-white/10 bg-ink p-2 text-white shadow-xl lg:block"
                   style={{ left: '4.75rem', top: Math.max(8, Math.min(fly.top, window.innerHeight - 48 - flySpace.items.length * 34)) }}
                 >
-                  <p className="px-2 pb-1 pt-0.5 text-xs font-medium text-white/50">{flySpace.label}</p>
+                  <div className="flex items-center justify-between px-2 pb-1 pt-0.5">
+                    <p className="text-xs font-medium text-white/50">{flySpace.label}</p>
+                    <button onClick={toggleRail} aria-pressed={false} aria-label="Épingler le menu ouvert" title="Épingler le menu : le garder ouvert en permanence" className="rounded p-1 text-white/50 hover:bg-white/10 hover:text-white">
+                      <Pin className="h-3.5 w-3.5" aria-hidden />
+                    </button>
+                  </div>
                   <ul className="space-y-0.5">
                     {flySpace.items.map((i) => <li key={i.to}><ItemLink item={i} counts={counts} fav={favOf(i.to)} onNavigate={done} /></li>)}
                   </ul>

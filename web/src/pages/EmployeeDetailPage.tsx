@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { ArrowLeft, FileText, ListChecks, Lock, PencilLine, Save, Target } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
+import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { omit, dataApi, unwrap, type Tables } from '../lib/api'
 import { selectable, useAgreements, useCompany, useContractTypes, useDesignations, useGrades, usePaymentModes } from '../lib/queries'
 import { useAuth } from '../lib/auth'
@@ -11,6 +11,7 @@ import { Badge, Button, ErrorNote, Modal, PageHeader, Section, SelectField, Spin
 import { EmployeeFicheButton } from '../components/EmployeeFiche'
 import { AttestationModal } from '../components/AttestationModal'
 import { EmployeeWizard } from '../components/EmployeeWizard'
+import { asksMaidenName, partsAlerts, PARTS_MEMO, personName, senegalParts } from '../lib/employeeWizard'
 import { ModuleSection } from '../components/ModuleSection'
 import { JobHistorySection } from '../components/JobHistorySection'
 
@@ -26,6 +27,8 @@ const EMPTY: Partial<Emp> = {
 export default function EmployeeDetailPage() {
   const { id } = useParams()
   const isNew = id === 'nouveau'
+  // reprise d'une saisie mise en attente : /salaries/nouveau?brouillon=<id>
+  const draftId = useSearchParams()[0].get('brouillon') ?? undefined
   const nav = useNavigate()
   const location = useLocation()
   const qc = useQueryClient()
@@ -72,6 +75,7 @@ export default function EmployeeDetailPage() {
   // création : l'utilisateur choisit la saisie avec assistant ou la saisie complète (choix mémorisable)
   const [mode, setMode] = useState<'assistant' | 'complete' | null>(() => {
     if (!isNew) return null
+    if (draftId) return 'assistant'
     try { const v = localStorage.getItem(MODE_KEY); return v === 'assistant' || v === 'complete' ? v : null } catch { return null }
   })
   const [wizardOpen, setWizardOpen] = useState(() => isNew && mode === 'assistant')
@@ -85,11 +89,17 @@ export default function EmployeeDetailPage() {
 
   const save = useMutation({
     mutationFn: async () => {
-      const payload = omit({ ...form, company_id: form.company_id ?? company.data?.id } as Emp, 'created_at', 'updated_at', 'employee_number')
-      if (isNew) {
-        return unwrap(await dataApi.from('employees').insert(omit(payload, 'id') as Emp).select().single())
+      // N° de CNI ou de passeport obligatoire à la création ; nom complet de la mère composé de son prénom et de son nom
+      if (isNew && String(form.id_document_number ?? '').trim() === '') throw new Error('Le numéro de CNI ou de passeport est obligatoire.')
+      const mother = `${form.mother_first_name ?? ''} ${form.mother_last_name ?? ''}`.trim()
+      const payload = omit({ ...form, ...(mother ? { mother_name: personName(mother) } : {}), company_id: form.company_id ?? company.data?.id } as Emp, 'created_at', 'updated_at', 'employee_number')
+      try {
+        if (isNew) return unwrap(await dataApi.from('employees').insert(omit(payload, 'id') as Emp).select().single())
+        return unwrap(await dataApi.from('employees').update(payload).eq('id', id!).select().single())
+      } catch (e) {
+        if (/employees_id_document_uidx/.test(String((e as Error)?.message))) throw new Error('Ce numéro de CNI ou de passeport est déjà attribué à un autre salarié.')
+        throw e
       }
-      return unwrap(await dataApi.from('employees').update(payload).eq('id', id!).select().single())
     },
     onSuccess: (row) => {
       qc.invalidateQueries({ queryKey: ['employees'] })
@@ -130,10 +140,15 @@ export default function EmployeeDetailPage() {
           </label>
         </section>
       )}
-      {isNew && !readOnly && <EmployeeWizard open={wizardOpen} onClose={() => setWizardOpen(false)} />}
+      {isNew && !readOnly && <EmployeeWizard open={wizardOpen} onClose={() => setWizardOpen(false)} draftId={draftId} />}
       <ErrorNote error={emp.error || save.error} />
       {created && !save.isSuccess && <p className="mb-4 rounded border border-river/30 bg-river-light px-3 py-2 text-sm text-river-dark">Salarié créé avec le matricule <strong>{created}</strong>.</p>}
       {save.isSuccess && !isNew && <p role="status" className="mb-4 rounded border border-river/30 bg-river-light px-3 py-2 text-sm text-river-dark">Fiche enregistrée.</p>}
+      {!isNew && emp.data && !String(emp.data.id_document_number ?? '').trim() && (
+        <p role="alert" className="mb-4 rounded border border-signal/50 bg-signal-light px-3 py-2 text-sm font-medium text-signal">
+          <strong>N° de CNI ou de passeport manquant.</strong> Il est obligatoire et unique pour chaque salarié : renseignez-le dans la section Identité.
+        </p>
+      )}
       {/* RPR-13 : la validation de la 1re paie est refusée sans référence de déclaration d'embauche ; on le signale dès la fiche */}
       {!isNew && emp.data && !emp.data.hire_declaration_ref && (
         <p role="alert" className="mb-4 rounded border border-phosphate bg-phosphate-light px-3 py-2 text-sm text-ink">
@@ -166,14 +181,17 @@ export default function EmployeeDetailPage() {
             <SelectField label="Sexe" value={form.gender ?? ''} onChange={set('gender')}><option value="">—</option><option value="M">Masculin</option><option value="F">Féminin</option></SelectField>
             <TextField label="Prénom" required value={form.first_name ?? ''} onChange={set('first_name')} />
             <TextField label="Nom" required value={form.last_name ?? ''} onChange={set('last_name')} />
+            {asksMaidenName(form) && <TextField label="Nom de jeune fille" value={form.maiden_name ?? ''} onChange={set('maiden_name')} />}
             <TextField label="Date de naissance" type="date" value={form.date_of_birth ?? ''} onChange={set('date_of_birth')} />
             <TextField label="Lieu de naissance" value={form.place_of_birth ?? ''} onChange={set('place_of_birth')} />
             <TextField label="Nationalité" value={form.nationality ?? ''} onChange={set('nationality')} />
-            <TextField data-fix="id_document_number" label="N° CNI ou passeport" value={form.id_document_number ?? ''} onChange={set('id_document_number')} />
+            <TextField data-fix="id_document_number" label="N° CNI ou passeport" required={isNew} value={form.id_document_number ?? ''} onChange={set('id_document_number')} hint="Obligatoire et unique : deux salariés ne peuvent pas avoir le même numéro." />
             <TextField label="Délivrée le" type="date" value={form.id_issue_date ?? ''} onChange={set('id_issue_date')} />
             <TextField data-fix="id_expiry_date" label="Expire le" type="date" value={form.id_expiry_date ?? ''} onChange={set('id_expiry_date')} />
-            <TextField label="Père" value={form.father_name ?? ''} onChange={set('father_name')} />
-            <TextField label="Mère" value={form.mother_name ?? ''} onChange={set('mother_name')} />
+            <TextField label="Père (nom et prénom)" value={form.father_name ?? ''} onChange={set('father_name')} />
+            <span />
+            <TextField label="Prénom de la mère" value={form.mother_first_name ?? ''} onChange={set('mother_first_name')} />
+            <TextField label="Nom de la mère" value={form.mother_last_name ?? ''} onChange={set('mother_last_name')} />
           </div>
         </Section>
 
@@ -201,6 +219,19 @@ export default function EmployeeDetailPage() {
             <TextField label="Enfants à charge" type="number" min={0} value={form.children_count ?? 0} onChange={set('children_count')} />
             <TextField label="Parts TRIMF" type="number" step="0.5" min={1} value={form.trimf_parts ?? 1} onChange={set('trimf_parts')} />
             <TextField label="Parts IR (quotient familial)" type="number" step="0.5" min={1} max={5} value={form.ir_parts ?? 1} onChange={set('ir_parts')} hint="De 1 à 5 parts" />
+            {/* parts : calcul automatique du référentiel 2026 ; la saisie manuelle reste possible, un écart déclenche l'alerte rouge */}
+            <div className="space-y-2 sm:col-span-3">
+              {partsAlerts(form).length > 0 && (
+                <div role="alert" className="rounded border border-signal/50 bg-signal-light px-3 py-2 text-sm font-medium text-signal">
+                  <ul className="list-disc pl-4">{partsAlerts(form).map((a) => <li key={a.field}>{a.message}</li>)}</ul>
+                  <Button size="sm" className="mt-2" disabled={readOnly} onClick={() => { const p = senegalParts({ gender: form.gender, marital: form.marital_status, spouses: form.spouses_count, children: form.children_count }); setForm((f) => ({ ...f, ir_parts: p.ir, trimf_parts: p.trimf })) }}>Appliquer le calcul automatique</Button>
+                </div>
+              )}
+              <div className="rounded border border-line bg-paper px-3 py-2 text-xs text-ink-soft">
+                <p className="font-medium text-ink">Calcul automatique des parts : formules utilisées</p>
+                <ul className="mt-1 list-disc space-y-0.5 pl-4">{PARTS_MEMO.map((m) => <li key={m}>{m}</li>)}</ul>
+              </div>
+            </div>
           </div>
         </Section>
 

@@ -75,7 +75,7 @@ const FN_M = ['Mamadou','Ousmane','Cheikh','Papa','Modou','Serigne','Babacar','L
 const FN_F = ['Aissatou','Mariama','Ndeye','Coumba','Rokhaya','Sokhna','Astou','Bineta','Dieynaba','Penda','Marieme','Yacine','Adama','Seynabou','Ramatoulaye','Codou','Maimouna','Nafissatou','Fama','Diarra']
 const LN = ['Diallo','Ndiaye','Sy','Cissé','Seck','Gning','Camara','Niang','Samb','Tall','Diagne','Lô','Sène','Badji','Dione','Mendy','Faye','Sarr','Kébé','Thioune','Ndao','Wade','Bâ','Diouf','Fall','Mbow','Gaye','Toure','Sagna','Coly']
 
-export type NewEmployee = { sex: 'M' | 'F'; fn: string; ln: string; dob: string; ms: string; kids: number; job: string; ag: string; cat: number; doj: string }
+export type NewEmployee = { cni: string; sex: 'M' | 'F'; fn: string; ln: string; dob: string; ms: string; kids: number; job: string; ag: string; cat: number; doj: string }
 
 /** Secteurs de la simulation : convention, emplois proposés, nombre de catégories de la grille. */
 export const SECTORS: { ag: string; jobs: string[]; cats: number }[] = [
@@ -98,7 +98,7 @@ export function makeEmployee(i: number, sector: { ag: string; jobs: string[]; ca
   const y = 1975 + ((i * 5) % 25)
   const m = String(1 + ((i * 7) % 12)).padStart(2, '0')
   const d = String(1 + ((i * 3) % 27)).padStart(2, '0')
-  return { sex, fn, ln, dob: `${y}-${m}-${d}`, ms: i % 2 ? 'Marié(e)' : 'Célibataire', kids: i % 2 ? i % 4 : 0, job: sector.jobs[i % sector.jobs.length], ag: sector.ag, cat: 1 + ((i * 5) % sector.cats), doj }
+  return { cni: `SIM-CNI-${String(i).padStart(5, '0')}`, sex, fn, ln, dob: `${y}-${m}-${d}`, ms: i % 2 ? 'Marié(e)' : 'Célibataire', kids: i % 2 ? i % 4 : 0, job: sector.jobs[i % sector.jobs.length], ag: sector.ag, cat: 1 + ((i * 5) % sector.cats), doj }
 }
 
 async function pick(page: Page, label: string, text: string) {
@@ -119,6 +119,7 @@ export async function createEmployeeUI(page: Page, e: NewEmployee, assign = true
   await field(page, 'Nom').fill(e.ln)
   await field(page, 'Date de naissance').fill(e.dob)
   await field(page, 'Nationalité').fill('sénégalaise')
+  await field(page, 'N° CNI ou passeport').fill(e.cni) // obligatoire et unique
   await pick(page, 'Situation de famille', e.ms)
   await field(page, 'Enfants à charge').fill(String(e.kids))
   await pick(page, 'Emploi', e.job)
