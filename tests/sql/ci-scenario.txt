@@ -1,0 +1,2 @@
+# Tests SQL qui exigent des données de scénario absentes d'une base neuve (QA-01), un nom par ligne, sans .sql.
+# Ignorés par la CI tant qu'un jeu fictif versionné n'est pas chargé. Vide au départ : le premier passage de la CI dira lesquels y mettre.

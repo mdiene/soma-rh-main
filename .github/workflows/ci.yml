@@ -37,4 +37,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       # base neuve = instantané db/baseline + migrations postérieures à la coupure ; échoue à la première erreur
-      - run: bash scripts/replay-migrations.sh
+      - run: bash scripts/replay-migrations.sh --keep
+      # SEC-06 : aucune fonction public exécutable par anon (échoue en premier, message dédié)
+      - run: bash scripts/ci-sql-tests.sh rpc_droits
+      # ARCH-02 : tous les tests SQL sur la base reconstruite (ROAD-05). verify-payroll : en attente de DEC-03
+      - run: bash scripts/ci-sql-tests.sh
