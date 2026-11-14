@@ -1,2 +1,4 @@
 ﻿date;session;agent;lot;branche
 2026-11-14 11:46;soma-controle-phase1;soma-controle;phase1;feat/saisie-salarie-menu-apropos
+2026-11-14 11:51;soma-securite-road01;soma-securite;road01;chore/agents-audit
+2026-11-14 11:52;soma-base-road06;soma-base;road06;chore/agents-audit
