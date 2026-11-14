@@ -10,11 +10,15 @@
 ## SEC-06 : pas de nouveau test
 `tests/sql/rpc_droits.sql` vérifie déjà qu'aucune fonction `public` (`prokind` f/p) n'est exécutable par `anon`, et que les privilèges par défaut retirent EXECUTE à PUBLIC. Il est exécuté en étape dédiée. Non couvert : « chaque `security definer` commence par un contrôle de rôle » (heuristique sur `prosrc` fragile ; à décider avec soma-securite).
 
-## Résultats
-**Rien n'a été exécuté** : Docker Desktop est arrêté sur ce poste. Seul `bash -n` sur le script est passé. Aucun chiffre de tests.
+## Résultats (Docker démarré, rejeu baseline réel)
+- Rejeu `replay-migrations.sh --keep` : OK.
+- Base neuve : 67 tests, 9 OK, 58 échecs, tous pour absence de données de scénario (« jeu de données insuffisant », « no rows returned for \gset »…), aucun autre motif.
+- Les 58 sont listés dans `tests/sql/ci-scenario.txt` (ignorés) → `ci-sql-tests.sh` : 9 test(s), 0 échec(s) ; 58 IGNORÉ.
+- Preuve rouge SEC-06 : fonction `zz_piege` accordée à `anon` → `rpc_droits` échoue (exit 1) ; retirée → OK.
+- Non fait : preuve « test SQL cassé » en CI réelle (GitHub) ; empreinte (DEC-03).
 
 ## Défauts / points ouverts
-- Les tests de scénario (QA-01, 14 échecs au 12/11) échoueront probablement sur base neuve : au premier passage, lister les noms dans `ci-scenario.txt` ou faire charger un scénario fictif par `soma-base`.
+- **Couverture réelle = 9 tests sur 67** tant qu'aucun scénario fictif versionné n'est chargé (soma-base) : la CI protège peu. Vider `ci-scenario.txt` au fil du chargement.
 - Le worktree principal `C:\IT-Mozaic\soma-rh-main` est sur `fix/road06-doublons-migrations` (changé en cours de session, `docs/audit` y est absent) : j'ai donc travaillé dans un worktree séparé.
 
 ## Reste à faire
